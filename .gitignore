@@ -32,10 +32,18 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Evidence & Artifacts
-.automation/
+# Evidence & Artifacts (keep structure, ignore contents)
+.automation/evidence/*
+!.automation/evidence/.gitkeep
+.automation/checkpoints/*
+!.automation/checkpoints/.gitkeep
+.automation/traces/*
+!.automation/traces/.gitkeep
 .telemetry/
 checkpoints.db
+
+# But keep .automation/README.md
+!.automation/README.md
 
 # Temporary
 tmp/

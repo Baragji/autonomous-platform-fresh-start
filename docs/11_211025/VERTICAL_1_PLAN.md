@@ -85,7 +85,7 @@ User → Gateway → MCA → Planner → Implementer → Runner → Validator �
          ↓              ↓              ↓              ↓
 ┌─────────────┐ ┌──────────────┐ ┌─────────┐ ┌──────────────┐
 │   Planner   │ │ Implementer  │ │ Runner  │ │  Validator   │
-│  (OpenAI)   │ │ (Anthropic)  │ │ (E2B)   │ │   (OpenAI)   │
+│  (OpenAI)   │ │ (OpenAI)     │ │ (E2B)   │ │   (OpenAI)   │
 │             │ │              │ │         │ │              │
 │ • Decompose │ │ • Text Editor│ │ • npm   │ │ • Re-run     │
 │   into tasks│ │   Tool       │ │   test  │ │   tests      │
@@ -182,14 +182,14 @@ User → Gateway → MCA → Planner → Implementer → Runner → Validator �
    - [ ] Write unit tests
 
 2. **Implementer Agent** (4 days)
-   - [ ] Install Anthropic SDK
-   - [ ] Implement implementerAgent with Text Editor Tool
+   - [ ] Install OpenAI SDK
+   - [ ] Implement implementerAgent with OpenAI Function Calling
    - [ ] Handle tool calls: view, create, str_replace, insert
    - [ ] Execute edits against VFS
    - [ ] Store all edits in MinIO (audit trail)
    - [ ] Add syntax validation (TypeScript compiler API)
    - [ ] Add Langfuse tracing
-   - [ ] Write unit tests with mock Anthropic responses
+   - [ ] Write unit tests with mock OpenAI responses
 
 3. **SSE Streaming** (2 days)
    - [ ] Publish edit events to Redis Stream
