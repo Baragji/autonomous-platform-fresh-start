@@ -156,8 +156,7 @@ Failing any gate triggers the Iteration Protocol.
 
 ## 📚 References
 - CONSTITUTION.md (Articles I, II, III, V, VI)
-- 11_211025/ARCHITECTURE_DECISION.md
-- 11_211025/VERTICAL_1_TOOLING.md
-- 11_211025/VERTICAL_1_PLAN.md
-- 11_211025/WEEK_1_DOD.md (current week's outcomes)
-
+- docs/11_211025/ARCHITECTURE_DECISION.md
+- docs/11_211025/VERTICAL_1_TOOLING.md
+- docs/11_211025/VERTICAL_1_PLAN.md
+- docs/11_211025/WEEK_1_DOD.md (current week's outcomes)

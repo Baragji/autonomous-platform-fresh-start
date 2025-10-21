@@ -14,8 +14,8 @@
 
 1. **[CONSTITUTION.md](CONSTITUTION.md)** - Supreme law (immutable principles)
 2. **[AGENTS.md](AGENTS.md)** - Universal workflow for ALL AI builders
-3. **[11_211025/WEEK_1_DOD.md](11_211025/WEEK_1_DOD.md)** - Current week's outcomes
-4. **[11_211025/ARCHITECTURE_DECISION.md](11_211025/ARCHITECTURE_DECISION.md)** - Why Smart MCA architecture
+3. **[docs/11_211025/WEEK_1_DOD.md](docs/11_211025/WEEK_1_DOD.md)** - Current week's outcomes
+4. **[docs/11_211025/ARCHITECTURE_DECISION.md](docs/11_211025/ARCHITECTURE_DECISION.md)** - Why Smart MCA architecture
 
 **Don't start work without reading items 1-2.**
 
@@ -99,7 +99,7 @@ MCA (Smart LangGraph Supervisor)
 - ❌ Monolithic architecture
 - ❌ Custom implementations of battle-tested tools
 
-**Why OpenAI-only?** See [ARCHITECTURE_DECISION.md](11_211025/ARCHITECTURE_DECISION.md) and user has OpenAI credits.
+**Why OpenAI-only?** See [ARCHITECTURE_DECISION.md](docs/11_211025/ARCHITECTURE_DECISION.md) and user has OpenAI credits.
 
 ---
 
@@ -117,7 +117,7 @@ MCA (Smart LangGraph Supervisor)
 
 **Follow this DoD:**
 ```bash
-cat 11_211025/WEEK_1_DOD.md
+cat docs/11_211025/WEEK_1_DOD.md
 ```
 
 **Steps:**
@@ -144,16 +144,16 @@ cat 11_211025/WEEK_1_DOD.md
 - **[AGENTS.md](AGENTS.md)** - Universal workflow for AI builders (iteration protocol, tech stack, gates)
 
 ### Architecture & Design:
-- **[11_211025/ARCHITECTURE_DECISION.md](11_211025/ARCHITECTURE_DECISION.md)** - Why Smart MCA + Smart Specialists + Zero-Trust Validator
-- **[11_211025/VERTICAL_1_TOOLING.md](11_211025/VERTICAL_1_TOOLING.md)** - Production tool stack (OpenAI, LangGraph, E2B, etc.)
-- **[11_211025/VERTICAL_1_PLAN.md](11_211025/VERTICAL_1_PLAN.md)** - 8-week implementation roadmap
+- **[docs/11_211025/ARCHITECTURE_DECISION.md](docs/11_211025/ARCHITECTURE_DECISION.md)** - Why Smart MCA + Smart Specialists + Zero-Trust Validator
+- **[docs/11_211025/VERTICAL_1_TOOLING.md](docs/11_211025/VERTICAL_1_TOOLING.md)** - Production tool stack (OpenAI, LangGraph, E2B, etc.)
+- **[docs/11_211025/VERTICAL_1_PLAN.md](docs/11_211025/VERTICAL_1_PLAN.md)** - 8-week implementation roadmap
 
 ### Execution (Current Week):
-- **[11_211025/WEEK_1_DOD.md](11_211025/WEEK_1_DOD.md)** - Week 1 Definition of Done (infrastructure setup)
+- **[docs/11_211025/WEEK_1_DOD.md](docs/11_211025/WEEK_1_DOD.md)** - Week 1 Definition of Done (infrastructure setup)
 
 ### Research:
-- **[11_211025/umca_RA_part2.md](11_211025/umca_RA_part2.md)** - RA research on OpenAI vs Anthropic for code generation
-- **[11_211025/umca_research_report_multi_agent_ai_coding_system_oct_2025.md](11_211025/umca_research_report_multi_agent_ai_coding_system_oct_2025.md)** - Original RA research
+- **[docs/11_211025/umca_RA_part2.md](docs/11_211025/umca_RA_part2.md)** - RA research on OpenAI vs Anthropic for code generation
+- **[docs/11_211025/umca_research_report_multi_agent_ai_coding_system_oct_2025.md](docs/11_211025/umca_research_report_multi_agent_ai_coding_system_oct_2025.md)** - Original RA research
 
 ---
 
@@ -250,7 +250,7 @@ This repository is governed by **[CONSTITUTION.md](CONSTITUTION.md)**.
 - **Week 5-6:** Runner + E2B + Test Execution
 - **Week 7-8:** Validator + Remediation Loops + End-to-End
 
-**Full roadmap:** [11_211025/VERTICAL_1_PLAN.md](11_211025/VERTICAL_1_PLAN.md)
+**Full roadmap:** [docs/11_211025/VERTICAL_1_PLAN.md](docs/11_211025/VERTICAL_1_PLAN.md)
 
 ---
 
@@ -292,10 +292,10 @@ Proprietary. All rights reserved.
 ## 🔗 Quick Links
 
 - **Governance:** [CONSTITUTION.md](CONSTITUTION.md) | [AGENTS.md](AGENTS.md)
-- **Architecture:** [ARCHITECTURE_DECISION.md](11_211025/ARCHITECTURE_DECISION.md) | [VERTICAL_1_TOOLING.md](11_211025/VERTICAL_1_TOOLING.md)
-- **Execution:** [WEEK_1_DOD.md](11_211025/WEEK_1_DOD.md) | [VERTICAL_1_PLAN.md](11_211025/VERTICAL_1_PLAN.md)
-- **Research:** [umca_RA_part2.md](11_211025/umca_RA_part2.md)
+- **Architecture:** [ARCHITECTURE_DECISION.md](docs/11_211025/ARCHITECTURE_DECISION.md) | [VERTICAL_1_TOOLING.md](docs/11_211025/VERTICAL_1_TOOLING.md)
+- **Execution:** [WEEK_1_DOD.md](docs/11_211025/WEEK_1_DOD.md) | [VERTICAL_1_PLAN.md](docs/11_211025/VERTICAL_1_PLAN.md)
+- **Research:** [umca_RA_part2.md](docs/11_211025/umca_RA_part2.md)
 
 ---
 
-**Ready to start?** Begin with [WEEK_1_DOD.md](11_211025/WEEK_1_DOD.md)
+**Ready to start?** Begin with [WEEK_1_DOD.md](docs/11_211025/WEEK_1_DOD.md)

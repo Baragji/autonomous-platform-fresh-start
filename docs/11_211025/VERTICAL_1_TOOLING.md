@@ -863,7 +863,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 ## References
 
-- RA Research Report: `11_211025/umca_research_report_multi_agent_ai_coding_system_oct_2025.md`
+- RA Research Report: `docs/11_211025/umca_research_report_multi_agent_ai_coding_system_oct_2025.md`
 - Architecture Decision: `ARCHITECTURE_DECISION.md`
 - LangGraph Docs: https://langchain-ai.github.io/langgraph/
 - OpenAI Function Calling: https://platform.openai.com/docs/guides/function-calling

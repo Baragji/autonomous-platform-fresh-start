@@ -250,8 +250,8 @@ If any of these fail, we'll revisit the architecture empirically (not via LLM re
 
 ## References
 
-- RA Research Report: `11_211025/umca_research_report_multi_agent_ai_coding_system_oct_2025.md`
-- Complete Log: `11_211025/complete_log.md` (Log Slices 5-7)
+- RA Research Report: `docs/11_211025/umca_research_report_multi_agent_ai_coding_system_oct_2025.md`
+- Complete Log: `docs/11_211025/complete_log.md` (Log Slices 5-7)
 - GPT Round 1 Research: Dumb orchestrator recommendation (biased toward cost)
 - GPT Round 2 Research: Smart MCA recommendation (biased toward autonomy)
 - User's Architecture Insight: "Specialists should BE intelligent, not just call tools"
