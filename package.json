@@ -1,0 +1,22 @@
+{
+  "name": "autonomous-platform",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "npm-run-all --parallel dev:gateway dev:mca dev:planner",
+    "dev:gateway": "npm --prefix packages/gateway run dev",
+    "dev:mca": "npm --prefix packages/mca run dev",
+    "dev:planner": "npm --prefix packages/planner run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "turbo": "^2.2.2",
+    "typescript": "^5.6.3",
+    "npm-run-all": "^4.1.5"
+  }
+}
