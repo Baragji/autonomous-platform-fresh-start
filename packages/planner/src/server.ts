@@ -30,8 +30,10 @@ app.post('/plan', async (req: Request, res: Response) => {
       ? fs.readFileSync(resolvedPrompt, 'utf-8')
       : 'You are a task planner. Break user requests into 2-10 concrete tasks.';
     let planObj: unknown | null = null;
+    type ChatResponse = Awaited<ReturnType<typeof client.chat.completions.create>>;
+    let llmResponse: ChatResponse | null = null;
     try {
-      const response = await client.chat.completions.create({
+      llmResponse = await client.chat.completions.create({
         model: process.env.OPENAI_MODEL || 'gpt-4o-2024-08-06',
         messages: [
           { role: 'system', content: plannerPrompt },
@@ -69,7 +71,7 @@ app.post('/plan', async (req: Request, res: Response) => {
           }
       }
       });
-      const content = response.choices[0]?.message?.content || '{}';
+      const content = llmResponse.choices[0]?.message?.content || '{}';
       planObj = JSON.parse(content);
     } catch (_e) {
       // Fallback minimal plan (deterministic), still validated by Zod
@@ -89,11 +91,11 @@ app.post('/plan', async (req: Request, res: Response) => {
 
     // Langfuse usage logging (best-effort)
     const lf = getLangfuse();
-    const usage = (response as { usage?: Record<string, unknown> }).usage;
+    const usage = llmResponse?.usage as Record<string, unknown> | undefined;
     if (lf && usage) {
       const trace = lf.trace({ name: 'planner.plan' });
       trace.generation({
-        model: String((response as { model?: string }).model || 'openai'),
+        model: String((llmResponse as { model?: string } | null)?.model || 'openai'),
         input: intent,
         output: plan,
         usage
