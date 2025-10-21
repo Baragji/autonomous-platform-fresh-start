@@ -22,11 +22,15 @@ export async function getExecution(id: string) {
   return rows[0] || null;
 }
 
-export async function insertCheckpoint(threadId: string, checkpointId: string, checkpoint: any, parentId?: string) {
+export async function insertCheckpoint(
+  threadId: string,
+  checkpointId: string,
+  checkpoint: Record<string, unknown>,
+  parentId?: string
+) {
   await pool.query(
     `INSERT INTO checkpoints (thread_id, checkpoint_ns, checkpoint_id, parent_checkpoint_id, checkpoint, metadata)
      VALUES ($1,'', $2, $3, $4, '{}')`,
     [threadId, checkpointId, parentId || null, checkpoint]
   );
 }
-

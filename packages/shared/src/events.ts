@@ -9,17 +9,19 @@ export function execChannel(execId: string) {
   return `exec:${execId}`;
 }
 
-export async function publish(execId: string, event: string, data: any) {
-  const payload = JSON.stringify({ event, data, ts: Date.now() });
+export type SSEMessage = { event: string; data: unknown; ts: number };
+
+export async function publish(execId: string, event: string, data: unknown) {
+  const payload = JSON.stringify({ event, data, ts: Date.now() } satisfies SSEMessage);
   await redisPub.publish(execChannel(execId), payload);
 }
 
-export async function subscribe(execId: string, onMessage: (msg: { event: string; data: any; ts: number }) => void) {
+export async function subscribe(execId: string, onMessage: (msg: SSEMessage) => void) {
   const ch = execChannel(execId);
   await redisSub.subscribe(ch);
   const handler = (channel: string, message: string) => {
     if (channel === ch) {
-      try { onMessage(JSON.parse(message)); } catch {}
+      try { onMessage(JSON.parse(message) as SSEMessage); } catch {}
     }
   };
   redisSub.on('message', handler);
@@ -28,4 +30,3 @@ export async function subscribe(execId: string, onMessage: (msg: { event: string
     redisSub.unsubscribe(ch);
   };
 }
-

@@ -1,26 +1,18 @@
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import { z } from 'zod';
 import OpenAI from 'openai';
 import { env } from '@autonomous/shared/src/env';
 import { ensureBucket, minio, ARTIFACT_BUCKET } from '@autonomous/shared/src/minioClient';
+import { startOtel } from '@autonomous/shared/src/otel';
+import { getLangfuse } from '@autonomous/shared/src/langfuse';
 
+startOtel('planner');
 const app = express();
 app.use(express.json());
 
-const TaskSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  description: z.string(),
-  command: z.string().optional(),
-  dependsOn: z.array(z.string()).optional()
-});
+import { PlanSchema } from './plan';
 
-const PlanSchema = z.object({
-  tasks: z.array(TaskSchema).min(2).max(20),
-  acceptance_criteria: z.array(z.string()).min(1)
-});
-
-app.post('/plan', async (req, res) => {
+app.post('/plan', async (req: Request, res: Response) => {
   const execId = String(req.body.execId || '');
   const intent = String(req.body.intent || '');
   if (!execId || !intent) return res.status(400).json({ error: 'execId and intent required' });
@@ -34,27 +26,36 @@ app.post('/plan', async (req, res) => {
         { role: 'system', content: 'You are a task planner. Break user requests into 2-10 concrete tasks.' },
         { role: 'user', content: intent }
       ],
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: 'Plan',
-          schema: PlanSchema,
-          strict: true
-        } as any
-      }
+      response_format: { type: 'json_object' }
     });
 
     const content = response.choices[0]?.message?.content || '{}';
     const plan = PlanSchema.parse(JSON.parse(content));
 
+    // Langfuse usage logging (best-effort)
+    const lf = getLangfuse();
+    const usage = (response as { usage?: Record<string, unknown> }).usage;
+    if (lf && usage) {
+      const trace = lf.trace({ name: 'planner.plan' });
+      trace.generation({
+        model: String((response as { model?: string }).model || 'openai'),
+        input: intent,
+        output: plan,
+        usage
+      });
+      try { await lf?.flush?.(); } catch {}
+    }
+
     const objectName = `${execId}/plan.json`;
-    await minio.putObject(ARTIFACT_BUCKET, objectName, Buffer.from(JSON.stringify(plan, null, 2)), {
+    const buf = Buffer.from(JSON.stringify(plan, null, 2));
+    await minio.putObject(ARTIFACT_BUCKET, objectName, buf, buf.length, {
       'Content-Type': 'application/json'
     });
 
     res.json({ ok: true, object: objectName });
-  } catch (err: any) {
-    res.status(500).json({ error: err?.message || String(err) });
+  } catch (err: unknown) {
+    const e = err as Error;
+    res.status(500).json({ error: e.message || String(err) });
   }
 });
 
@@ -62,4 +63,3 @@ const port = Number(process.env.PLANNER_PORT || 7020);
 app.listen(port, () => {
   console.log(`[planner] listening on :${port}`);
 });
-
