@@ -1,0 +1,108 @@
+openapi: 3.1.0
+info:
+  title: Gateway API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3030
+paths:
+  /api/executions:
+    post:
+      operationId: createExecution
+      summary: Create a new execution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                intent:
+                  type: string
+              required: [intent]
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  status: { type: string }
+                  location: { type: string }
+                  stream: { type: string }
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                type: object
+        '500':
+          description: Server Error
+          content:
+            application/problem+json:
+              schema:
+                type: object
+  /api/executions/{id}:
+    get:
+      operationId: getExecution
+      summary: Get execution status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  status: { type: string }
+                  current_agent: { type: string }
+                  created_at: { type: string }
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                type: object
+        '500':
+          description: Server Error
+          content:
+            application/problem+json:
+              schema:
+                type: object
+  /api/executions/{id}/stream:
+    get:
+      operationId: streamExecution
+      summary: Stream execution events (SSE)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK (SSE)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                type: object
+        '500':
+          description: Server Error
+          content:
+            application/problem+json:
+              schema:
+                type: object

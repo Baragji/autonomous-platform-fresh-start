@@ -12,7 +12,18 @@
     "dev:planner": "npm --prefix packages/planner run dev",
     "lint": "eslint \"packages/*/src/**/*.ts\"",
     "typecheck": "tsc -p tsconfig.base.json --noEmit && npm --prefix packages/gateway run typecheck && npm --prefix packages/mca run typecheck && npm --prefix packages/planner run typecheck",
-    "test": "vitest run"
+    "test": "vitest run",
+  "compliance:coverage": "tsx scripts/check-coverage.ts",
+    "compliance:facts": "tsx scripts/collect-facts.ts",
+    "compliance:meta": "tsx scripts/check-meta.ts",
+  "compliance:opa": "sh -c 'if command -v conftest >/dev/null 2>&1; then conftest test -n repo .automation/evidence/compliance/facts.json -p policy; elif command -v docker >/dev/null 2>&1; then docker run --rm -v \"$(pwd)\":/project -w /project openpolicyagent/conftest test -n repo .automation/evidence/compliance/facts.json -p policy; else echo \"Conftest not found. Install conftest or Docker.\" && exit 1; fi'",
+    "compliance:patterns": "(command -v semgrep >/dev/null 2>&1 && semgrep --config .semgrep --error --sarif --output .automation/evidence/compliance/semgrep.sarif) || (command -v docker >/dev/null 2>&1 && docker run --rm -v \"$(pwd)\":/src -w /src semgrep/semgrep:latest semgrep --config .semgrep --error --sarif --output .automation/evidence/compliance/semgrep.sarif) || (echo 'Semgrep not found. Install semgrep or Docker.' && exit 1)",
+    "compliance:contracts": "npx @stoplight/spectral-cli lint \"**/*.openapi.@(yaml|yml|json)\" -r spectral.yaml -o .automation/evidence/compliance/spectral.sarif -f sarif || true",
+  "compliance:sbom": "npx @cyclonedx/cyclonedx-npm --output-file .automation/evidence/compliance/sbom.json --mc-type application",
+  "compliance:vuln": "(command -v trivy >/dev/null 2>&1 && trivy fs --format sarif --output .automation/evidence/compliance/trivy.sarif --severity HIGH,CRITICAL --exit-code 1 .) || (command -v docker >/dev/null 2>&1 && docker run --rm -v \"$(pwd)\":/project -w /project aquasec/trivy:latest fs --format sarif --output .automation/evidence/compliance/trivy.sarif --severity HIGH,CRITICAL --exit-code 1 .) || (echo 'Trivy not found. Install trivy or Docker.' && exit 1)",
+  "compliance:secrets": "(command -v gitleaks >/dev/null 2>&1 && gitleaks detect --no-git --source . --report-format sarif --report-path .automation/evidence/compliance/gitleaks.sarif --config gitleaks.toml) || (command -v docker >/dev/null 2>&1 && docker run --rm -v \"$(pwd)\":/path zricethezav/gitleaks:latest detect --no-git --source /path --report-format sarif --report-path /path/.automation/evidence/compliance/gitleaks.sarif --config /path/gitleaks.toml) || (echo 'Gitleaks not found. Install gitleaks or Docker.' && exit 1)",
+  "compliance:aggregate": "tsx scripts/aggregate-sarif.ts",
+  "compliance": "npm run lint && npm run typecheck && npm test && npm run compliance:coverage && npm run compliance:patterns && npm run compliance:sbom && npm run compliance:facts && npm run compliance:meta && npm run compliance:opa && npm run compliance:contracts && npm run compliance:vuln && npm run compliance:secrets && npm run compliance:aggregate"
   },
   "devDependencies": {
     "turbo": "^2.2.2",
@@ -24,6 +35,8 @@
     "vitest": "^2.1.4",
     "@vitest/coverage-v8": "^2.1.4",
     "@types/node": "^22.7.4",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^2.0.16",
     "@types/express": "^4.17.21",
     "@types/uuid": "^9.0.7",
     "@opentelemetry/sdk-node": "^0.55.0",
@@ -31,6 +44,8 @@
     "@opentelemetry/auto-instrumentations-node": "^0.55.0",
     "@opentelemetry/resources": "^1.28.0",
     "@opentelemetry/semantic-conventions": "^1.28.0",
-    "langfuse": "^3.21.0"
+    "langfuse": "^3.21.0",
+    "@stoplight/spectral-cli": "^6.14.3",
+    "tsx": "^4.19.0"
   }
 }

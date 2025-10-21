@@ -5,9 +5,9 @@ export default defineConfig({
     include: ['packages/*/src/**/*.test.ts'],
     coverage: {
       provider: 'v8',
-      include: ['packages/planner/src/plan.ts'],
+      include: ['packages/**/src/**/*.ts'],
       reportsDirectory: 'coverage',
-      reporter: ['json', 'text']
+      reporter: ['json', 'text', 'json-summary']
     }
   }
 });

@@ -14,7 +14,11 @@
   "dependencies": {
     "express": "^4.19.2",
     "node-fetch": "^3.3.2",
-    "@autonomous/shared": "file:../shared"
+    "@autonomous/shared": "file:../shared",
+    "@langchain/langgraph": "^1.0.0",
+    "@langchain/langgraph-checkpoint-postgres": "^1.0.0",
+    "@langchain/openai": "^1.0.0",
+    "pg": "^8.13.0"
   },
   "devDependencies": {
     "ts-node-dev": "^2.0.0"

@@ -1,0 +1,39 @@
+name: Constitutional Compliance
+
+on:
+  pull_request:
+    branches: ["*"]
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run compliance
+        env:
+          COMPLIANCE_REQUIRE_OPENAPI: "1"
+        run: |
+          npm run compliance || (echo "Compliance failed" && exit 1)
+
+      - name: Upload SARIF Report
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: .automation/evidence/compliance/report.sarif
+          category: constitutional-compliance

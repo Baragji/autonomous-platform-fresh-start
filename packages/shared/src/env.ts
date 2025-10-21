@@ -22,5 +22,6 @@ export const env = {
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
   OTEL_EXPORTER_OTLP_ENDPOINT: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4317',
   LANGFUSE_PUBLIC_KEY: process.env.LANGFUSE_PUBLIC_KEY || '',
-  LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY || ''
+  LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY || '',
+  LANGFUSE_HOST: process.env.LANGFUSE_HOST || undefined
 };

@@ -1,0 +1,18 @@
+extends: ["spectral:oas"]
+rules:
+  openapi-version-3-1:
+    description: "OpenAPI 3.1 is required"
+    message: "Use OpenAPI 3.1 (e.g., 3.1.0)"
+    given: "$"
+    then:
+      field: "openapi"
+      function: pattern
+      functionOptions:
+        match: "^3\\.1\\."
+  problem-details-required:
+    description: "4xx/5xx responses must use application/problem+json with RFC7807 shape"
+    message: "Problem Details (application/problem+json) required for error responses"
+    given: "$..paths.*.*.responses[?(@property >= 400 && @property < 600)].content"
+    then:
+      field: "application/problem+json"
+      function: truthy

@@ -1,0 +1,5 @@
+# Ignore local dev secrets file. This file is untracked and should never be committed.
+# Valid entry format uses key=value pairs; use path to ignore by pathname.
+# Fingerprint-based ignore file (optional)
+# Note: .gitleaksignore ignores specific finding fingerprints only.
+# Use gitleaks.toml global [[allowlists]] with paths to ignore files like .env.

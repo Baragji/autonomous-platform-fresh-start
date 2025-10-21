@@ -1,0 +1,24 @@
+title = "Repo gitleaks overrides"
+
+[extend]
+useDefault = true
+
+## Global allowlists (v8.25.0+)
+## Keep these tight; avoid broad ignores.
+
+[[allowlists]]
+description = "Benign doc term flagged by generic-api-key"
+regexTarget = "match"
+regexes = [
+  '''SBOM/provenance'''
+]
+paths = [
+  '''Agent_framework/04_implementation_agent_IA\.md''',
+  '''Agent_framework/06_dev_ops_agent_DA\.md'''
+]
+
+[[allowlists]]
+description = "Ignore local root .env for filesystem scans"
+paths = [
+  '''(^|/)\.env$'''
+]

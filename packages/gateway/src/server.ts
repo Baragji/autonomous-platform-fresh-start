@@ -5,7 +5,7 @@ import { publish, subscribe } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
 
 startOtel('gateway');
-const app = express();
+export const app = express();
 app.use(express.json());
 
 app.post('/api/executions', async (req: Request, res: Response) => {
@@ -50,4 +50,6 @@ app.get('/api/executions/:id/stream', async (req: Request, res: Response) => {
 });
 
 const port = Number(process.env.GATEWAY_PORT || 3030);
-app.listen(port, () => console.log(`[gateway] listening on :${port}`));
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => process.stdout.write(`[gateway] listening on :${port}\n`));
+}

@@ -1,0 +1,58 @@
+rules:
+  - id: no-fake-green-success
+    message: "Forbidden: hardcoded { success: true }"
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern: |
+      return { success: true };
+
+  - id: no-console-log-in-src
+    message: "Use proper logger; console.log is forbidden in src/"
+    severity: ERROR
+    languages: [javascript, typescript]
+    paths:
+      include:
+        - /packages/**/src/**
+    pattern: console.log(...)
+
+  - id: no-anthropic-imports
+    message: "Forbidden vendor: Anthropic SDK imports are not allowed (OpenAI-only in V1)"
+    severity: ERROR
+    languages: [javascript, typescript]
+    patterns:
+      - pattern-either:
+          - pattern: |
+              import $X from "@anthropic-ai/sdk";
+          - pattern: |
+              import { ... } from "@anthropic-ai/sdk";
+          - pattern: |
+              import "@anthropic-ai/sdk";
+          - pattern: |
+              const $X = require("@anthropic-ai/sdk");
+          - pattern: |
+              import $X from "@anthropic";
+
+  - id: no-todo-or-fixme
+    message: "Incomplete work markers (TODO/FIXME) are forbidden in source"
+    severity: ERROR
+    languages: [javascript, typescript]
+    paths:
+      include:
+        - /packages/**/src/**
+    pattern-regex: "(?i)\\b(TODO|FIXME)\\b"
+
+  - id: no-typescript-any
+    message: "Type unsafety: avoid TypeScript any"
+    severity: ERROR
+    languages: [typescript]
+    pattern: /:\\s*any\\b/
+
+  - id: no-path-guessing-language
+    message: "Claims without evidence: avoid path-guessing phrases in code/comments"
+    severity: WARNING
+    languages: [javascript, typescript]
+    paths:
+      include:
+        - /packages/**/src/**
+    pattern-regex: "(?i)\\b(think|probably|should be at)\\b"
+
