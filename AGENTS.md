@@ -160,3 +160,5 @@ Failing any gate triggers the Iteration Protocol.
 - docs/11_211025/VERTICAL_1_TOOLING.md
 - docs/11_211025/VERTICAL_1_PLAN.md
 - docs/11_211025/WEEK_1_DOD.md (current week's outcomes)
+ - COMPLIANCE_VALIDATION.md (universal manual checklist; run on every source change)
+ - scripts/compliance_audit.sh (optional helper; does not replace manual audit)

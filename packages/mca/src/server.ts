@@ -15,6 +15,8 @@ app.post('/start', async (req: Request, res: Response) => {
 
   await upsertExecution(execId, 'planning', intent, 'planner');
   await publish(execId, 'status', { status: 'planning' });
+  // Record initial checkpoint for planning start
+  await insertCheckpoint(execId, 'planning_started', { intent });
 
   try {
     // Call planner service

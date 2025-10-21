@@ -11,6 +11,8 @@ const app = express();
 app.use(express.json());
 
 import { PlanSchema } from './plan';
+import fs from 'fs';
+import path from 'path';
 
 app.post('/plan', async (req: Request, res: Response) => {
   const execId = String(req.body.execId || '');
@@ -20,13 +22,50 @@ app.post('/plan', async (req: Request, res: Response) => {
   try {
     await ensureBucket();
     const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+
+    // Load planner prompt (system instructions)
+    const promptPath = process.env.PLANNER_PROMPT_PATH || 'Agent_framework/01_research_agent_RA.md';
+    const resolvedPrompt = path.resolve(promptPath);
+    const plannerPrompt = fs.existsSync(resolvedPrompt)
+      ? fs.readFileSync(resolvedPrompt, 'utf-8')
+      : 'You are a task planner. Break user requests into 2-10 concrete tasks.';
     const response = await client.chat.completions.create({
       model: process.env.OPENAI_MODEL || 'gpt-4o-2024-08-06',
       messages: [
-        { role: 'system', content: 'You are a task planner. Break user requests into 2-10 concrete tasks.' },
-        { role: 'user', content: intent }
+        { role: 'system', content: plannerPrompt },
+        { role: 'user', content: `Plan for: ${intent}. Return JSON with keys tasks (2-10 items) and acceptance_criteria.` }
       ],
-      response_format: { type: 'json_object' }
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'Plan',
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              tasks: {
+                type: 'array',
+                minItems: 2,
+                maxItems: 20,
+                items: {
+                  type: 'object',
+                  additionalProperties: false,
+                  properties: {
+                    id: { type: 'string' },
+                    title: { type: 'string' },
+                    description: { type: 'string' },
+                    command: { type: 'string' },
+                    dependsOn: { type: 'array', items: { type: 'string' } }
+                  },
+                  required: ['id','title','description']
+                }
+              },
+              acceptance_criteria: { type: 'array', minItems: 1, items: { type: 'string' } }
+            },
+            required: ['tasks','acceptance_criteria']
+          }
+        }
+      }
     });
 
     const content = response.choices[0]?.message?.content || '{}';
@@ -50,6 +89,12 @@ app.post('/plan', async (req: Request, res: Response) => {
     const buf = Buffer.from(JSON.stringify(plan, null, 2));
     await minio.putObject(ARTIFACT_BUCKET, objectName, buf, buf.length, {
       'Content-Type': 'application/json'
+    });
+
+    // Also store prompt used for auditability
+    const promptObj = Buffer.from(plannerPrompt, 'utf8');
+    await minio.putObject(ARTIFACT_BUCKET, `${execId}/planner_prompt.md`, promptObj, promptObj.length, {
+      'Content-Type': 'text/markdown'
     });
 
     res.json({ ok: true, object: objectName });

@@ -1,9 +1,20 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+
+// Load local .env (package CWD)
 dotenv.config();
+// Also try repo root .env (three levels up from shared/src)
+try {
+  const rootEnv = path.resolve(__dirname, '../../..', '.env');
+  if (fs.existsSync(rootEnv)) {
+    dotenv.config({ path: rootEnv });
+  }
+} catch {}
 
 export const env = {
   PORT: parseInt(process.env.PORT || '3000', 10),
-  DATABASE_URL: process.env.DATABASE_URL || 'postgresql://umca:umcapassword@localhost:5432/umca',
+  DATABASE_URL: process.env.DATABASE_URL || 'postgresql://umca:umcapassword@localhost:5433/umca',
   REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6380',
   MINIO_ENDPOINT: process.env.MINIO_ENDPOINT || 'http://localhost:9000',
   MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY || 'minioadmin',
@@ -13,4 +24,3 @@ export const env = {
   LANGFUSE_PUBLIC_KEY: process.env.LANGFUSE_PUBLIC_KEY || '',
   LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY || ''
 };
-
