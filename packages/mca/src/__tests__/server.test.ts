@@ -4,13 +4,26 @@ import type { Express } from 'express';
 import type { MockedFunction } from 'vitest';
 type DbModule = typeof import('@autonomous/shared/src/db');
 type EventsModule = typeof import('@autonomous/shared/src/events');
+type MinioModule = typeof import('@autonomous/shared/src/minioClient');
 
 const invokeMock = vi.fn();
-const fetchStub = vi.fn().mockImplementation(async (_url: string, init?: Record<string, unknown>) => {
+const fetchStub = vi.fn().mockImplementation(async (url: string, init?: Record<string, unknown>) => {
   const body = typeof init?.body === 'string' ? JSON.parse(init.body) : { execId: 'exec-1' };
+  if (url.includes('/plan')) {
+    return {
+      ok: true,
+      json: async () => ({ object: `${body.execId}/plan.json` })
+    };
+  }
+  if (url.includes('/implement')) {
+    return {
+      ok: true,
+      json: async () => ({ ok: true, files: ['src/app.ts'] })
+    };
+  }
   return {
-    ok: true,
-    json: async () => ({ object: `${body.execId}/plan.json` })
+    ok: false,
+    json: async () => ({ error: 'unknown route' })
   };
 });
 const nodes: Record<string, (state: unknown) => Promise<unknown> | unknown> = {};
@@ -33,12 +46,15 @@ vi.mock('@langchain/langgraph', () => ({
       return {
         invoke: async (state: unknown, options?: unknown) => {
           let current = state;
-          // Reflect START -> planner -> END wiring used by service
+          // Reflect START -> planner -> implementer -> END wiring used by service
           if (nodes.supervisor) {
             current = await nodes.supervisor(current);
           }
           if (nodes.planner) {
             current = await nodes.planner(current);
+          }
+          if (nodes.implementer) {
+            current = await nodes.implementer(current);
           } else {
             const next = conditional ? conditional(current) : END;
             if (typeof next === 'string' && nodes[next]) {
@@ -71,9 +87,25 @@ vi.mock('@autonomous/shared/src/events', () => ({
   publish: vi.fn().mockResolvedValue(undefined)
 }));
 
+vi.mock('@autonomous/shared/src/minioClient', () => {
+  const { Readable } = require('stream');
+  const getObject = vi.fn().mockResolvedValue(Readable.from([JSON.stringify({
+    tasks: [
+      { id: '1', title: 'Do', description: 'Do things' },
+      { id: '2', title: 'More', description: 'More things' }
+    ],
+    acceptance_criteria: ['ok']
+  })]));
+  return {
+    minio: { getObject } as unknown as MinioModule['minio'],
+    ARTIFACT_BUCKET: 'umca-artifacts'
+  } satisfies Partial<MinioModule>;
+});
+
 let app: Express;
 let upsertExecution: MockedFunction<DbModule['upsertExecution']>;
 let publish: MockedFunction<EventsModule['publish']>;
+let minioGetObject: MockedFunction<MinioModule['minio']['getObject']>;
 
 beforeAll(async () => {
   // Use global fetch stub since server uses global fetch
@@ -82,8 +114,10 @@ beforeAll(async () => {
   ({ app } = await import('../server'));
   const dbModule = await import('@autonomous/shared/src/db');
   const eventsModule = await import('@autonomous/shared/src/events');
+  const minioModule = await import('@autonomous/shared/src/minioClient');
   upsertExecution = vi.mocked(dbModule.upsertExecution);
   publish = vi.mocked(eventsModule.publish);
+  minioGetObject = vi.mocked(minioModule.minio.getObject);
 });
 
 beforeEach(() => {
@@ -93,6 +127,7 @@ beforeEach(() => {
   upsertExecution.mockResolvedValue(undefined as unknown as void);
   publish.mockReset();
   publish.mockResolvedValue(undefined as unknown as void);
+  minioGetObject.mockClear();
 });
 
 afterEach(() => {
@@ -118,8 +153,11 @@ describe('mca server', () => {
     expect(publish).toHaveBeenCalledWith('exec-1', 'status', { status: 'planning' });
     expect(publish).toHaveBeenCalledWith('exec-1', 'agent', { agent: 'planner', status: 'working' });
     expect(fetchStub).toHaveBeenCalledWith(expect.stringContaining('/plan'), expect.objectContaining({ method: 'POST' }));
+    expect(fetchStub).toHaveBeenCalledWith(expect.stringContaining('/implement'), expect.objectContaining({ method: 'POST' }));
+    expect(publish).toHaveBeenCalledWith('exec-1', 'status', { status: 'implementing' });
+    expect(publish).toHaveBeenCalledWith('exec-1', 'status', { status: 'implemented' });
     expect(invokeMock).toHaveBeenCalledWith(
-      expect.objectContaining({ execId: 'exec-1', intent: 'Build', status: 'planned' }),
+      expect.objectContaining({ execId: 'exec-1', intent: 'Build', status: 'implemented' }),
       { configurable: { thread_id: 'exec-1' } }
     );
   });

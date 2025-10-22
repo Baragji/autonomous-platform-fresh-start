@@ -38,6 +38,13 @@ app.get('/api/executions/:id/stream', async (req: Request, res: Response) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
+  res.write(`event: system\n`);
+  res.write(`data: ${JSON.stringify({ status: 'connected' })}\n\n`);
+
+  const heartbeat = setInterval(() => {
+    res.write(`: keep-alive ${Date.now()}\n\n`);
+  }, 15000);
+
   const unsub = await subscribe(id, (msg) => {
     res.write(`event: ${msg.event}\n`);
     res.write(`data: ${JSON.stringify(msg.data)}\n\n`);
@@ -45,6 +52,7 @@ app.get('/api/executions/:id/stream', async (req: Request, res: Response) => {
 
   req.on('close', () => {
     unsub();
+    clearInterval(heartbeat);
     res.end();
   });
 });

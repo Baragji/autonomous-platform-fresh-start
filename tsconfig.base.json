@@ -9,7 +9,13 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "resolveJsonModule": true,
-    "types": ["node", "vitest"]
+    "types": ["node", "vitest"],
+    "paths": {
+      "@autonomous/shared": ["./packages/shared/src/index"],
+      "@autonomous/shared/*": ["./packages/shared/src/*"],
+      "@autonomous/vfs": ["./packages/vfs/src/index"],
+      "@autonomous/vfs/*": ["./packages/vfs/src/*"]
+    }
   }
 }
 

@@ -1,0 +1,58 @@
+import express, { type Request, type Response } from 'express';
+import OpenAI from 'openai';
+import { z } from 'zod';
+import { createLogger } from '@autonomous/shared/src/logger';
+import { env } from '@autonomous/shared/src/env';
+import { createVfs } from '@autonomous/shared/src/vfs';
+import { PlanSchema } from '@autonomous/shared/src/plan';
+import { startOtel } from '@autonomous/shared/src/otel';
+import { getLangfuse } from '@autonomous/shared/src/langfuse';
+import { RedisEventPublisher } from './publisher';
+import { ImplementerAgent } from './agent';
+
+startOtel('implementer');
+
+export const app = express();
+app.use(express.json({ limit: '2mb' }));
+
+const RequestSchema = z.object({
+  execId: z.string().min(1),
+  plan: PlanSchema
+});
+
+const logger = createLogger('implementer');
+
+app.post('/implement', async (req: Request, res: Response) => {
+  const parseResult = RequestSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({ error: 'invalid request', details: parseResult.error.issues });
+  }
+  const { execId, plan } = parseResult.data;
+  try {
+    const [vfs, langfuse] = await Promise.all([
+      createVfs(execId),
+      Promise.resolve(getLangfuse())
+    ]);
+    const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+    const publisher = new RedisEventPublisher(execId);
+    const agent = new ImplementerAgent({
+      client,
+      logger,
+      model: process.env.OPENAI_MODEL || 'gpt-4o-2024-08-06',
+      publisher,
+      vfs,
+      langfuse
+    });
+    const result = await agent.run({ execId, plan });
+    res.json(result);
+  } catch (err) {
+    const e = err as Error;
+    logger.error({ execId, err: e.message }, 'implementer run failed');
+    res.status(500).json({ error: e.message });
+  }
+});
+
+const port = Number(process.env.IMPLEMENTER_PORT || 7030);
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => process.stdout.write(`[implementer] listening on :${port}\n`));
+}
