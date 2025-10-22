@@ -2,9 +2,11 @@
   "has_packages_dir": true,
   "services": [
     "gateway",
+    "implementer",
     "mca",
     "planner",
-    "shared"
+    "shared",
+    "vfs"
   ],
   "evidence": {
     "coverage_final_json": true,
@@ -14,6 +16,9 @@
     "gateway": {
       "hasAnthropic": false
     },
+    "implementer": {
+      "hasAnthropic": false
+    },
     "mca": {
       "hasAnthropic": false
     },
@@ -21,6 +26,9 @@
       "hasAnthropic": false
     },
     "shared": {
+      "hasAnthropic": false
+    },
+    "vfs": {
       "hasAnthropic": false
     }
   },
