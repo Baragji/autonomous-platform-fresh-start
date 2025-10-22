@@ -34,6 +34,10 @@ Thumbs.db
 
 # Evidence & Artifacts (keep structure, ignore contents)
 .automation/evidence/*
+!.automation/
+!.automation/evidence/
+!.automation/evidence/week2/
+!.automation/evidence/week2/collect_evidence.sh
 !.automation/evidence/week3/collect_evidence.sh
 !.automation/evidence/.gitkeep
 .automation/checkpoints/*
