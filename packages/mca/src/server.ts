@@ -88,7 +88,7 @@ async function implementerNode(state: McaState): Promise<McaState> {
   return { ...state, status: 'implemented', current_agent: 'implementer' };
 }
 
-const graph = new StateGraph<McaState>({
+const graphBuilder = new StateGraph<McaState>({
   // Keep channels mapping for forward compatibility, but run planner as first node
   channels: {
     execId: { value: (_prev: string | undefined, curr: string) => curr },
@@ -100,11 +100,21 @@ const graph = new StateGraph<McaState>({
   }
 })
   .addNode('planner', plannerNode)
-  .addNode('implementer', implementerNode)
-  .addEdge(START, 'planner')
-  .addEdge('planner', 'implementer')
-  .addEdge('implementer', END)
-  .compile({ checkpointer });
+  .addEdge(START, 'planner');
+
+// For Week 2 smoke, allow planner-only mode to avoid failing when implementer is not running
+const plannerOnly = String(process.env.WEEK2_PLANNER_ONLY || '').toLowerCase() === '1' || String(process.env.WEEK2_PLANNER_ONLY || '').toLowerCase() === 'true';
+
+if (plannerOnly) {
+  graphBuilder.addEdge('planner', END);
+} else {
+  graphBuilder
+    .addNode('implementer', implementerNode)
+    .addEdge('planner', 'implementer')
+    .addEdge('implementer', END);
+}
+
+const graph = graphBuilder.compile({ checkpointer });
 
 app.post('/start', async (req: Request, res: Response) => {
   const { execId, intent } = req.body || {};

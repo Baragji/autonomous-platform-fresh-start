@@ -144,7 +144,7 @@ jobs:
       - name: Start services in background
         run: |
           nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
-          nohup npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
+          nohup env WEEK2_PLANNER_ONLY=1 npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
           nohup npm --prefix packages/planner run dev >/tmp/planner.log 2>&1 &
 
       - name: Wait for services
@@ -227,7 +227,7 @@ jobs:
       - name: Start services in background
         run: |
           nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
-          nohup npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
+          nohup env WEEK2_PLANNER_ONLY=1 npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
           nohup npm --prefix packages/planner run dev >/tmp/planner.log 2>&1 &
 
       - name: Wait for services
