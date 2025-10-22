@@ -6,13 +6,12 @@ on:
   push:
     branches: ["main"]
 
-permissions:
-  contents: read
-  security-events: write
-
 jobs:
   compliance:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
