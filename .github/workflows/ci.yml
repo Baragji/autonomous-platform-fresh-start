@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Use Compose services, values come from repo Variables/Secrets
+      MINIO_ENDPOINT: ${{ vars.MINIO_ENDPOINT }}
+      MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+      MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+      REDIS_URL: ${{ vars.REDIS_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.OTEL_EXPORTER_OTLP_ENDPOINT }}
+      GRAFANA_URL: ${{ vars.GRAFANA_URL }}
+      # Prevent real LLM calls during tests
+      OPENAI_API_KEY: dummy
+      # Make integration tests fail if backends are unavailable
+      CI_ENFORCE_INTEGRATION: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci --no-audit --fund=false
+
+      - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
+        run: docker compose -f infrastructure/docker-compose.yml up -d
+
+      - name: Wait for infra
+        run: |
+          tries=60
+          wait_healthy() {
+            local name="$1"
+            local s
+            while true; do
+              s=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" || true)
+              if [ "$s" = "healthy" ]; then echo "$name healthy"; break; fi
+              ((tries--)); if [ $tries -le 0 ]; then echo "$name not healthy"; docker ps; docker inspect "$name" || true; exit 1; fi
+              sleep 2
+            done
+          }
+          wait_healthy umca-minio
+          wait_healthy umca-redis
+          wait_healthy umca-postgres
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test with coverage (emit JSON summary)
+        run: |
+          mkdir -p .automation/evidence
+          npm test -- --coverage --reporter=json | tee .automation/evidence/ci-tests.json
+
+      - name: Enforce coverage threshold (lines >= 80%)
+        run: npm run compliance:coverage
+
+      - name: No skipped tests (fail on pending)
+        run: VITEST_JSON_PATH=.automation/evidence/ci-tests.json npm run ci:no-skips
+
+  openai-check:
+    name: OpenAI Connectivity (staging)
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.OPENAI_API_KEY != ''
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install deps
+        run: npm ci --no-audit --fund=false
+      - name: Validate OpenAI key by listing models
+        run: npm run ci:validate-openai

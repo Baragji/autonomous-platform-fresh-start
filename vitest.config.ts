@@ -12,6 +12,9 @@ export default defineConfig({
   },
   test: {
     include: ['packages/*/src/**/*.test.ts'],
+    setupFiles: ['dotenv/config'],
+    hookTimeout: 120000,
+    testTimeout: 60000,
     coverage: {
       provider: 'v8',
       include: ['packages/**/src/**/*.ts'],

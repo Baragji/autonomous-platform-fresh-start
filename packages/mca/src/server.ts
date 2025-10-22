@@ -94,7 +94,9 @@ const graph = new StateGraph<McaState>({
     execId: { value: (_prev: string | undefined, curr: string) => curr },
     intent: { value: (_prev: string | undefined, curr: string) => curr },
     status: { value: (_prev: string | undefined, curr: string | undefined) => curr as string },
-    current_agent: { value: (_prev: string | undefined, curr: string | undefined) => curr as string }
+    current_agent: { value: (_prev: string | undefined, curr: string | undefined) => curr as string },
+    // Persist the validated plan between nodes so implementer can consume it
+    plan: { value: (_prev: Plan | undefined, curr: Plan | undefined) => curr as Plan }
   }
 })
   .addNode('planner', plannerNode)

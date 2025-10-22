@@ -1,0 +1,62 @@
+{
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Set up project environment",
+      "description": "Create a new directory for the project and initialize a version control repository.",
+      "command": "mkdir hello-world-web-app && cd hello-world-web-app && git init",
+      "dependsOn": []
+    },
+    {
+      "id": "2",
+      "title": "Install necessary tools and dependencies",
+      "description": "Ensure Node.js and npm are installed, then initialize a package.json file.",
+      "command": "npm init -y",
+      "dependsOn": [
+        "1"
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Install Express framework",
+      "description": "Use npm to install Express.js to quickly set up server-side code.",
+      "command": "npm install express",
+      "dependsOn": [
+        "2"
+      ]
+    },
+    {
+      "id": "4",
+      "title": "Create main application file",
+      "description": "Write a simple Express server that responds with 'Hello World!' to any request.",
+      "command": "echo \"const express = require('express'); const app = express(); const port = 3000; app.get('/', (req, res) => res.send('Hello World!')); app.listen(port, () => console.log(`Server running at http://localhost:${port}`));\" > app.js",
+      "dependsOn": [
+        "3"
+      ]
+    },
+    {
+      "id": "5",
+      "title": "Run the application",
+      "description": "Start the Express server to ensure everything is set up correctly.",
+      "command": "node app.js",
+      "dependsOn": [
+        "4"
+      ]
+    },
+    {
+      "id": "6",
+      "title": "Test server response",
+      "description": "Use a web browser or a tool like curl or Postman to send a request to the server and verify the 'Hello World!' response.",
+      "command": "curl http://localhost:3000",
+      "dependsOn": [
+        "5"
+      ]
+    }
+  ],
+  "acceptance_criteria": [
+    "A new directory with a git repository is initialized.",
+    "A package.json file is created with Express installed as a dependency.",
+    "An Express server is implemented and runs without errors.",
+    "Sending a request to the server returns 'Hello World!' in the response body."
+  ]
+}

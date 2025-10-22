@@ -16,6 +16,7 @@ let endpoint = process.env.MINIO_ENDPOINT || '';
 let container: StartedTestContainer | null = null;
 let client: Client;
 let minioAvailable = true;
+const ENFORCE = process.env.CI_ENFORCE_INTEGRATION === '1';
 
 function createClient(url: string) {
   const parsed = new URL(url);
@@ -64,7 +65,9 @@ describe('ImplementerAgent', () => {
         await container.stop().catch(() => {});
         container = null;
       }
-      process.stderr.write(`MinIO unavailable for Implementer tests: ${(err as Error).message}\n`);
+      const msg = `MinIO unavailable for Implementer tests: ${(err as Error).message}`;
+      if (ENFORCE) throw new Error(msg);
+      process.stderr.write(`${msg}\n`);
     }
   });
 

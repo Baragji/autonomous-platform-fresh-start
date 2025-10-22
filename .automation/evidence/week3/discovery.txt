@@ -1,0 +1,16 @@
+Week3 Discovery
+Timestamp: 
+
+Scaffolds:
+FOUND: packages/vfs/src/index.ts
+FOUND: packages/vfs/src/minio.ts
+FOUND: packages/vfs/src/__tests__/minioVfs.test.ts
+FOUND: packages/shared/src/vfs.ts
+FOUND: packages/shared/src/minioClient.ts
+FOUND: packages/implementer/src/server.ts
+FOUND: packages/implementer/src/agent.ts
+FOUND: packages/implementer/src/tools.ts
+FOUND: packages/implementer/src/__tests__/agent.test.ts
+FOUND: packages/mca/src/server.ts
+FOUND: packages/gateway/src/server.ts
+FOUND: .automation/evidence/week3/collect_evidence.sh

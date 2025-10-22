@@ -1,0 +1,55 @@
+import request from 'supertest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('../agent', () => {
+  class MockAgent { async run() { return { ok: true, files: ['src/app.ts'] }; } }
+  return { ImplementerAgent: MockAgent };
+});
+
+vi.mock('@autonomous/shared/src/vfs', () => ({
+  createVfs: vi.fn(async () => ({
+    writeFile: async () => {},
+    readFile: async () => Buffer.from('x'),
+    listFiles: async () => [],
+    listVersions: async () => []
+  }))
+}));
+
+vi.mock('@autonomous/shared/src/langfuse', () => ({ getLangfuse: () => null }));
+
+describe('implementer server', () => {
+  let app: import('express').Express;
+  beforeEach(async () => {
+    vi.resetModules();
+    const mod = await import('../server');
+    app = mod.app;
+  });
+
+  it('returns 200 for valid request', async () => {
+    const plan = { tasks: [{ id: '1', title: 'a', description: 'a' }, { id: '2', title: 'b', description: 'b' }], acceptance_criteria: ['x'] };
+    const res = await request(app).post('/implement').send({ execId: 'e1', plan });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.files).toContain('src/app.ts');
+  });
+
+  it('400 on invalid body', async () => {
+    const res = await request(app).post('/implement').send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('invalid request');
+  });
+
+  it('500 when agent throws', async () => {
+    vi.resetModules();
+    vi.doMock('../agent', () => {
+      class BadAgent { async run() { throw new Error('boom'); } }
+      return { ImplementerAgent: BadAgent };
+    });
+    const mod = await import('../server');
+    const badApp = mod.app;
+    const plan = { tasks: [{ id: '1', title: 'a', description: 'a' }, { id: '2', title: 'b', description: 'b' }], acceptance_criteria: ['x'] };
+    const res = await request(badApp).post('/implement').send({ execId: 'e2', plan });
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBe('boom');
+  });
+});

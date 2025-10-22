@@ -48,13 +48,16 @@ export class MinioVfs implements Vfs {
   }
 
   async listVersions(relativePath: string): Promise<VfsVersionEntry[]> {
-    const prefix = path.posix.join(this.resolveVersionsRoot(), sanitize(relativePath));
-    const entries = await collectObjects(this.client.listObjectsV2(this.bucket, prefix, true));
+    // Version objects are stored under: <prefix>/code/versions/<timestamp>/<relativePath>
+    // So we must list under versions root and then filter for matching relativePath suffix.
+    const vroot = this.resolveVersionsRoot();
+    const target = `/${sanitize(relativePath)}`;
+    const entries = await collectObjects(this.client.listObjectsV2(this.bucket, vroot, true));
     return entries
-      .filter((obj) => obj.name)
+      .filter((obj) => obj.name && (obj.name as string).endsWith(target))
       .map((obj) => {
         const name = obj.name as string;
-        const timestamp = extractTimestamp(name, this.resolveVersionsRoot());
+        const timestamp = extractTimestamp(name, vroot);
         return {
           versionPath: stripBase(name, this.resolveRoot()),
           timestamp,
