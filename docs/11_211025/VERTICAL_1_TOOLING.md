@@ -22,9 +22,10 @@ Planner (OpenAI Structured Outputs)
     → Returns: { tasks: [...], acceptance: [...] }
     ↓
 MCA routes to Implementer
-Implementer (Anthropic Text Editor Tool)
+Implementer (OpenAI Function Calling - V1)
     → Streams edits to VFS
     → Stores artifacts in MinIO
+    → V2: Add vendor abstraction (OpenAI + Anthropic + Azure)
     ↓
 MCA routes to Runner
 Runner (E2B Sandbox)

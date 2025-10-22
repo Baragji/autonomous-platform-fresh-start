@@ -13,9 +13,6 @@ describe('getLangfuse', () => {
   beforeEach(() => {
     vi.resetModules();
     ctor.mockReset();
-    delete process.env.LANGFUSE_PUBLIC_KEY;
-    delete process.env.LANGFUSE_SECRET_KEY;
-    delete process.env.LANGFUSE_HOST;
   });
 
   afterEach(() => {
@@ -23,15 +20,26 @@ describe('getLangfuse', () => {
   });
 
   it('returns null when keys missing', async () => {
+    vi.doMock('../env', () => ({
+      env: {
+        LANGFUSE_PUBLIC_KEY: '',
+        LANGFUSE_SECRET_KEY: '',
+        LANGFUSE_HOST: undefined
+      }
+    }));
     const { getLangfuse } = await import('../langfuse');
     expect(getLangfuse()).toBeNull();
     expect(ctor).not.toHaveBeenCalled();
   });
 
   it('creates client when keys provided', async () => {
-    process.env.LANGFUSE_PUBLIC_KEY = 'pub';
-    process.env.LANGFUSE_SECRET_KEY = 'sec';
-    process.env.LANGFUSE_HOST = 'https://cloud.langfuse.com';
+    vi.doMock('../env', () => ({
+      env: {
+        LANGFUSE_PUBLIC_KEY: 'pub',
+        LANGFUSE_SECRET_KEY: 'sec',
+        LANGFUSE_HOST: 'https://cloud.langfuse.com'
+      }
+    }));
     const { getLangfuse } = await import('../langfuse');
     const client = getLangfuse();
     expect(client).not.toBeNull();

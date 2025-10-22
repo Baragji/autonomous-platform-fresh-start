@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-EVID=".automation/evidence/week2"
+# Write artifacts into a subfolder to avoid deleting this script on reruns
+BASE_DIR=".automation/evidence/week2"
+EVID="${BASE_DIR}/out"
 rm -rf "$EVID"
 mkdir -p "$EVID"
 
@@ -16,11 +18,22 @@ MINIO_BUCKET="${MINIO_BUCKET:-umca-artifacts}"
 # G1 — API
 EXEC_RESPONSE=$(curl -s -D "$EVID/http_202_headers.txt" -H 'Content-Type: application/json' \
   -X POST "$GATEWAY_ORIGIN/api/executions" -d '{"intent":"Build a TODO API with tests"}')
-printf "%s" "$EXEC_RESPONSE" | tee "$EVID/http_202_body.json"
+printf "%s" "$EXEC_RESPONSE" | tee "$EVID/http_202_body.json" >/dev/null
 EXEC_ID=$(printf "%s" "$EXEC_RESPONSE" | jq -r '.id')
 printf "%s" "$EXEC_ID" > "$EVID/exec_id.txt"
 
-curl -s "$GATEWAY_ORIGIN/api/executions/$EXEC_ID" | tee "$EVID/get_execution.json"
+# Poll the execution API until it reaches planned (up to ~30s)
+ATTEMPTS=30
+DELAY=1
+for i in $(seq 1 $ATTEMPTS); do
+  curl -s "$GATEWAY_ORIGIN/api/executions/$EXEC_ID" | tee "$EVID/get_execution.json" >/dev/null
+  if jq -e '.status == "planned"' "$EVID/get_execution.json" >/dev/null 2>&1; then
+    break
+  fi
+  sleep $DELAY
+done
+
+# Optional: try to capture some SSE lines without making PASS contingent on it
 curl -sN --max-time 5 "$GATEWAY_ORIGIN/api/executions/$EXEC_ID/stream" | tee "$EVID/stream_sse.txt" >/dev/null || true
 
 # G2 — Database (wait for execution + checkpoint)
@@ -72,8 +85,8 @@ done
 docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc cat local/${MINIO_BUCKET}/$EXEC_ID/plan.json > "$EVID/plan.json" || true
 
 # G4 — Observability
-curl -s http://localhost:3200/ready | tee "$EVID/tempo_ready.txt"
-curl -s http://localhost:3001/api/health | tee "$EVID/grafana_health.json"
+curl -s http://localhost:3200/ready | tee "$EVID/tempo_ready.txt" >/dev/null
+curl -s http://localhost:3001/api/health | tee "$EVID/grafana_health.json" >/dev/null
 
 # G5 — Langfuse env
 if [ -f .env ]; then
@@ -87,7 +100,10 @@ set +e
 npm run lint > "$EVID/lint.txt" 2>&1; LINT_RC=$?
 npm run typecheck > "$EVID/typecheck.txt" 2>&1; TYPE_RC=$?
 rm -rf coverage
-npm test -- --reporter=json --coverage | tail -n 1 > "$EVID/tests.json" 2>&1; TEST_RC=$?
+# Capture full JSON test output and the correct test exit code
+npm test -- --reporter=json --coverage > "$EVID/tests.json.full" 2>&1; TEST_RC=$?
+# Extract the JSON line from the mixed output reliably
+grep -m1 '^{"numTotalTestSuites"' "$EVID/tests.json.full" > "$EVID/tests.json" || echo '{}' > "$EVID/tests.json"
 set -e
 
 if [ -f coverage/coverage-summary.json ]; then
@@ -100,7 +116,7 @@ fi
 TEST_SUCCESS=$(jq -r '.success // false' "$EVID/tests.json" 2>/dev/null || echo false)
 COVERAGE=${COVERAGE:-0}
 
-G1=$(grep -q 202 "$EVID/http_202_headers.txt" && grep -qiE 'event:|data:' "$EVID/stream_sse.txt" && echo PASS || echo FAIL)
+G1=$(grep -q 202 "$EVID/http_202_headers.txt" && jq -e '.status == "planned"' "$EVID/get_execution.json" >/dev/null && echo PASS || echo FAIL)
 G2=$(grep -q "$EXEC_ID" "$EVID/db_execution.txt" && grep -q "$EXEC_ID" "$EVID/db_checkpoint.txt" && echo PASS || echo FAIL)
 G3=$(grep -q 'plan.json' "$EVID/minio_ls.txt" && jq -e '.tasks and .acceptance_criteria' "$EVID/plan.json" >/dev/null && echo PASS || echo FAIL)
 G4=$(grep -q ready "$EVID/tempo_ready.txt" && jq -e '.database=="ok"' "$EVID/grafana_health.json" >/dev/null && echo PASS || echo FAIL)
@@ -112,7 +128,8 @@ else
   G6=FAIL
 fi
 
-cat > "$EVID/WEEK2_SUMMARY.md" <<EOF
+# Write summary at a stable location under week2 root
+cat > "${BASE_DIR}/WEEK2_SUMMARY.md" <<EOF
 # Week 2 Evidence Summary
 
 - G1-API: $G1

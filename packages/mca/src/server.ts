@@ -1,10 +1,10 @@
 import express, { type Request, type Response } from 'express';
-import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 import { upsertExecution } from '@autonomous/shared/src/db';
 import { publish } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
+import { createLogger } from '@autonomous/shared/src/logger';
 import { env } from '@autonomous/shared/src/env';
 import { StateGraph, START, END } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
@@ -13,6 +13,7 @@ import { Pool } from 'pg';
 startOtel('mca');
 export const app = express();
 app.use(express.json());
+const logger = createLogger('mca');
 
 type McaState = {
   execId: string;
@@ -24,6 +25,22 @@ type McaState = {
 const pool = new Pool({ connectionString: env.DATABASE_URL });
 // PostgresSaver expects a pg-compatible pool; cast through unknown to satisfy typings without using any
 const checkpointer = new PostgresSaver(pool as unknown as Pool);
+// Verify checkpointer setup (skip in tests to avoid exiting test runner)
+if (process.env.NODE_ENV !== 'test') {
+  try {
+    // Some versions expose an async setup() to prepare tables; if missing, calling will throw
+    // Intentionally call without optional chaining to surface runtime errors clearly
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (checkpointer as any).setup().catch((err: Error) => {
+      logger.error({ err: err.message }, 'PostgresSaver setup failed');
+      process.exit(1);
+    });
+  } catch (err) {
+    const e = err as Error;
+    logger.error({ err: e.message }, 'PostgresSaver setup threw');
+    // proceed; graph.invoke will likely surface a clearer error
+  }
+}
 
 async function supervisor(state: McaState): Promise<McaState> {
   // Deterministic routing to planner for Week 2 scope (LLM supervisor can be enabled later)
@@ -45,11 +62,17 @@ async function plannerNode(state: McaState): Promise<McaState> {
   return { ...state, status: 'planned' };
 }
 
-const graph = new StateGraph<McaState>({ channels: {} })
-  .addNode('supervisor', supervisor)
+const graph = new StateGraph<McaState>({
+  // Keep channels mapping for forward compatibility, but run planner as first node
+  channels: {
+    execId: { value: (_prev: string | undefined, curr: string) => curr },
+    intent: { value: (_prev: string | undefined, curr: string) => curr },
+    status: { value: (_prev: string | undefined, curr: string | undefined) => curr as string },
+    current_agent: { value: (_prev: string | undefined, curr: string | undefined) => curr as string }
+  }
+})
   .addNode('planner', plannerNode)
-  .addEdge(START, 'supervisor')
-  .addConditionalEdges('supervisor', (s: McaState) => (s.current_agent === 'planner' ? 'planner' : END))
+  .addEdge(START, 'planner')
   .addEdge('planner', END)
   .compile({ checkpointer });
 
@@ -62,11 +85,15 @@ app.post('/start', async (req: Request, res: Response) => {
   await publish(execId, 'status', { status: 'planning' });
   try {
     const opts: Record<string, unknown> = { configurable: { thread_id: execId } } as unknown as Record<string, unknown>;
+    logger.info({ execId, intent }, 'invoking graph');
     await (graph as unknown as { invoke: (st: McaState, o?: Record<string, unknown>) => Promise<unknown> }).invoke({ execId, intent }, opts);
+    logger.info({ execId }, 'graph invoke completed');
   } catch (e) {
     const err = e as Error;
+    // Log full error for immediate diagnosis
+    logger.error({ execId, err: err.message, stack: err.stack }, 'Graph invoke failed');
     await upsertExecution(execId, 'failed', intent, 'mca');
-    await publish(execId, 'error', { message: err.message });
+    await publish(execId, 'error', { message: err.message, stack: err.stack });
   }
 });
 

@@ -13,11 +13,6 @@ const fetchStub = vi.fn().mockImplementation(async (_url: string, init?: Record<
     json: async () => ({ object: `${body.execId}/plan.json` })
   };
 });
-
-vi.mock('node-fetch', () => ({
-  __esModule: true,
-  default: fetchStub
-}));
 const nodes: Record<string, (state: unknown) => Promise<unknown> | unknown> = {};
 let conditional: ((state: unknown) => string | symbol | null) | null = null;
 const START = Symbol('start');
@@ -38,12 +33,17 @@ vi.mock('@langchain/langgraph', () => ({
       return {
         invoke: async (state: unknown, options?: unknown) => {
           let current = state;
+          // Reflect START -> planner -> END wiring used by service
           if (nodes.supervisor) {
             current = await nodes.supervisor(current);
           }
-          const next = conditional ? conditional(current) : END;
-          if (typeof next === 'string' && nodes[next]) {
-            current = await nodes[next](current);
+          if (nodes.planner) {
+            current = await nodes.planner(current);
+          } else {
+            const next = conditional ? conditional(current) : END;
+            if (typeof next === 'string' && nodes[next]) {
+              current = await nodes[next](current);
+            }
           }
           invokeMock(current, options);
           return current;
@@ -76,6 +76,9 @@ let upsertExecution: MockedFunction<DbModule['upsertExecution']>;
 let publish: MockedFunction<EventsModule['publish']>;
 
 beforeAll(async () => {
+  // Use global fetch stub since server uses global fetch
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).fetch = fetchStub;
   ({ app } = await import('../server'));
   const dbModule = await import('@autonomous/shared/src/db');
   const eventsModule = await import('@autonomous/shared/src/events');
