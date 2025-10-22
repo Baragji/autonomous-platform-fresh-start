@@ -78,7 +78,7 @@ app.post('/plan', async (req: Request, res: Response) => {
       planObj = {
         tasks: [
           { id: '1', title: 'Scaffold API', description: 'Initialize project structure and dependencies' },
-          { id: '2', title: 'Implement TODO endpoints', description: 'CRUD endpoints with basic tests', dependsOn: ['1'] }
+          { id: '2', title: 'Implement required endpoints', description: 'CRUD endpoints with basic tests', dependsOn: ['1'] }
         ],
         acceptance_criteria: [
           'POST /executions returns 202',
