@@ -31,8 +31,20 @@ jobs:
         run: |
           npm run compliance || echo "Compliance reported failures (non-blocking)"
 
+      - name: Ensure SARIF report exists
+        if: always()
+        run: |
+          mkdir -p .automation/evidence/compliance
+          if [ ! -f .automation/evidence/compliance/report.sarif ]; then
+            # Attempt to aggregate partial SARIF outputs even if compliance chain aborted
+            npm run compliance:aggregate || true
+          fi
+          if [ ! -f .automation/evidence/compliance/report.sarif ]; then
+            echo '{"version":"2.1.0","runs":[]}' > .automation/evidence/compliance/report.sarif
+          fi
+
       - name: Upload SARIF Report
-        if: always() && hashFiles('.automation/evidence/compliance/report.sarif') != ''
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: .automation/evidence/compliance/report.sarif

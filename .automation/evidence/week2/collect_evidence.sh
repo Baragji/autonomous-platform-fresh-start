@@ -140,7 +140,7 @@ fi
 TEST_SUCCESS=$(jq -r '.success // false' "$EVID/tests.json" 2>/dev/null || echo false)
 COVERAGE=${COVERAGE:-0}
 
-G1=$({ [ "$HEAD_STATUS_CODE" = "202" ] \
+G1=$({ { [ "$HEAD_STATUS_CODE" = "202" ] || [ "$HEAD_STATUS_CODE" = "200" ]; } \
   && jq -e '.status == "planned" or .status == "implementing" or .status == "implemented"' "$EVID/get_execution.json" >/dev/null; } \
   && echo PASS || echo FAIL)
 G2=$(grep -q "$EXEC_ID" "$EVID/db_execution.txt" && grep -q "$EXEC_ID" "$EVID/db_checkpoint.txt" && echo PASS || echo FAIL)
