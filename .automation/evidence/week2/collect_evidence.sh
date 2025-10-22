@@ -22,6 +22,17 @@ printf "%s" "$EXEC_RESPONSE" | tee "$EVID/http_202_body.json" >/dev/null
 EXEC_ID=$(printf "%s" "$EXEC_RESPONSE" | jq -r '.id')
 printf "%s" "$EXEC_ID" > "$EVID/exec_id.txt"
 
+# Extract HTTP status code from headers (handles HTTP/1.1 and HTTP/2)
+HEAD_STATUS_CODE=""
+if [ -s "$EVID/http_202_headers.txt" ]; then
+  # First line typically: HTTP/1.1 202 Accepted or HTTP/2 202
+  HEAD_STATUS_CODE=$(awk 'NR==1 {print $2}' "$EVID/http_202_headers.txt" 2>/dev/null || true)
+  if [ -z "$HEAD_STATUS_CODE" ]; then
+    # Fallback: look for a 3-digit code anywhere
+    HEAD_STATUS_CODE=$(grep -m1 -Eo ' [0-9]{3} ' "$EVID/http_202_headers.txt" | tr -d ' ' || true)
+  fi
+fi
+
 # Optional debug
 if [ -n "${DEBUG_EVIDENCE:-}" ]; then
   echo "--- http_202_headers.txt"; cat "$EVID/http_202_headers.txt" || true
@@ -31,8 +42,10 @@ fi
 # Poll the execution API until it reaches planned (up to ~30s)
 ATTEMPTS=30
 DELAY=1
+POLLED_STATUS=""
 for i in $(seq 1 $ATTEMPTS); do
   curl -s "$GATEWAY_ORIGIN/api/executions/$EXEC_ID" | tee "$EVID/get_execution.json" >/dev/null
+  POLLED_STATUS=$(jq -r '.status // ""' "$EVID/get_execution.json" 2>/dev/null || echo "")
   # Accept any forward progress beyond planning to avoid race conditions
   if jq -e '.status == "planned" or .status == "implementing" or .status == "implemented"' "$EVID/get_execution.json" >/dev/null 2>&1; then
     break
@@ -127,8 +140,8 @@ fi
 TEST_SUCCESS=$(jq -r '.success // false' "$EVID/tests.json" 2>/dev/null || echo false)
 COVERAGE=${COVERAGE:-0}
 
-G1=$(grep -q 202 "$EVID/http_202_headers.txt" \
-  && jq -e '.status == "planned" or .status == "implementing" or .status == "implemented"' "$EVID/get_execution.json" >/dev/null \
+G1=$({ [ "$HEAD_STATUS_CODE" = "202" ] \
+  && jq -e '.status == "planned" or .status == "implementing" or .status == "implemented"' "$EVID/get_execution.json" >/dev/null; } \
   && echo PASS || echo FAIL)
 G2=$(grep -q "$EXEC_ID" "$EVID/db_execution.txt" && grep -q "$EXEC_ID" "$EVID/db_checkpoint.txt" && echo PASS || echo FAIL)
 G3=$(grep -q 'plan.json' "$EVID/minio_ls.txt" && jq -e '.tasks and .acceptance_criteria' "$EVID/plan.json" >/dev/null && echo PASS || echo FAIL)
@@ -153,5 +166,7 @@ cat > "${BASE_DIR}/WEEK2_SUMMARY.md" <<EOF
 - G6-QUALITY: $G6
 
 Execution ID: $EXEC_ID
+HTTP Status (POST /api/executions): ${HEAD_STATUS_CODE:-unknown}
+Polled Status (GET /api/executions/:id): ${POLLED_STATUS:-unknown}
 Timestamp: $(date -Iseconds)
 EOF

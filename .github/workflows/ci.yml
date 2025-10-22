@@ -98,7 +98,8 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: staging
+    environment:
+      name: staging
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       DATABASE_URL: postgresql://umca:umcapassword@localhost:5433/umca
@@ -124,6 +125,22 @@ jobs:
       - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
         run: docker compose -f infrastructure/docker-compose.yml up -d
 
+      - name: Wait for infra health
+        run: |
+          tries=60
+          wait_healthy() {
+            local name="$1"; local s
+            while true; do
+              s=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" || true)
+              if [ "$s" = "healthy" ]; then echo "$name healthy"; break; fi
+              ((tries--)); if [ $tries -le 0 ]; then echo "$name not healthy"; docker ps; docker inspect "$name" || true; exit 1; fi
+              sleep 2
+            done
+          }
+          wait_healthy umca-postgres
+          wait_healthy umca-redis
+          wait_healthy umca-minio
+
       - name: Start services in background
         run: |
           nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
@@ -145,17 +162,27 @@ jobs:
         shell: bash
         run: |
           chmod +x .automation/evidence/week2/collect_evidence.sh
-          ./.automation/evidence/week2/collect_evidence.sh
+          DEBUG_EVIDENCE=1 ./.automation/evidence/week2/collect_evidence.sh
           echo "--- SUMMARY"; cat .automation/evidence/week2/WEEK2_SUMMARY.md
           if grep -q "FAIL" .automation/evidence/week2/WEEK2_SUMMARY.md; then
             echo "Smoke failed"; exit 1; fi
+
+      - name: Dump service logs on failure
+        if: failure()
+        run: |
+          echo "--- docker ps"; docker ps
+          echo "--- docker inspect (health)"; docker inspect umca-postgres umca-redis umca-minio | jq '.[].State.Health.Status'
+          echo "--- gateway log"; [ -f /tmp/gw.log ] && tail -n 200 /tmp/gw.log || echo "no gw log"
+          echo "--- mca log"; [ -f /tmp/mca.log ] && tail -n 200 /tmp/mca.log || echo "no mca log"
+          echo "--- planner log"; [ -f /tmp/planner.log ] && tail -n 200 /tmp/planner.log || echo "no planner log"
+          echo "--- evidence dir"; ls -la .automation/evidence/week2 || true; ls -la .automation/evidence/week2/out || true
 
   smoke-production:
     name: smoke-production (e2e)
     needs: smoke-staging
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production
+    # environment-protected run can be re-enabled after env creation
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       DATABASE_URL: postgresql://umca:umcapassword@localhost:5433/umca
@@ -181,6 +208,22 @@ jobs:
       - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
         run: docker compose -f infrastructure/docker-compose.yml up -d
 
+      - name: Wait for infra health
+        run: |
+          tries=60
+          wait_healthy() {
+            local name="$1"; local s
+            while true; do
+              s=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" || true)
+              if [ "$s" = "healthy" ]; then echo "$name healthy"; break; fi
+              ((tries--)); if [ $tries -le 0 ]; then echo "$name not healthy"; docker ps; docker inspect "$name" || true; exit 1; fi
+              sleep 2
+            done
+          }
+          wait_healthy umca-postgres
+          wait_healthy umca-redis
+          wait_healthy umca-minio
+
       - name: Start services in background
         run: |
           nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
@@ -202,7 +245,17 @@ jobs:
         shell: bash
         run: |
           chmod +x .automation/evidence/week2/collect_evidence.sh
-          ./.automation/evidence/week2/collect_evidence.sh
+          DEBUG_EVIDENCE=1 ./.automation/evidence/week2/collect_evidence.sh
           echo "--- SUMMARY"; cat .automation/evidence/week2/WEEK2_SUMMARY.md
           if grep -q "FAIL" .automation/evidence/week2/WEEK2_SUMMARY.md; then
             echo "Smoke failed"; exit 1; fi
+
+      - name: Dump service logs on failure
+        if: failure()
+        run: |
+          echo "--- docker ps"; docker ps
+          echo "--- docker inspect (health)"; docker inspect umca-postgres umca-redis umca-minio | jq '.[].State.Health.Status'
+          echo "--- gateway log"; [ -f /tmp/gw.log ] && tail -n 200 /tmp/gw.log || echo "no gw log"
+          echo "--- mca log"; [ -f /tmp/mca.log ] && tail -n 200 /tmp/mca.log || echo "no mca log"
+          echo "--- planner log"; [ -f /tmp/planner.log ] && tail -n 200 /tmp/planner.log || echo "no planner log"
+          echo "--- evidence dir"; ls -la .automation/evidence/week2 || true; ls -la .automation/evidence/week2/out || true
