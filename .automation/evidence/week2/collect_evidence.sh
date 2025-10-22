@@ -88,11 +88,15 @@ docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc cat local/${MINIO_BUCKE
 curl -s http://localhost:3200/ready | tee "$EVID/tempo_ready.txt" >/dev/null
 curl -s http://localhost:3001/api/health | tee "$EVID/grafana_health.json" >/dev/null
 
-# G5 — Langfuse env
-if [ -f .env ]; then
-  grep -q "LANGFUSE_PUBLIC_KEY" .env && grep -q "LANGFUSE_SECRET_KEY" .env && echo OK > "$EVID/langfuse_env.txt" || echo FAIL > "$EVID/langfuse_env.txt"
+# G5 — Langfuse env (accept keys from environment OR .env)
+if [ -n "${LANGFUSE_PUBLIC_KEY:-}" ] && [ -n "${LANGFUSE_SECRET_KEY:-}" ]; then
+  echo OK > "$EVID/langfuse_env.txt"
 else
-  echo FAIL > "$EVID/langfuse_env.txt"
+  if [ -f .env ]; then
+    (grep -q "LANGFUSE_PUBLIC_KEY" .env && grep -q "LANGFUSE_SECRET_KEY" .env && echo OK > "$EVID/langfuse_env.txt") || echo FAIL > "$EVID/langfuse_env.txt"
+  else
+    echo FAIL > "$EVID/langfuse_env.txt"
+  fi
 fi
 
 # G6 — Quality

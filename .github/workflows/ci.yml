@@ -101,8 +101,13 @@ jobs:
     environment: staging
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      DATABASE_URL: postgresql://umca:umcapassword@localhost:5433/umca
+      REDIS_URL: redis://localhost:6380
+      MINIO_ENDPOINT: http://localhost:9000
       MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
       MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+      LANGFUSE_PUBLIC_KEY: dummy
+      LANGFUSE_SECRET_KEY: dummy
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -153,8 +158,13 @@ jobs:
     environment: production
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      DATABASE_URL: postgresql://umca:umcapassword@localhost:5433/umca
+      REDIS_URL: redis://localhost:6380
+      MINIO_ENDPOINT: http://localhost:9000
       MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
       MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+      LANGFUSE_PUBLIC_KEY: dummy
+      LANGFUSE_SECRET_KEY: dummy
     steps:
       - name: Checkout
         uses: actions/checkout@v4

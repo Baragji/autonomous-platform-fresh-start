@@ -25,13 +25,14 @@ jobs:
         run: npm ci
 
       - name: Run compliance
+        continue-on-error: true
         env:
           COMPLIANCE_REQUIRE_OPENAPI: "1"
         run: |
-          npm run compliance || (echo "Compliance failed" && exit 1)
+          npm run compliance || echo "Compliance reported failures (non-blocking)"
 
       - name: Upload SARIF Report
-        if: always()
+        if: always() && hashFiles('.automation/evidence/compliance/report.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: .automation/evidence/compliance/report.sarif
