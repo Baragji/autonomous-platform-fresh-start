@@ -6,6 +6,8 @@ import { publish } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
 import { createLogger } from '@autonomous/shared/src/logger';
 import { env } from '@autonomous/shared/src/env';
+import { PlanSchema, type Plan } from '@autonomous/shared/src/plan';
+import { minio, ARTIFACT_BUCKET } from '@autonomous/shared/src/minioClient';
 import { StateGraph, START, END } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { Pool } from 'pg';
@@ -20,6 +22,7 @@ type McaState = {
   intent: string;
   status?: string;
   current_agent?: string;
+  plan?: Plan;
 };
 
 const pool = new Pool({ connectionString: env.DATABASE_URL });
@@ -56,10 +59,33 @@ async function plannerNode(state: McaState): Promise<McaState> {
   });
   const j = (await r.json()) as { object?: string; error?: string };
   if (!r.ok) throw new Error(j.error || 'planner failed');
+  if (!j.object) throw new Error('planner did not return plan object');
+  const plan = await readPlanFromMinio(j.object);
   await upsertExecution(state.execId, 'planned', state.intent, 'planner');
   await publish(state.execId, 'artifact', { type: 'plan', object: j.object });
   await publish(state.execId, 'status', { status: 'planned' });
-  return { ...state, status: 'planned' };
+  return { ...state, status: 'planned', plan, current_agent: 'planner' };
+}
+
+async function implementerNode(state: McaState): Promise<McaState> {
+  if (!state.plan) throw new Error('plan missing from state');
+  const implementerUrl = process.env.IMPLEMENTER_URL || 'http://localhost:7030/implement';
+  await publish(state.execId, 'agent', { agent: 'implementer', status: 'working' });
+  await upsertExecution(state.execId, 'implementing', state.intent, 'implementer');
+  await publish(state.execId, 'status', { status: 'implementing' });
+  const response = await fetch(implementerUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ execId: state.execId, plan: state.plan })
+  });
+  const payload = (await response.json()) as { ok?: boolean; files?: string[]; error?: string };
+  if (!response.ok || payload.ok !== true) {
+    throw new Error(payload.error || 'implementer failed');
+  }
+  await upsertExecution(state.execId, 'implemented', state.intent, 'implementer');
+  await publish(state.execId, 'status', { status: 'implemented' });
+  await publish(state.execId, 'artifact', { type: 'code', files: payload.files ?? [] });
+  return { ...state, status: 'implemented', current_agent: 'implementer' };
 }
 
 const graph = new StateGraph<McaState>({
@@ -72,8 +98,10 @@ const graph = new StateGraph<McaState>({
   }
 })
   .addNode('planner', plannerNode)
+  .addNode('implementer', implementerNode)
   .addEdge(START, 'planner')
-  .addEdge('planner', END)
+  .addEdge('planner', 'implementer')
+  .addEdge('implementer', END)
   .compile({ checkpointer });
 
 app.post('/start', async (req: Request, res: Response) => {
@@ -100,4 +128,20 @@ app.post('/start', async (req: Request, res: Response) => {
 const port = Number(process.env.MCA_PORT || 7010);
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => process.stdout.write(`[mca] listening on :${port}\n`));
+}
+
+async function readPlanFromMinio(objectName: string): Promise<Plan> {
+  const stream = await minio.getObject(ARTIFACT_BUCKET, objectName);
+  const buf = await streamToBuffer(stream);
+  const parsed = JSON.parse(buf.toString('utf8')) as unknown;
+  return PlanSchema.parse(parsed);
+}
+
+function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    stream.on('error', (err) => reject(err));
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+  });
 }

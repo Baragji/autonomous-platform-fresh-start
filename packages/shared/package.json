@@ -12,11 +12,12 @@
     "test": "echo 'no tests yet'"
   },
   "dependencies": {
+    "@autonomous/vfs": "file:../vfs",
     "dotenv": "^16.4.5",
+    "ioredis": "^5.4.1",
     "minio": "^8.0.1",
     "pg": "^8.13.0",
-    "ioredis": "^5.4.1",
-    "pino": "^9.4.0"
+    "pino": "^9.4.0",
+    "zod": "^3.23.8"
   }
 }
-
