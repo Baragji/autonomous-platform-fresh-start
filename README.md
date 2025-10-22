@@ -1,5 +1,7 @@
 # Autonomous AI Coding Platform
 
+[![CI](https://github.com/Baragji/autonomous-platform-fresh-start/actions/workflows/ci.yml/badge.svg)](https://github.com/Baragji/autonomous-platform-fresh-start/actions/workflows/ci.yml)
+
 **A fully autonomous, multi-agent AI coding system with Replit/Copilot-class experience, built from day 1 for production.**
 
 **Status:** 🏗️ Week 1 - Infrastructure Setup

@@ -92,3 +92,107 @@ jobs:
         run: npm ci --no-audit --fund=false
       - name: Validate OpenAI key by listing models
         run: npm run ci:validate-openai
+
+  smoke-staging:
+    name: smoke-staging (e2e)
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+      MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci --no-audit --fund=false
+
+      - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
+        run: docker compose -f infrastructure/docker-compose.yml up -d
+
+      - name: Start services in background
+        run: |
+          nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
+          nohup npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
+          nohup npm --prefix packages/planner run dev >/tmp/planner.log 2>&1 &
+
+      - name: Wait for services
+        shell: bash
+        run: |
+          for p in 3030 7010 7020; do
+            echo "Waiting for :$p";
+            for i in {1..60}; do
+              (echo > /dev/tcp/127.0.0.1/$p) >/dev/null 2>&1 && break
+              sleep 1
+            done
+          done
+
+      - name: Run e2e smoke via Week 2 collector
+        shell: bash
+        run: |
+          chmod +x .automation/evidence/week2/collect_evidence.sh
+          ./.automation/evidence/week2/collect_evidence.sh
+          echo "--- SUMMARY"; cat .automation/evidence/week2/WEEK2_SUMMARY.md
+          if grep -q "FAIL" .automation/evidence/week2/WEEK2_SUMMARY.md; then
+            echo "Smoke failed"; exit 1; fi
+
+  smoke-production:
+    name: smoke-production (e2e)
+    needs: smoke-staging
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+      MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci --no-audit --fund=false
+
+      - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
+        run: docker compose -f infrastructure/docker-compose.yml up -d
+
+      - name: Start services in background
+        run: |
+          nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
+          nohup npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
+          nohup npm --prefix packages/planner run dev >/tmp/planner.log 2>&1 &
+
+      - name: Wait for services
+        shell: bash
+        run: |
+          for p in 3030 7010 7020; do
+            echo "Waiting for :$p";
+            for i in {1..60}; do
+              (echo > /dev/tcp/127.0.0.1/$p) >/dev/null 2>&1 && break
+              sleep 1
+            done
+          done
+
+      - name: Run e2e smoke via Week 2 collector
+        shell: bash
+        run: |
+          chmod +x .automation/evidence/week2/collect_evidence.sh
+          ./.automation/evidence/week2/collect_evidence.sh
+          echo "--- SUMMARY"; cat .automation/evidence/week2/WEEK2_SUMMARY.md
+          if grep -q "FAIL" .automation/evidence/week2/WEEK2_SUMMARY.md; then
+            echo "Smoke failed"; exit 1; fi

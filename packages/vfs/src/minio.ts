@@ -88,7 +88,11 @@ export class MinioVfs implements Vfs {
       const stat = await this.client.statObject(this.bucket, key);
       const existing = await this.client.getObject(this.bucket, key);
       const buf = await streamToBuffer(existing);
-      const timestamp = this.clock().toISOString().replace(/[:.]/g, '-');
+      // Use ISO string without milliseconds, with colons replaced by dashes (e.g., 2024-01-01T00-00-00Z)
+      const timestamp = this.clock()
+        .toISOString()
+        .replace(/\.\d+Z$/, 'Z')
+        .replace(/:/g, '-');
       const versionKey = path.posix.join(this.resolveVersionsRoot(), timestamp, sanitize(relativePath));
       const meta = normalizeMetadata(stat.metaData);
       await this.client.putObject(this.bucket, versionKey, buf, buf.length, meta);
