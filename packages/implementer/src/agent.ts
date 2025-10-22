@@ -91,6 +91,8 @@ export class ImplementerAgent {
       }
 
       if (choice.finish_reason === 'tool_calls' && message.tool_calls) {
+        // Push assistant's message with tool_calls before adding tool results
+        messages.push(message);
         await this.handleToolCalls(message.tool_calls, toolExecutor, messages);
         continue;
       }
