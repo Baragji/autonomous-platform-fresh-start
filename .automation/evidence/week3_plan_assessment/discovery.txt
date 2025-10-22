@@ -1,0 +1,64 @@
+Task: Assess Week 3-4 plans vs Week 1-2 + AGENTS
+Timestamp: 2025-10-22T01:54:10+02:00
+
+Read files:
+- AGENTS.md
+- docs/11_211025/WEEK_1_DOD.md
+- docs/11_211025/WEEK_2_DOD.md
+- docs/11_211025/WEEK_2_COMPLETE_WEEK_3_READY.md
+- docs/11_211025/WEEK_3_4_DOD.md
+- docs/11_211025/WEEK_3_4_QUICK_START.md
+- package.json
+
+Key excerpts:
+AGENTS.md (Forbidden):
+33:- Forbidden: Anthropic, SQLite, in‑memory persistence, monoliths, custom re‑implementations of battle‑tested tools.
+71:- Forbidden: Anthropic Claude, SQLite, in-memory storage for state, monolithic architecture, custom re‑implementations of solved tooling (queues, loggers, HTTP clients, orchestration, SBOM, scans).
+130:## 🚫 Forbidden Patterns (Auto-Detectable)
+139:| Anthropic imports | `from ['"]@anthropic` | Wrong LLM vendor | Replace with OpenAI |
+
+WEEK_1_DOD.md (Forbidden):
+179:### FORBIDDEN:
+181:- ❌ In-memory storage (not persistent)
+247:## 🚫 Forbidden Patterns
+
+WEEK_3_4_DOD.md (VFS in-memory + library/service consistency):
+1:# Week 3-4: Implementer + VFS DoD (Definition of Done)
+20:### G1-VFS: Virtual File System Operational
+24:# 1) In-memory VFS can create/read/list files
+27:# 2) MinIO-backed VFS can persist files
+28:curl -s http://localhost:8010/vfs/test-exec/src/app.ts | jq -e '.content'
+31:curl -s http://localhost:8010/vfs/test-exec/versions | jq -e 'length > 0'
+35:- VFS tests exit 0 with `.success == true`
+36:- MinIO-backed VFS can read/write files
+40:- VFS tests fail
+206:  # G1-VFS
+242:- G1-VFS: [PASS/FAIL]
+263:**VFS Implementation:**
+264:- In-memory: Map-based (for tests)
+289:- `packages/vfs` (NEW - library, not service)
+290:- `packages/shared` (existing, add VFS interface)
+328:### Phase 1: VFS (Days 1-2)
+330:1. Create `packages/vfs/src/interface.ts` - VFS TypeScript interface
+331:2. Create `packages/vfs/src/memory.ts` - In-memory Map-based implementation
+334:5. Add VFS to `packages/shared/src/vfs.ts` - Export factory function
+
+WEEK_2_COMPLETE_WEEK_3_READY.md (VFS in-memory mention + future Anthropic):
+85:## 🎯 Week 3-4 Scope: Implementer + VFS
+105:   - In-memory (Map-based for tests)
+111:   - VFS integration
+118:- **packages/shared** - Add VFS factory, logger exports
+122:**LLM Provider:** OpenAI ONLY
+135:- Support OpenAI + Anthropic + Azure OpenAI
+142:| **G1-VFS** | VFS creates/reads/versions files | `vfs_tests.json` |
+154:- [ ] VFS library with in-memory + MinIO implementations
+206:### Step 3: Create VFS Package (Days 1-2)
+238:export interface VFS {
+322:- ✅ Architectural ambiguity (e.g., "Should VFS support directories?")
+367:Week 3-4: 🚀 READY (Implementer + VFS scoped, DoD written, stack locked)
+371:# Start building VFS
+
+Quick Start (in-memory first):
+28:   - In-memory implementation (for tests)
+123:- [ ] Create `packages/vfs/src/memory.ts` - In-memory implementation
+285:3. Implement in-memory VFS first (with tests)

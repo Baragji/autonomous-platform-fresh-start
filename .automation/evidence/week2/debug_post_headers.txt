@@ -1,0 +1,11 @@
+HTTP/1.1 202 Accepted
+X-Powered-By: Express
+Location: /api/executions/f48e19a0-7833-41ca-9c23-afb97c8a391c
+Content-Type: application/json; charset=utf-8
+Content-Length: 202
+ETag: W/"ca-8gM6eZ9qoxSC+U3zbs9pJauIbx4"
+Date: Tue, 21 Oct 2025 21:36:52 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"id":"f48e19a0-7833-41ca-9c23-afb97c8a391c","status":"accepted","location":"/api/executions/f48e19a0-7833-41ca-9c23-afb97c8a391c","stream":"/api/executions/f48e19a0-7833-41ca-9c23-afb97c8a391c/stream"}

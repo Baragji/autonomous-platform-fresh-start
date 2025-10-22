@@ -1,0 +1,22 @@
+          List of relations
+ Schema |    Name     | Type  | Owner 
+--------+-------------+-------+-------
+ public | checkpoints | table | umca
+ public | executions  | table | umca
+(2 rows)
+
+                               Table "public.checkpoints"
+        Column        |            Type             | Collation | Nullable |   Default   
+----------------------+-----------------------------+-----------+----------+-------------
+ thread_id            | text                        |           | not null | 
+ checkpoint_ns        | text                        |           | not null | ''::text
+ checkpoint_id        | text                        |           | not null | 
+ parent_checkpoint_id | text                        |           |          | 
+ checkpoint           | jsonb                       |           | not null | 
+ metadata             | jsonb                       |           | not null | '{}'::jsonb
+ created_at           | timestamp without time zone |           |          | now()
+Indexes:
+    "checkpoints_pkey" PRIMARY KEY, btree (thread_id, checkpoint_ns, checkpoint_id)
+    "idx_checkpoints_created_at" btree (created_at)
+    "idx_checkpoints_parent" btree (parent_checkpoint_id)
+

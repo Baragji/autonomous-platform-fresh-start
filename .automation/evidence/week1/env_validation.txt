@@ -1,0 +1,4 @@
+=== Environment Variables ===
+OPENAI_API_KEY: sk-proj...
+DATABASE_URL: postgresql://umca:umcapassword@localhost:5433/umca
+MINIO_ENDPOINT: http://localhost:9000

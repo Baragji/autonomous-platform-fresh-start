@@ -1,0 +1,31 @@
+{
+  "has_packages_dir": true,
+  "services": [
+    "gateway",
+    "mca",
+    "planner",
+    "shared"
+  ],
+  "evidence": {
+    "coverage_final_json": true,
+    "sbom_json": true
+  },
+  "dependencies": {
+    "gateway": {
+      "hasAnthropic": false
+    },
+    "mca": {
+      "hasAnthropic": false
+    },
+    "planner": {
+      "hasAnthropic": false
+    },
+    "shared": {
+      "hasAnthropic": false
+    }
+  },
+  "openapi_specs": [
+    "/Users/Yousef_1/Downloads/autonomous-platform-fresh-start/contracts/gateway.openapi.yaml"
+  ],
+  "require_openapi_contracts": false
+}

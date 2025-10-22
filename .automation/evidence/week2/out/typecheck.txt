@@ -1,0 +1,16 @@
+
+> typecheck
+> tsc -p tsconfig.base.json --noEmit && npm --prefix packages/gateway run typecheck && npm --prefix packages/mca run typecheck && npm --prefix packages/planner run typecheck
+
+
+> @autonomous/gateway@0.1.0 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+> @autonomous/mca@0.1.0 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+> @autonomous/planner@0.1.0 typecheck
+> tsc -p tsconfig.json --noEmit
+
