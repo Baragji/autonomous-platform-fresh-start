@@ -54,16 +54,7 @@ export class RunnerAgent {
       return { ok: false, error: 'E2B_API_KEY is not configured' };
     }
     const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
-    // Support both constructor and .create styles across 2.x variants
-    let sandbox: SandboxApi;
-    // @ts-expect-error - runtime duck-typing of SDK variant
-    if (typeof Sandbox.create === 'function') {
-      // @ts-expect-error
-      sandbox = await Sandbox.create({ apiKey });
-    } else {
-      // @ts-expect-error
-      sandbox = new Sandbox({ apiKey });
-    }
+    const sandbox: SandboxApi = new Sandbox({ apiKey }) as unknown as SandboxApi;
     try {
       // Prepare a project directory
       const projectRoot = '/project';
