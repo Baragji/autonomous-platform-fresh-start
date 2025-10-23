@@ -35,13 +35,15 @@ class FakeSandbox {
   async close() {}
 }
 
-vi.mock('e2b', () => ({ Sandbox: FakeSandbox }));
+vi.mock('@e2b/sdk', () => ({ Sandbox: FakeSandbox }));
 let app: import('express').Express;
 
 describe('runner server', () => {
   beforeEach(() => {
     vi.spyOn(events, 'publish').mockResolvedValue();
-    vi.spyOn(vfsMod, 'createVfs').mockResolvedValue(new MemVfs() as any);
+    vi.spyOn(vfsMod, 'createVfs').mockResolvedValue(
+      new MemVfs() as unknown as Awaited<ReturnType<typeof vfsMod.createVfs>>
+    );
   });
 
   it('runs tests and uploads artifacts', async () => {

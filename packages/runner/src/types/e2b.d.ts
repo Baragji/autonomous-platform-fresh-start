@@ -1,4 +1,4 @@
-declare module 'e2b' {
+declare module '@e2b/sdk' {
   export class Sandbox {
     constructor(opts?: { apiKey?: string });
     filesystem: {
@@ -13,4 +13,9 @@ declare module 'e2b' {
     };
     close: () => Promise<void>;
   }
+}
+
+// Backward shim in case some files still reference 'e2b' directly
+declare module 'e2b' {
+  export { Sandbox } from '@e2b/sdk';
 }

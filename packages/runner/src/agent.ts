@@ -17,6 +17,21 @@ export type RunResult = {
   error?: string;
 };
 
+type SandboxProcessOutcome = { exitCode: number; stdout: string; stderr: string };
+type SandboxProcess = { wait: (opts?: { timeout?: number }) => Promise<SandboxProcessOutcome> };
+type SandboxApi = {
+  filesystem: {
+    makeDir: (path: string, opts?: { recursive?: boolean }) => Promise<void>;
+    write: (path: string, content: string | Uint8Array) => Promise<void>;
+    read: (path: string) => Promise<string>;
+  };
+  process: { start: (opts: { cmd: string; args?: string[]; cwd?: string; env?: Record<string, string> }) => Promise<SandboxProcess> };
+  close?: () => Promise<void>;
+};
+
+type VitestTestCase = { name?: string; testFilePath?: string; status?: string; duration?: number; error?: { message?: string } };
+type VitestJson = { numTotalTests?: number; numPassedTests?: number; duration?: number; testResults?: VitestTestCase[] };
+
 export class RunnerAgent {
   constructor(private readonly logger: Logger) {}
 
@@ -33,8 +48,8 @@ export class RunnerAgent {
     }
 
     // Start sandbox
-  const { Sandbox } = await import('e2b');
-  const sandbox = new (Sandbox as any)({ apiKey: process.env.E2B_API_KEY });
+  const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
+  const sandbox: SandboxApi = new Sandbox({ apiKey: process.env.E2B_API_KEY });
     try {
       // Prepare a project directory
       const projectRoot = '/project';
@@ -123,9 +138,9 @@ export class RunnerAgent {
     }
   }
 
-  private async exec(sandbox: any, cwd: string, cmd: string, args: string[]) {
-    const p = await sandbox.process.start({ cmd, args, cwd, env: {} });
-    const outcome = await p.wait({ timeout: 1000 * 60 * 3 });
+  private async exec(sandbox: SandboxApi, cwd: string, cmd: string, args: string[]): Promise<SandboxProcessOutcome> {
+    const p: SandboxProcess = await sandbox.process.start({ cmd, args, cwd, env: {} });
+    const outcome: SandboxProcessOutcome = await p.wait({ timeout: 1000 * 60 * 3 });
     if (outcome.exitCode !== 0) {
       const tail = (outcome.stdout || '') + '\n' + (outcome.stderr || '');
       throw new Error(`command failed: ${cmd} ${args.join(' ')}\n${tail}`);
@@ -135,17 +150,17 @@ export class RunnerAgent {
 
   private vitestJsonToJUnit(stdout: string): string {
     // Best-effort conversion: Treat whole run as single testsuite
-    let results: any;
-    try { results = JSON.parse(stdout); } catch {
-      results = { startTime: Date.now(), duration: 0, numTotalTests: 0, numPassedTests: 0, testResults: [] };
+    let results: VitestJson = {};
+    try { results = JSON.parse(stdout) as VitestJson; } catch {
+      results = { duration: 0, numTotalTests: 0, numPassedTests: 0, testResults: [] };
     }
-    const cases = Array.isArray(results.testResults) ? results.testResults : [];
+    const cases: VitestTestCase[] = Array.isArray(results.testResults) ? results.testResults : [];
     const total = results.numTotalTests ?? cases.length;
-    const passed = results.numPassedTests ?? cases.filter((c: any) => c.status === 'pass').length;
+    const passed = results.numPassedTests ?? cases.filter((c: VitestTestCase) => c.status === 'pass').length;
     const failed = total - passed;
     const time = (results.duration ?? 0) / 1000;
     const esc = (s: string) => String(s).replace(/[&<>"]+/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
-    const testcases = cases.map((c: any) => {
+    const testcases = cases.map((c: VitestTestCase) => {
       const name = esc(c.name || c.testFilePath || 'test');
       if (c.status === 'pass') return `<testcase name="${name}" time="${(c.duration || 0) / 1000}"></testcase>`;
       const msg = esc(c.error?.message || 'test failed');
