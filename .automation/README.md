@@ -2,7 +2,7 @@
 
 **Purpose:** Machine-generated evidence and artifacts for all tasks.
 
-**DO NOT manually create files here** AI builders will generate evidence automatically during task execution.
+**DO NOT manually create files here.** AI builders will generate evidence automatically during task execution.
 
 ---
 
