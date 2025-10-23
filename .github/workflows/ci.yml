@@ -10,18 +10,38 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: umca
+          POSTGRES_PASSWORD: umcapassword
+          POSTGRES_DB: umca
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
     env:
-      # Use Compose services, values come from repo Variables/Secrets
-      MINIO_ENDPOINT: ${{ vars.MINIO_ENDPOINT }}
+      DATABASE_URL: postgresql://umca:umcapassword@localhost:5432/umca
+      REDIS_URL: redis://localhost:6379
+      MINIO_ENDPOINT: http://localhost:9000
       MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
       MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
-      REDIS_URL: ${{ vars.REDIS_URL }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.OTEL_EXPORTER_OTLP_ENDPOINT }}
-      GRAFANA_URL: ${{ vars.GRAFANA_URL }}
-      # Prevent real LLM calls during tests
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:4318
+      GRAFANA_URL: http://localhost:3001
       OPENAI_API_KEY: dummy
-      # Make integration tests fail if backends are unavailable
       CI_ENFORCE_INTEGRATION: "1"
     steps:
       - name: Checkout
@@ -36,52 +56,26 @@ jobs:
       - name: Install deps
         run: npm ci --no-audit --fund=false
 
-      - name: Diagnose environment
+      - name: Start MinIO
         run: |
-          echo "==== Docker Version ===="
-          docker version || true
-          echo "==== Docker Info ===="
-          docker info || true
-          echo "==== Disk Space (before) ===="
-          df -h
-          echo "==== Files in infra ===="
-          ls -R infrastructure || true
+          docker run -d --name umca-minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=${{ secrets.MINIO_ACCESS_KEY }} \
+            -e MINIO_ROOT_PASSWORD=${{ secrets.MINIO_SECRET_KEY }} \
+            --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1" \
+            --health-interval 10s --health-timeout 5s --health-retries 5 \
+            quay.io/minio/minio:latest server /data --console-address ":9001"
 
-      - name: Free up disk space
+      - name: Wait for MinIO
         run: |
-          sudo rm -rf /usr/local/lib/android || true
-          df -h
-
-      - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
-        timeout-minutes: 15
-        env:
-          COMPOSE_PARALLEL_LIMIT: 2
-          DOCKER_CLIENT_TIMEOUT: "600"
-          COMPOSE_HTTP_TIMEOUT: "600"
-        run: |
-          set -e
-          docker compose -f infrastructure/docker-compose.yml up -d || {
-            echo "compose up failed, dumping logs";
-            docker compose -f infrastructure/docker-compose.yml logs || true;
-            exit 1;
-          }
-
-      - name: Wait for infra
-        run: |
-          tries=60
-          wait_healthy() {
-            local name="$1"
-            local s
-            while true; do
-              s=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" || true)
-              if [ "$s" = "healthy" ]; then echo "$name healthy"; break; fi
-              ((tries--)); if [ $tries -le 0 ]; then echo "$name not healthy"; docker ps; docker inspect "$name" || true; exit 1; fi
-              sleep 2
-            done
-          }
-          wait_healthy umca-minio
-          wait_healthy umca-redis
-          wait_healthy umca-postgres
+          for i in {1..30}; do
+            if docker inspect --format='{{.State.Health.Status}}' umca-minio | grep -q healthy; then
+              echo "MinIO healthy"; break
+            fi
+            echo "Waiting for MinIO... ($i/30)"
+            sleep 2
+          done
+          docker inspect --format='{{.State.Health.Status}}' umca-minio | grep -q healthy || { echo "MinIO not healthy"; docker logs umca-minio; exit 1; }
 
       - name: Lint
         run: npm run lint
@@ -89,15 +83,15 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Test with coverage (emit JSON summary)
+      - name: Test with coverage
         run: |
           mkdir -p .automation/evidence
           npm test -- --coverage --reporter=json | tee .automation/evidence/ci-tests.json
 
-      - name: Enforce coverage threshold (lines >= 80%)
+      - name: Enforce coverage threshold
         run: npm run compliance:coverage
 
-      - name: No skipped tests (fail on pending)
+      - name: No skipped tests
         run: VITEST_JSON_PATH=.automation/evidence/ci-tests.json npm run ci:no-skips
 
   openai-check:
@@ -117,7 +111,7 @@ jobs:
           cache: npm
       - name: Install deps
         run: npm ci --no-audit --fund=false
-      - name: Validate OpenAI key by listing models
+      - name: Validate OpenAI key
         run: npm run ci:validate-openai
 
   smoke-staging:
@@ -127,10 +121,33 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: staging
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: umca
+          POSTGRES_PASSWORD: umcapassword
+          POSTGRES_DB: umca
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      DATABASE_URL: postgresql://umca:umcapassword@localhost:5433/umca
-      REDIS_URL: redis://localhost:6380
+      DATABASE_URL: postgresql://umca:umcapassword@localhost:5432/umca
+      REDIS_URL: redis://localhost:6379
       MINIO_ENDPOINT: http://localhost:9000
       MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
       MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
@@ -140,81 +157,88 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install deps
         run: npm ci --no-audit --fund=false
-
-      - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
-        run: docker compose -f infrastructure/docker-compose.yml up -d
-
-      - name: Wait for infra health
+      - name: Start MinIO
         run: |
-          tries=60
-          wait_healthy() {
-            local name="$1"; local s
-            while true; do
-              s=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" || true)
-              if [ "$s" = "healthy" ]; then echo "$name healthy"; break; fi
-              ((tries--)); if [ $tries -le 0 ]; then echo "$name not healthy"; docker ps; docker inspect "$name" || true; exit 1; fi
-              sleep 2
-            done
-          }
-          wait_healthy umca-postgres
-          wait_healthy umca-redis
-          wait_healthy umca-minio
-
-      - name: Start services in background
+          docker run -d --name umca-minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=${{ secrets.MINIO_ACCESS_KEY }} \
+            -e MINIO_ROOT_PASSWORD=${{ secrets.MINIO_SECRET_KEY }} \
+            --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1" \
+            --health-interval 10s --health-timeout 5s --health-retries 5 \
+            quay.io/minio/minio:latest server /data --console-address ":9001"
+      - name: Wait for MinIO
+        run: |
+          for i in {1..30}; do
+            if docker inspect --format='{{.State.Health.Status}}' umca-minio | grep -q healthy; then
+              echo "MinIO healthy"; break
+            fi
+            sleep 2
+          done
+      - name: Start services
         run: |
           nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
           nohup env WEEK2_PLANNER_ONLY=1 npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
           nohup npm --prefix packages/planner run dev >/tmp/planner.log 2>&1 &
-
       - name: Wait for services
-        shell: bash
         run: |
           for p in 3030 7010 7020; do
-            echo "Waiting for :$p";
             for i in {1..60}; do
               (echo > /dev/tcp/127.0.0.1/$p) >/dev/null 2>&1 && break
               sleep 1
             done
           done
-
-      - name: Run e2e smoke via Week 2 collector
-        shell: bash
+      - name: Run Week 2 smoke
         run: |
           chmod +x .automation/evidence/week2/collect_evidence.sh
           DEBUG_EVIDENCE=1 ./.automation/evidence/week2/collect_evidence.sh
-          echo "--- SUMMARY"; cat .automation/evidence/week2/WEEK2_SUMMARY.md
-          if grep -q "FAIL" .automation/evidence/week2/WEEK2_SUMMARY.md; then
-            echo "Smoke failed"; exit 1; fi
-
-      - name: Dump service logs on failure
+          cat .automation/evidence/week2/WEEK2_SUMMARY.md
+          grep -q "FAIL" .automation/evidence/week2/WEEK2_SUMMARY.md && exit 1 || true
+      - name: Dump logs on failure
         if: failure()
         run: |
-          echo "--- docker ps"; docker ps
-          echo "--- docker inspect (health)"; docker inspect umca-postgres umca-redis umca-minio | jq '.[].State.Health.Status'
-          echo "--- gateway log"; [ -f /tmp/gw.log ] && tail -n 200 /tmp/gw.log || echo "no gw log"
-          echo "--- mca log"; [ -f /tmp/mca.log ] && tail -n 200 /tmp/mca.log || echo "no mca log"
-          echo "--- planner log"; [ -f /tmp/planner.log ] && tail -n 200 /tmp/planner.log || echo "no planner log"
-          echo "--- evidence dir"; ls -la .automation/evidence/week2 || true; ls -la .automation/evidence/week2/out || true
+          docker ps
+          docker logs umca-minio || true
+          tail -200 /tmp/gw.log /tmp/mca.log /tmp/planner.log 2>/dev/null || true
 
   smoke-production:
     name: smoke-production (e2e)
     needs: smoke-staging
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    # environment-protected run can be re-enabled after env creation
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: umca
+          POSTGRES_PASSWORD: umcapassword
+          POSTGRES_DB: umca
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      DATABASE_URL: postgresql://umca:umcapassword@localhost:5433/umca
-      REDIS_URL: redis://localhost:6380
+      DATABASE_URL: postgresql://umca:umcapassword@localhost:5432/umca
+      REDIS_URL: redis://localhost:6379
       MINIO_ENDPOINT: http://localhost:9000
       MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
       MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
@@ -224,70 +248,55 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install deps
         run: npm ci --no-audit --fund=false
-
-      - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
-        run: docker compose -f infrastructure/docker-compose.yml up -d
-
-      - name: Wait for infra health
+      - name: Start MinIO
         run: |
-          tries=60
-          wait_healthy() {
-            local name="$1"; local s
-            while true; do
-              s=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" || true)
-              if [ "$s" = "healthy" ]; then echo "$name healthy"; break; fi
-              ((tries--)); if [ $tries -le 0 ]; then echo "$name not healthy"; docker ps; docker inspect "$name" || true; exit 1; fi
-              sleep 2
-            done
-          }
-          wait_healthy umca-postgres
-          wait_healthy umca-redis
-          wait_healthy umca-minio
-
-      - name: Start services in background
+          docker run -d --name umca-minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=${{ secrets.MINIO_ACCESS_KEY }} \
+            -e MINIO_ROOT_PASSWORD=${{ secrets.MINIO_SECRET_KEY }} \
+            --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1" \
+            --health-interval 10s --health-timeout 5s --health-retries 5 \
+            quay.io/minio/minio:latest server /data --console-address ":9001"
+      - name: Wait for MinIO
+        run: |
+          for i in {1..30}; do
+            if docker inspect --format='{{.State.Health.Status}}' umca-minio | grep -q healthy; then
+              echo "MinIO healthy"; break
+            fi
+            sleep 2
+          done
+      - name: Start services
         run: |
           nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
           nohup env WEEK2_PLANNER_ONLY=1 npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
           nohup npm --prefix packages/planner run dev >/tmp/planner.log 2>&1 &
-
       - name: Wait for services
-        shell: bash
         run: |
           for p in 3030 7010 7020; do
-            echo "Waiting for :$p";
             for i in {1..60}; do
               (echo > /dev/tcp/127.0.0.1/$p) >/dev/null 2>&1 && break
               sleep 1
             done
           done
-
-      - name: Run e2e smoke via Week 2 collector
-        shell: bash
+      - name: Run Week 2 smoke
         run: |
           chmod +x .automation/evidence/week2/collect_evidence.sh
           DEBUG_EVIDENCE=1 ./.automation/evidence/week2/collect_evidence.sh
-          echo "--- SUMMARY"; cat .automation/evidence/week2/WEEK2_SUMMARY.md
-          if grep -q "FAIL" .automation/evidence/week2/WEEK2_SUMMARY.md; then
-            echo "Smoke failed"; exit 1; fi
-
-      - name: Dump service logs on failure
+          cat .automation/evidence/week2/WEEK2_SUMMARY.md
+          grep -q "FAIL" .automation/evidence/week2/WEEK2_SUMMARY.md && exit 1 || true
+      - name: Dump logs on failure
         if: failure()
         run: |
-          echo "--- docker ps"; docker ps
-          echo "--- docker inspect (health)"; docker inspect umca-postgres umca-redis umca-minio | jq '.[].State.Health.Status'
-          echo "--- gateway log"; [ -f /tmp/gw.log ] && tail -n 200 /tmp/gw.log || echo "no gw log"
-          echo "--- mca log"; [ -f /tmp/mca.log ] && tail -n 200 /tmp/mca.log || echo "no mca log"
-          echo "--- planner log"; [ -f /tmp/planner.log ] && tail -n 200 /tmp/planner.log || echo "no planner log"
-          echo "--- evidence dir"; ls -la .automation/evidence/week2 || true; ls -la .automation/evidence/week2/out || true
+          docker ps
+          docker logs umca-minio || true
+          tail -200 /tmp/gw.log /tmp/mca.log /tmp/planner.log 2>/dev/null || true
 
   smoke-week3:
     name: smoke-week3 (e2e)
@@ -296,10 +305,33 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: staging
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: umca
+          POSTGRES_PASSWORD: umcapassword
+          POSTGRES_DB: umca
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      DATABASE_URL: postgresql://umca:umcapassword@localhost:5433/umca
-      REDIS_URL: redis://localhost:6380
+      DATABASE_URL: postgresql://umca:umcapassword@localhost:5432/umca
+      REDIS_URL: redis://localhost:6379
       MINIO_ENDPOINT: http://localhost:9000
       MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
       MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
@@ -309,98 +341,55 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install deps
         run: npm ci --no-audit --fund=false
-
-      - name: Diagnose environment
+      - name: Start MinIO
         run: |
-          echo "==== Docker Version ===="
-          docker version || true
-          echo "==== Docker Info ===="
-          docker info || true
-          echo "==== Disk Space (before) ===="
-          df -h
-          echo "==== Files in infra ===="
-          ls -R infrastructure || true
-
-      - name: Free up disk space
+          docker run -d --name umca-minio \
+            -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ROOT_USER=${{ secrets.MINIO_ACCESS_KEY }} \
+            -e MINIO_ROOT_PASSWORD=${{ secrets.MINIO_SECRET_KEY }} \
+            --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1" \
+            --health-interval 10s --health-timeout 5s --health-retries 5 \
+            quay.io/minio/minio:latest server /data --console-address ":9001"
+      - name: Wait for MinIO
         run: |
-          sudo rm -rf /usr/local/lib/android || true
-          df -h
-
-      - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
-        timeout-minutes: 15
-        env:
-          COMPOSE_PARALLEL_LIMIT: 2
-          DOCKER_CLIENT_TIMEOUT: "600"
-          COMPOSE_HTTP_TIMEOUT: "600"
-        run: |
-          set -e
-          docker compose -f infrastructure/docker-compose.yml up -d || {
-            echo "compose up failed, dumping logs";
-            docker compose -f infrastructure/docker-compose.yml logs || true;
-            exit 1;
-          }
-
-      - name: Wait for infra health
-        run: |
-          tries=60
-          wait_healthy() {
-            local name="$1"; local s
-            while true; do
-              s=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" || true)
-              if [ "$s" = "healthy" ]; then echo "$name healthy"; break; fi
-              ((tries--)); if [ $tries -le 0 ]; then echo "$name not healthy"; docker ps; docker inspect "$name" || true; exit 1; fi
-              sleep 2
-            done
-          }
-          wait_healthy umca-postgres
-          wait_healthy umca-redis
-          wait_healthy umca-minio
-
-      - name: Start services in background
+          for i in {1..30}; do
+            if docker inspect --format='{{.State.Health.Status}}' umca-minio | grep -q healthy; then
+              echo "MinIO healthy"; break
+            fi
+            sleep 2
+          done
+      - name: Start services
         run: |
           nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
           nohup npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
           nohup npm --prefix packages/planner run dev >/tmp/planner.log 2>&1 &
           nohup npm --prefix packages/implementer run dev >/tmp/impl.log 2>&1 &
           nohup npm --prefix packages/runner run dev >/tmp/runner.log 2>&1 &
-
       - name: Wait for services
-        shell: bash
         run: |
           for p in 3030 7010 7020 7030 7040; do
-            echo "Waiting for :$p";
             for i in {1..60}; do
               (echo > /dev/tcp/127.0.0.1/$p) >/dev/null 2>&1 && break
               sleep 1
             done
           done
-
-      - name: Run e2e smoke via Week 3 collector
-        shell: bash
+      - name: Run Week 3 smoke
         run: |
           chmod +x .automation/evidence/week3/collect_evidence.sh
           DEBUG_EVIDENCE=1 ./.automation/evidence/week3/collect_evidence.sh
-          echo "--- SUMMARY"; cat .automation/evidence/week3/WEEK3_SUMMARY.md
-          if grep -q "FAIL" .automation/evidence/week3/WEEK3_SUMMARY.md; then
-            echo "Smoke Week3 failed"; exit 1; fi
-
-      - name: Dump service logs on failure
+          cat .automation/evidence/week3/WEEK3_SUMMARY.md
+          grep -q "FAIL" .automation/evidence/week3/WEEK3_SUMMARY.md && exit 1 || true
+      - name: Dump logs on failure
         if: failure()
         run: |
-          echo "--- docker ps"; docker ps
-          echo "--- docker inspect (health)"; docker inspect umca-postgres umca-redis umca-minio | jq '.[].State.Health.Status'
-          echo "--- gateway log"; [ -f /tmp/gw.log ] && tail -n 200 /tmp/gw.log || echo "no gw log"
-          echo "--- mca log"; [ -f /tmp/mca.log ] && tail -n 200 /tmp/mca.log || echo "no mca log"
-          echo "--- planner log"; [ -f /tmp/planner.log ] && tail -n 200 /tmp/planner.log || echo "no planner log"
-          echo "--- implementer log"; [ -f /tmp/impl.log ] && tail -n 200 /tmp/impl.log || echo "no implementer log"
-          echo "--- runner log"; [ -f /tmp/runner.log ] && tail -n 200 /tmp/runner.log || echo "no runner log"
-          echo "--- evidence dir"; ls -la .automation/evidence/week3 || true; ls -la .automation/evidence/week3/out || true
+          docker ps
+          docker logs umca-minio || true
+          tail -200 /tmp/*.log 2>/dev/null || true
+          ls -la .automation/evidence/week3 || true
