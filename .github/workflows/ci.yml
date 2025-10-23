@@ -36,8 +36,35 @@ jobs:
       - name: Install deps
         run: npm ci --no-audit --fund=false
 
+      - name: Diagnose environment
+        run: |
+          echo "==== Docker Version ===="
+          docker version || true
+          echo "==== Docker Info ===="
+          docker info || true
+          echo "==== Disk Space (before) ===="
+          df -h
+          echo "==== Files in infra ===="
+          ls -R infrastructure || true
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android || true
+          df -h
+
       - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
-        run: docker compose -f infrastructure/docker-compose.yml up -d
+        timeout-minutes: 15
+        env:
+          COMPOSE_PARALLEL_LIMIT: 2
+          DOCKER_CLIENT_TIMEOUT: "600"
+          COMPOSE_HTTP_TIMEOUT: "600"
+        run: |
+          set -e
+          docker compose -f infrastructure/docker-compose.yml up -d || {
+            echo "compose up failed, dumping logs";
+            docker compose -f infrastructure/docker-compose.yml logs || true;
+            exit 1;
+          }
 
       - name: Wait for infra
         run: |
@@ -292,8 +319,35 @@ jobs:
       - name: Install deps
         run: npm ci --no-audit --fund=false
 
+      - name: Diagnose environment
+        run: |
+          echo "==== Docker Version ===="
+          docker version || true
+          echo "==== Docker Info ===="
+          docker info || true
+          echo "==== Disk Space (before) ===="
+          df -h
+          echo "==== Files in infra ===="
+          ls -R infrastructure || true
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android || true
+          df -h
+
       - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
-        run: docker compose -f infrastructure/docker-compose.yml up -d
+        timeout-minutes: 15
+        env:
+          COMPOSE_PARALLEL_LIMIT: 2
+          DOCKER_CLIENT_TIMEOUT: "600"
+          COMPOSE_HTTP_TIMEOUT: "600"
+        run: |
+          set -e
+          docker compose -f infrastructure/docker-compose.yml up -d || {
+            echo "compose up failed, dumping logs";
+            docker compose -f infrastructure/docker-compose.yml logs || true;
+            exit 1;
+          }
 
       - name: Wait for infra health
         run: |
