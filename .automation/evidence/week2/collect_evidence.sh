@@ -91,8 +91,13 @@ for attempt in {1..30}; do
 done
 
 # G3 — Plan artifact (wait for MinIO object)
-NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{printf "%s" $k}}{{end}}' "$MINIO_CONTAINER")
+NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{printf "%s" $k}}{{end}}' "$MINIO_CONTAINER" 2>/dev/null || echo "bridge")
+if [ -z "$NET" ]; then NET="bridge"; fi
 MC_ENV=("-e" "MC_HOST_local=http://$MINIO_ACCESS_KEY:$MINIO_SECRET_KEY@${MINIO_CONTAINER}:9000")
+if [ "$NET" = "bridge" ]; then
+  # In CI, MinIO is on host network, use localhost
+  MC_ENV=("-e" "MC_HOST_local=http://$MINIO_ACCESS_KEY:$MINIO_SECRET_KEY@host.docker.internal:9000")
+fi
 
 for attempt in {1..30}; do
   if docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc ls local/${MINIO_BUCKET}/$EXEC_ID/ > "$EVID/minio_ls.txt" 2>/dev/null \
