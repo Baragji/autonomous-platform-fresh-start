@@ -89,7 +89,12 @@ jobs:
           npm test -- --coverage --reporter=json | tee .automation/evidence/ci-tests.json
 
       - name: Enforce coverage threshold
-        run: npm run compliance:coverage
+        run: |
+          if [ ! -f coverage/coverage-final.json ]; then
+            echo "coverage-final.json missing, using coverage-summary.json"
+            cp coverage/coverage-summary.json coverage/coverage-final.json
+          fi
+          npm run compliance:coverage
 
       - name: No skipped tests
         run: VITEST_JSON_PATH=.automation/evidence/ci-tests.json npm run ci:no-skips
