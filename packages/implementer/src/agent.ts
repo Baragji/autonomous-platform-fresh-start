@@ -78,11 +78,15 @@ export class ImplementerAgent {
     const trace = this.createTrace(input);
 
     const maxIterations = this.deps.maxIterations ?? 8;
+    let toolCallsObserved = false;
     for (let i = 0; i < maxIterations; i += 1) {
       const response = await this.deps.client.chat.completions.create({
         model: this.deps.model,
         messages,
-        tools: toolExecutor.tools
+        tools: toolExecutor.tools,
+        // Encourage the model to actually call tools at least once to generate artifacts
+        // Then relax to auto after we observe a tool call.
+        tool_choice: toolCallsObserved ? 'auto' : 'required'
       });
       const choice = response.choices[0];
       const message = choice?.message;
@@ -93,6 +97,7 @@ export class ImplementerAgent {
       if (choice.finish_reason === 'tool_calls' && message.tool_calls) {
         // Push assistant's message with tool_calls before adding tool results
         messages.push(message);
+        toolCallsObserved = true;
         await this.handleToolCalls(message.tool_calls, toolExecutor, messages);
         continue;
       }
