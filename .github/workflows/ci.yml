@@ -109,6 +109,7 @@ jobs:
       MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
       LANGFUSE_PUBLIC_KEY: dummy
       LANGFUSE_SECRET_KEY: dummy
+      E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -192,6 +193,7 @@ jobs:
       MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
       LANGFUSE_PUBLIC_KEY: dummy
       LANGFUSE_SECRET_KEY: dummy
+      E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -276,6 +278,7 @@ jobs:
       MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
       LANGFUSE_PUBLIC_KEY: dummy
       LANGFUSE_SECRET_KEY: dummy
+      E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -314,11 +317,12 @@ jobs:
           nohup npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
           nohup npm --prefix packages/planner run dev >/tmp/planner.log 2>&1 &
           nohup npm --prefix packages/implementer run dev >/tmp/impl.log 2>&1 &
+          nohup npm --prefix packages/runner run dev >/tmp/runner.log 2>&1 &
 
       - name: Wait for services
         shell: bash
         run: |
-          for p in 3030 7010 7020 7030; do
+          for p in 3030 7010 7020 7030 7040; do
             echo "Waiting for :$p";
             for i in {1..60}; do
               (echo > /dev/tcp/127.0.0.1/$p) >/dev/null 2>&1 && break
@@ -344,4 +348,5 @@ jobs:
           echo "--- mca log"; [ -f /tmp/mca.log ] && tail -n 200 /tmp/mca.log || echo "no mca log"
           echo "--- planner log"; [ -f /tmp/planner.log ] && tail -n 200 /tmp/planner.log || echo "no planner log"
           echo "--- implementer log"; [ -f /tmp/impl.log ] && tail -n 200 /tmp/impl.log || echo "no implementer log"
+          echo "--- runner log"; [ -f /tmp/runner.log ] && tail -n 200 /tmp/runner.log || echo "no runner log"
           echo "--- evidence dir"; ls -la .automation/evidence/week3 || true; ls -la .automation/evidence/week3/out || true

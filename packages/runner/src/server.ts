@@ -9,6 +9,8 @@ export const app = express();
 app.use(express.json({ limit: '2mb' }));
 const logger = createLogger('runner');
 
+app.get('/healthz', (_req, res) => res.json({ ok: true }));
+
 app.post('/run', async (req: Request, res: Response) => {
   const parse = RunRequestSchema.safeParse(req.body);
   if (!parse.success) return res.status(400).json({ error: 'invalid request', details: parse.error.issues });
