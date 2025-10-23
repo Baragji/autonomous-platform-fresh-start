@@ -6,7 +6,7 @@
 
 ---
 
-## 📁 Directory Structure
+## 📁 Directory Structure:
 
 ```
 .automation/
