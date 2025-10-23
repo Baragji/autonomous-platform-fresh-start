@@ -41,16 +41,16 @@ EXEC_ID=$(uuidgen)
 printf "%s" "$EXEC_ID" > "$EVID/exec_id.txt"
 curl -s -X POST "http://localhost:${DEFAULT_IMPL_PORT}/implement" \
   -H 'Content-Type: application/json' \
-  -d "{\"execId\": \"$EXEC_ID\", \"plan\": { \"tasks\": [{ \"id\": \"1\", \"title\": \"Create TODO API\", \"description\": \"Build Express.js API with GET/POST /todos\" }] } }" \
+  -d "{\"execId\": \"$EXEC_ID\", \"plan\": { \"tasks\": [{\"id\":\"1\",\"title\":\"Setup project\",\"description\":\"Create package.json and TypeScript config\",\"dependsOn\":[]},{\"id\":\"2\",\"title\":\"Implement API\",\"description\":\"Build Express API with GET/POST /todos in src/app.ts\",\"dependsOn\":[\"1\"]}], \"acceptance_criteria\": [\"API must respond to GET /todos\",\"API must accept POST /todos\"] } }" \
   | tee "$EVID/implementer_response.json" >/dev/null
 
 NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{printf "%s" $k}}{{end}}' "$MINIO_CONTAINER")
 MC_ENV=("-e" "MC_HOST_local=http://$MINIO_ACCESS_KEY:$MINIO_SECRET_KEY@${MINIO_CONTAINER}:9000")
 
-docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc ls local/${MINIO_BUCKET}/$EXEC_ID/code/ > "$EVID/minio_code_ls.txt" 2>/dev/null || true
+docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc ls --recursive local/${MINIO_BUCKET}/$EXEC_ID/code/ > "$EVID/minio_code_ls.txt" 2>/dev/null || true
 
-# fetch app.ts for tsc validation if present
-docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc cat local/${MINIO_BUCKET}/$EXEC_ID/code/src/app.ts > "$EVID/app.ts" 2>/dev/null || true
+# fetch app.ts for tsc validation if present (tools return paths with code/ prefix, so actual path is code/code/src/app.ts)
+docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc cat local/${MINIO_BUCKET}/$EXEC_ID/code/code/src/app.ts > "$EVID/app.ts" 2>/dev/null || true
 set +e
 if [ -s "$EVID/app.ts" ]; then
   npx -y tsc --noEmit --pretty false --project /dev/null --stdin < "$EVID/app.ts" > "$EVID/app_ts_syntax_check.txt" 2>&1
