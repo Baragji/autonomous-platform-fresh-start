@@ -88,6 +88,23 @@ async function implementerNode(state: McaState): Promise<McaState> {
   return { ...state, status: 'implemented', current_agent: 'implementer' };
 }
 
+async function runnerNode(state: McaState): Promise<McaState> {
+  const runnerUrl = process.env.RUNNER_URL || 'http://localhost:7040/run';
+  await publish(state.execId, 'agent', { agent: 'runner', status: 'working' });
+  const response = await fetch(runnerUrl, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ execId: state.execId })
+  });
+  const payload = (await response.json()) as { ok?: boolean; junitObject?: string; coverageObject?: string; error?: string };
+  if (!response.ok || payload.ok !== true) {
+    throw new Error(payload.error || 'runner failed');
+  }
+  await upsertExecution(state.execId, 'tested', state.intent, 'runner');
+  await publish(state.execId, 'status', { status: 'tested' });
+  await publish(state.execId, 'artifact', { type: 'test_results', junit: payload.junitObject, coverage: payload.coverageObject });
+  return { ...state, status: 'tested', current_agent: 'runner' };
+}
+
 const graphBuilder = new StateGraph<McaState>({
   // Keep channels mapping for forward compatibility, but run planner as first node
   channels: {
@@ -110,8 +127,10 @@ if (plannerOnly) {
 } else {
   graphBuilder
     .addNode('implementer', implementerNode)
+    .addNode('runner', runnerNode)
     .addEdge('planner', 'implementer')
-    .addEdge('implementer', END);
+    .addEdge('implementer', 'runner')
+    .addEdge('runner', END);
 }
 
 const graph = graphBuilder.compile({ checkpointer });
