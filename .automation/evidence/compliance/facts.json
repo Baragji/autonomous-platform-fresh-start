@@ -5,6 +5,7 @@
     "implementer",
     "mca",
     "planner",
+    "runner",
     "shared",
     "vfs"
   ],
@@ -23,6 +24,9 @@
       "hasAnthropic": false
     },
     "planner": {
+      "hasAnthropic": false
+    },
+    "runner": {
       "hasAnthropic": false
     },
     "shared": {

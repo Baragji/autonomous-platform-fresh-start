@@ -40,6 +40,7 @@ let app: import('express').Express;
 
 describe('runner server', () => {
   beforeEach(() => {
+    process.env.E2B_API_KEY = 'test-key';
     vi.spyOn(events, 'publish').mockResolvedValue();
     vi.spyOn(vfsMod, 'createVfs').mockResolvedValue(
       new MemVfs() as unknown as Awaited<ReturnType<typeof vfsMod.createVfs>>

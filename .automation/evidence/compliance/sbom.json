@@ -3,9 +3,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
   "version": 1,
-  "serialNumber": "urn:uuid:1711c483-5104-4973-9b35-be8adf636e5a",
+  "serialNumber": "urn:uuid:7741b32e-9b11-44c1-9165-371d12e2df3a",
   "metadata": {
-    "timestamp": "2025-10-22T18:26:14.658Z",
+    "timestamp": "2025-10-23T21:21:24.300Z",
     "tools": {
       "components": [
         {
@@ -150,6 +150,24 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/@autonomous/planner"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "runner",
+      "group": "@autonomous",
+      "version": "0.1.0",
+      "bom-ref": "autonomous-platform|@autonomous/runner@0.1.0",
+      "purl": "pkg:npm/%40autonomous/runner@0.1.0",
+      "properties": [
+        {
+          "name": "cdx:npm:package:private",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@autonomous/runner"
         }
       ]
     },
@@ -5942,6 +5960,365 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/pg"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "sdk",
+      "group": "@e2b",
+      "version": "2.4.0",
+      "bom-ref": "autonomous-platform|@e2b/sdk@2.4.0",
+      "author": "FoundryLabs, Inc.",
+      "description": "E2B SDK that give agents cloud environments",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40e2b/sdk@2.4.0#packages/js-sdk",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/e2b-dev/e2b.git#packages/js-sdk",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://e2b.dev",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/e2b-dev/e2b/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@e2b/sdk/-/sdk-2.4.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "b80b7a0116a76ec85803c899b12017585819088c28f82ab0a47320e6ad07e56451ad7f626392412edf41c5d44d3c5f0c4eb2714952f7b24a3e8cd6eef7aca715"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@e2b/sdk"
+        }
+      ],
+      "components": [
+        {
+          "type": "library",
+          "name": "chalk",
+          "version": "5.6.2",
+          "bom-ref": "autonomous-platform|@e2b/sdk@2.4.0|chalk@5.6.2",
+          "description": "Terminal string styling done right",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/chalk@5.6.2",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/chalk/chalk.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/chalk/chalk#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/chalk/chalk/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/chalk/-/chalk-5.6.2.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "ecdcc12f4acde9f3145be7fb03a228e21e34a90946fb11a6b4cc5f6e71ff2bb4c0b6df094165502beea0d145ca31e549a3257912490db04ad0f29543ddb2c76c"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@e2b/sdk/node_modules/chalk"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "glob",
+          "version": "11.0.3",
+          "bom-ref": "autonomous-platform|@e2b/sdk@2.4.0|glob@11.0.3",
+          "author": "Isaac Z. Schlueter",
+          "description": "the most correct and second fastest glob implementation in JavaScript",
+          "licenses": [
+            {
+              "license": {
+                "id": "ISC",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/glob@11.0.3",
+          "externalReferences": [
+            {
+              "url": "git://github.com/isaacs/node-glob.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/isaacs/node-glob#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/isaacs/node-glob/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/glob/-/glob-11.0.3.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "d8d8a6edd85ad4a5646a2178aba0e3fa780f3cc75fbcb2443a9664fe32a250092a29e6e91805905c0abdcf5c6ef472aee6559fab0fc5012b9c7048f2ce78cf68"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@e2b/sdk/node_modules/glob"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "jackspeak",
+          "version": "4.1.1",
+          "bom-ref": "autonomous-platform|@e2b/sdk@2.4.0|jackspeak@4.1.1",
+          "author": "Isaac Z. Schlueter",
+          "description": "A very strict and proper argument parser.",
+          "licenses": [
+            {
+              "license": {
+                "id": "BlueOak-1.0.0",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/jackspeak@4.1.1",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/isaacs/jackspeak.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/isaacs/jackspeak#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/isaacs/jackspeak/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/jackspeak/-/jackspeak-4.1.1.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "ce9b6fe7b3f71a92fe3b423b55d309341642bbe04f1d5414939e45b7cfd00898d3571ae7247b95b97ff4065d80ebffb6a3247f64c12e14ac26ceaa99fd4e673d"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@e2b/sdk/node_modules/jackspeak"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "minimatch",
+          "version": "10.0.3",
+          "bom-ref": "autonomous-platform|@e2b/sdk@2.4.0|minimatch@10.0.3",
+          "author": "Isaac Z. Schlueter",
+          "description": "a glob matcher in javascript",
+          "licenses": [
+            {
+              "license": {
+                "id": "ISC",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/minimatch@10.0.3",
+          "externalReferences": [
+            {
+              "url": "git://github.com/isaacs/minimatch.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/isaacs/minimatch#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/isaacs/minimatch/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/minimatch/-/minimatch-10.0.3.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "20f675ebb69284365950c75193ae9cc90016deaaf45b36c790f74c61af1bcd98651e13b78c02db29dc5c69a93b5bd15f4f6ad936942e52ee0e77b20b1295d26b"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@e2b/sdk/node_modules/minimatch"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "path-scurry",
+          "version": "2.0.0",
+          "bom-ref": "autonomous-platform|@e2b/sdk@2.4.0|path-scurry@2.0.0",
+          "author": "Isaac Z. Schlueter",
+          "description": "walk paths fast and efficiently",
+          "licenses": [
+            {
+              "license": {
+                "id": "BlueOak-1.0.0",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/path-scurry@2.0.0",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/isaacs/path-scurry.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/isaacs/path-scurry#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/isaacs/path-scurry/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/path-scurry/-/path-scurry-2.0.0.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "ca9189b261ad75750e78ce6ef774f278811f12133ab3e963021ae4e6f02f4b1f2ec98ff4d8ebeb66703460d194acf5dfa493202353837779f0cfc369c783b872"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@e2b/sdk/node_modules/path-scurry"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "lru-cache",
+          "version": "11.2.2",
+          "bom-ref": "autonomous-platform|@e2b/sdk@2.4.0|lru-cache@11.2.2",
+          "author": "Isaac Z. Schlueter",
+          "description": "A cache object that deletes the least-recently-used items.",
+          "licenses": [
+            {
+              "license": {
+                "id": "ISC",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/lru-cache@11.2.2",
+          "externalReferences": [
+            {
+              "url": "git://github.com/isaacs/node-lru-cache.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/isaacs/node-lru-cache#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/isaacs/node-lru-cache/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/lru-cache/-/lru-cache-11.2.2.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "17d3837f2a8c2f67284c8b10a529111e72d264cb6453c43e9927dc688c8ac32e7cbbef24e67bc061e88d86cc8c011bf335c5c9f507d656b70fb02f5ef6b031b6"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@e2b/sdk/node_modules/lru-cache"
+            }
+          ]
         }
       ]
     },
@@ -24749,6 +25126,464 @@
     },
     {
       "type": "library",
+      "name": "protobuf",
+      "group": "@bufbuild",
+      "version": "2.10.0",
+      "bom-ref": "autonomous-platform|@bufbuild/protobuf@2.10.0",
+      "description": "A complete implementation of Protocol Buffers in TypeScript, suitable for web browsers and Node.js.",
+      "licenses": [
+        {
+          "expression": "(Apache-2.0 AND BSD-3-Clause)",
+          "acknowledgement": "declared"
+        }
+      ],
+      "purl": "pkg:npm/%40bufbuild/protobuf@2.10.0#packages/protobuf",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/bufbuild/protobuf-es.git#packages/protobuf",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/bufbuild/protobuf-es#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/bufbuild/protobuf-es/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@bufbuild/protobuf/-/protobuf-2.10.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "7dd46cf4f4ab045ed0527b69669aba053c39f1f860189a23820dfd9bda053891994fe9e2a7d6f4b28e5c618d685a5e69bde9832ebd1c3cfb07e3abf04e111ba5"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@bufbuild/protobuf"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "connect-web",
+      "group": "@connectrpc",
+      "version": "2.0.0-rc.3",
+      "bom-ref": "autonomous-platform|@connectrpc/connect-web@2.0.0-rc.3",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40connectrpc/connect-web@2.0.0-rc.3#packages/connect-web",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/connectrpc/connect-es.git#packages/connect-web",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/connectrpc/connect-es#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/connectrpc/connect-es/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@connectrpc/connect-web/-/connect-web-2.0.0-rc.3.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "c3cf0ff0bb27e420ac03b305465d9eea82d8e09ff9b6888db499ecfd826b97241a58ecb744ef290e0933fa22241bdf113cc863dad86e06fb1ddc29f80ca28293"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@connectrpc/connect-web"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "connect",
+      "group": "@connectrpc",
+      "version": "2.0.0-rc.3",
+      "bom-ref": "autonomous-platform|@connectrpc/connect@2.0.0-rc.3",
+      "description": "Type-safe APIs with Protobuf and TypeScript.",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40connectrpc/connect@2.0.0-rc.3#packages/connect",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/connectrpc/connect-es.git#packages/connect",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/connectrpc/connect-es#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/connectrpc/connect-es/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@connectrpc/connect/-/connect-2.0.0-rc.3.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "01106deb8c84c8a6da9f24444d38dc8c9b87af6617a2bcd0a347adc92e7e3faa12796f3112ecda8c0f60fb30e731c8f58655f675013dddfa0859019fa6bbbb81"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@connectrpc/connect"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "compare-versions",
+      "version": "6.1.1",
+      "bom-ref": "autonomous-platform|compare-versions@6.1.1",
+      "author": "Ole Michelsen",
+      "description": "Compare semver version strings to find greater, equal or lesser.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/compare-versions@6.1.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/omichelsen/compare-versions.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/omichelsen/compare-versions#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/omichelsen/compare-versions/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/compare-versions/-/compare-versions-6.1.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "e219b854fa4879c9a5839f421d79d10e7a86a65245adb2c6e1a144979be5e9c2b5bbbeb0b372cbbd7ee29059d30e5e6fa37f6c8d60fa01a0cf628749a7f34d1e"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/compare-versions"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "dockerfile-ast",
+      "version": "0.7.1",
+      "bom-ref": "autonomous-platform|dockerfile-ast@0.7.1",
+      "author": "Remy Suen",
+      "description": "Parse a Dockerfile into an array of instructions and comments.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/dockerfile-ast@0.7.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/rcjsuen/dockerfile-ast.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/rcjsuen/dockerfile-ast#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/rcjsuen/dockerfile-ast/",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/dockerfile-ast/-/dockerfile-ast-0.7.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "a17fc0e08d04852906aab16fd18baf3e4054498a755e263c3bccc029cf038e0971f28733f897ceafc80fd2bc91302da6caabc32da8269d9694f68b75bc6da28f"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/dockerfile-ast"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "openapi-fetch",
+      "version": "0.14.1",
+      "bom-ref": "autonomous-platform|openapi-fetch@0.14.1",
+      "author": "Drew Powers",
+      "description": "Fast, type-safe fetch client for your OpenAPI schema. Only 6 kb (min). Works with React, Vue, Svelte, or vanilla JS.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/openapi-fetch@0.14.1#packages/openapi-fetch",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/openapi-ts/openapi-typescript.git#packages/openapi-fetch",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://openapi-ts.dev",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/openapi-ts/openapi-typescript/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/openapi-fetch/-/openapi-fetch-0.14.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "97b45aad11f19446588cc2ddfcf474b257cc56c7b6fefbc80069bbe7f17b27a32543cfdbf6e5109941769023eb42126a3174b199858e6d581e6176c5633651f8"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/openapi-fetch"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "platform",
+      "version": "1.3.6",
+      "bom-ref": "autonomous-platform|platform@1.3.6",
+      "author": "Benjamin Tan",
+      "description": "A platform detection library that works on nearly all JavaScript platforms.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/platform@1.3.6",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/bestiejs/platform.js.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/bestiejs/platform.js#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/bestiejs/platform.js/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/platform/-/platform-1.3.6.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "7e759596351c853ae8e9188216f09705b36125cd8d8a337ba084316f0b322f46ee5893c6f39bfcd5e8651c8f5f5eb26c30d813a1f12858841e0a52a983114bae"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/platform"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "tar",
+      "version": "7.5.1",
+      "bom-ref": "autonomous-platform|tar@7.5.1",
+      "author": "Isaac Z. Schlueter",
+      "description": "tar for node",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/tar@7.5.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/isaacs/node-tar.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/isaacs/node-tar#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/isaacs/node-tar/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/tar/-/tar-7.5.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "9e51a9c5ffa1bf4bfb1a45812b657db2981a72d18ea74aaf7d647150c8ea1f2cebb774a0c04e3c0c8bff161a8f1c960b1e9816d68a6ade71116f3e409eaee7d6"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/tar"
+        }
+      ],
+      "components": [
+        {
+          "type": "library",
+          "name": "chownr",
+          "version": "3.0.0",
+          "bom-ref": "autonomous-platform|tar@7.5.1|chownr@3.0.0",
+          "author": "Isaac Z. Schlueter",
+          "description": "like `chown -R`",
+          "licenses": [
+            {
+              "license": {
+                "id": "BlueOak-1.0.0",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/chownr@3.0.0",
+          "externalReferences": [
+            {
+              "url": "git://github.com/isaacs/chownr.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/isaacs/chownr#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/isaacs/chownr/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/chownr/-/chownr-3.0.0.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "f88c7363d05939077f5ee60f466aef1158c5fe7aa3e64813e2412aed5a1fac3a0cd4cc6846311692b082dc4b4b8b9f5355ac314c09fea2b27015072ba84375fa"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/tar/node_modules/chownr"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "library",
       "name": "commands",
       "group": "@ioredis",
       "version": "1.4.0",
@@ -30382,10 +31217,6 @@
       ],
       "properties": [
         {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
           "name": "cdx:npm:package:path",
           "value": "node_modules/strip-ansi"
         }
@@ -32318,10 +33149,6 @@
         }
       ],
       "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/string-width"
@@ -41842,6 +42669,723 @@
     },
     {
       "type": "library",
+      "name": "vscode-languageserver-textdocument",
+      "version": "1.0.12",
+      "bom-ref": "autonomous-platform|vscode-languageserver-textdocument@1.0.12",
+      "author": "Microsoft Corporation",
+      "description": "A simple text document implementation for Node LSP servers",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/vscode-languageserver-textdocument@1.0.12#textDocument",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/Microsoft/vscode-languageserver-node.git#textDocument",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/Microsoft/vscode-languageserver-node#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/Microsoft/vscode-languageserver-node/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/vscode-languageserver-textdocument/-/vscode-languageserver-textdocument-1.0.12.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "73158d3deb029d009c30f79e9e328ab0e08a419fcbe93bf5f434d1206b8b59edf6972cd6862846549feb71c9195c9c5f74a085bd12d2ddfa4122c57f6465f8cc"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/vscode-languageserver-textdocument"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "vscode-languageserver-types",
+      "version": "3.17.5",
+      "bom-ref": "autonomous-platform|vscode-languageserver-types@3.17.5",
+      "author": "Microsoft Corporation",
+      "description": "Types used by the Language server for node",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/vscode-languageserver-types@3.17.5#types",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/Microsoft/vscode-languageserver-node.git#types",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/Microsoft/vscode-languageserver-node#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/Microsoft/vscode-languageserver-node/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/vscode-languageserver-types/-/vscode-languageserver-types-3.17.5.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "2ddd557a536e5fda5d177f61d8781a79be611193366778d4aeb32059002ef368ccb59a7ba77bc94f70734e82ad648ecd810b2c6637b9a34cebc8eae142fcd002"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/vscode-languageserver-types"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "foreground-child",
+      "version": "3.3.1",
+      "bom-ref": "autonomous-platform|foreground-child@3.3.1",
+      "author": "Isaac Z. Schlueter",
+      "description": "Run a child as if it's the foreground process. Give it stdio. Exit when it exits.",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/foreground-child@3.3.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/tapjs/foreground-child.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/tapjs/foreground-child#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/tapjs/foreground-child/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/foreground-child/-/foreground-child-3.3.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "8085e32aab45b96120cc544903d58241e4892d90e380950e302333c6dbc5abfdfb2a88ccd41146b9faac0b2d2be2a4909982ec65831ec91ab321638cba9d37b3"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/foreground-child"
+        }
+      ],
+      "components": [
+        {
+          "type": "library",
+          "name": "cross-spawn",
+          "version": "7.0.6",
+          "bom-ref": "autonomous-platform|foreground-child@3.3.1|cross-spawn@7.0.6",
+          "author": "André Cruz",
+          "description": "Cross platform child_process#spawn and child_process#spawnSync",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/cross-spawn@7.0.6",
+          "externalReferences": [
+            {
+              "url": "git+ssh://git@github.com/moxystudio/node-cross-spawn.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/moxystudio/node-cross-spawn",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/moxystudio/node-cross-spawn/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/cross-spawn/-/cross-spawn-7.0.6.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "b95d903963f69d6ceccb668ca7c69189b862f5d9731791e0879487681f4e893184c834e2249cb1d2ecb9d505ddc966ed00736e6b85c9cd429c6b73b3294777bc"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/foreground-child/node_modules/cross-spawn"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "path-key",
+          "version": "3.1.1",
+          "bom-ref": "autonomous-platform|foreground-child@3.3.1|path-key@3.1.1",
+          "author": "Sindre Sorhus",
+          "description": "Get the PATH environment variable key cross-platform",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/path-key@3.1.1",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/sindresorhus/path-key.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/sindresorhus/path-key#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/sindresorhus/path-key/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/path-key/-/path-key-3.1.1.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "a2399e374a9dfb2d23b3312da18e3caf43deab97703049089423aee90e5fe3595f92cc17b8ab58ae18284e92e7c887079b6e1486ac7ee53aa6d889d2c0b844e9"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/foreground-child/node_modules/path-key"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "shebang-command",
+          "version": "2.0.0",
+          "bom-ref": "autonomous-platform|foreground-child@3.3.1|shebang-command@2.0.0",
+          "author": "Kevin Mårtensson",
+          "description": "Get the command from a shebang",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/shebang-command@2.0.0",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/kevva/shebang-command.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/kevva/shebang-command#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/kevva/shebang-command/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "907c6bdb366962d766acdd6a0e3aeb5ff675ad1d641bc0f1fa09292b51b87979af5ecc26704d614d6056614ce5ada630d7fc99a7a62e0d8efb62dbdb3747660c"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/foreground-child/node_modules/shebang-command"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "which",
+          "version": "2.0.2",
+          "bom-ref": "autonomous-platform|foreground-child@3.3.1|which@2.0.2",
+          "author": "Isaac Z. Schlueter",
+          "description": "Like which(1) unix command. Find the first instance of an executable in the PATH.",
+          "licenses": [
+            {
+              "license": {
+                "id": "ISC",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/which@2.0.2",
+          "externalReferences": [
+            {
+              "url": "git://github.com/isaacs/node-which.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/isaacs/node-which#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/isaacs/node-which/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/which/-/which-2.0.2.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "04b2374e5d535b73ef97bd25df2ab763ae22f9ac29c17aac181616924a8cb676d782b303fb28fbae15b492e103c7325a6171a3116e6881aa4a34c10a34c8e26c"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/foreground-child/node_modules/which"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "shebang-regex",
+          "version": "3.0.0",
+          "bom-ref": "autonomous-platform|foreground-child@3.3.1|shebang-regex@3.0.0",
+          "author": "Sindre Sorhus",
+          "description": "Regular expression for matching a shebang line",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/shebang-regex@3.0.0",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/sindresorhus/shebang-regex.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/sindresorhus/shebang-regex#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/sindresorhus/shebang-regex/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "efef9d161b5cc77df9dee05aabc0c347836ec417ad0730bb6503a19934089c711de9b4ab5dd884cb30af1b4ed9e3851874b4a1594c97b7933fca1cfc7a471bd4"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/foreground-child/node_modules/shebang-regex"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "minipass",
+      "version": "7.1.2",
+      "bom-ref": "autonomous-platform|minipass@7.1.2",
+      "author": "Isaac Z. Schlueter",
+      "description": "minimal implementation of a PassThrough stream",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/minipass@7.1.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/isaacs/minipass.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/isaacs/minipass#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/isaacs/minipass/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/minipass/-/minipass-7.1.2.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "a8e3b34b57014d6605e011fc7d578f0c138ef62a6d327194119c0d73f70c5a74d5da754b67b56835610f1e461ccd9034a5da00edd97a7bb14beb9f675fd4b66b"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/minipass"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "package-json-from-dist",
+      "version": "1.0.1",
+      "bom-ref": "autonomous-platform|package-json-from-dist@1.0.1",
+      "author": "Isaac Z. Schlueter",
+      "description": "Load the local package.json from either src or dist folder",
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/package-json-from-dist@1.0.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/isaacs/package-json-from-dist.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/isaacs/package-json-from-dist#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/isaacs/package-json-from-dist/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "5046484b7fdbcb8382f2f2f73f67535d1113a5e6cb236362239bc8ae3683ff952dae4157fed35bc234d2440182ffeec2028da921c05a4605a670104772c68223"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/package-json-from-dist"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "openapi-typescript-helpers",
+      "version": "0.0.15",
+      "bom-ref": "autonomous-platform|openapi-typescript-helpers@0.0.15",
+      "author": "Drew Powers",
+      "description": "TypeScript helpers for consuming openapi-typescript types",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/openapi-typescript-helpers@0.0.15#packages/openapi-fetch",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/openapi-ts/openapi-typescript.git#packages/openapi-fetch",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://openapi-ts.dev",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/openapi-ts/openapi-typescript/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/openapi-typescript-helpers/-/openapi-typescript-helpers-0.0.15.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "a29c933daba7b249420694caf0919e7fa99f3e12d29f2cb96b420df6f2adc77fb8684c5ff8ac44a98c08cb786a91e757201f7bbb7e7bb8b309b0e9e6dc6563b3"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/openapi-typescript-helpers"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "fs-minipass",
+      "group": "@isaacs",
+      "version": "4.0.1",
+      "bom-ref": "autonomous-platform|@isaacs/fs-minipass@4.0.1",
+      "author": "Isaac Z. Schlueter",
+      "description": "fs read and write streams based on minipass",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40isaacs/fs-minipass@4.0.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/npm/fs-minipass.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/npm/fs-minipass#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/npm/fs-minipass/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@isaacs/fs-minipass/-/fs-minipass-4.0.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "c209bd1219768e97aa3f7cf0ffb9a8de4447169e4c10386a01dc32d5f4c69070309e418e56c829bd084bf01e67d6a95bd358d5de7fdb23465f669e65580d64e3"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@isaacs/fs-minipass"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "minizlib",
+      "version": "3.1.0",
+      "bom-ref": "autonomous-platform|minizlib@3.1.0",
+      "author": "Isaac Z. Schlueter",
+      "description": "A small fast zlib stream built on [minipass](http://npm.im/minipass) and Node.js's zlib binding.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/minizlib@3.1.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/isaacs/minizlib.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/isaacs/minizlib#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/isaacs/minizlib/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/minizlib/-/minizlib-3.1.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "299c58a350549160f64d514baf4310a0cf2f5148a0583dcb943f376bfef906a0bee2a1341dbd55a39bf516071f68d5ef7d7cebfb912143a8a783f09a0628d397"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/minizlib"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "yallist",
+      "version": "5.0.0",
+      "bom-ref": "autonomous-platform|yallist@5.0.0",
+      "author": "Isaac Z. Schlueter",
+      "description": "Yet Another Linked List",
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/yallist@5.0.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/isaacs/yallist.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/isaacs/yallist#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/isaacs/yallist/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/yallist/-/yallist-5.0.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "620bd44dfc2ac9ced45d532b07e4889ac5584a64d2f17fed4abb5d35930898cfa7efe413ae2457c978a6d2606b4d735eab3545d0a5868073de8b2562145acd0f"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/yallist"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "name": "readable-stream",
       "version": "3.6.2",
       "bom-ref": "autonomous-platform|readable-stream@3.6.2",
@@ -44587,10 +46131,6 @@
       ],
       "properties": [
         {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
           "name": "cdx:npm:package:path",
           "value": "node_modules/ansi-regex"
         }
@@ -45300,10 +46840,6 @@
       ],
       "properties": [
         {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
           "name": "cdx:npm:package:path",
           "value": "node_modules/emoji-regex"
         }
@@ -45354,10 +46890,6 @@
         }
       ],
       "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/is-fullwidth-code-point"
@@ -45793,338 +47325,6 @@
     },
     {
       "type": "library",
-      "name": "foreground-child",
-      "version": "3.3.1",
-      "bom-ref": "autonomous-platform|foreground-child@3.3.1",
-      "author": "Isaac Z. Schlueter",
-      "description": "Run a child as if it's the foreground process. Give it stdio. Exit when it exits.",
-      "licenses": [
-        {
-          "license": {
-            "id": "ISC",
-            "acknowledgement": "declared"
-          }
-        }
-      ],
-      "purl": "pkg:npm/foreground-child@3.3.1",
-      "externalReferences": [
-        {
-          "url": "git+https://github.com/tapjs/foreground-child.git",
-          "type": "vcs",
-          "comment": "as detected from PackageJson property \"repository.url\""
-        },
-        {
-          "url": "https://github.com/tapjs/foreground-child#readme",
-          "type": "website",
-          "comment": "as detected from PackageJson property \"homepage\""
-        },
-        {
-          "url": "https://github.com/tapjs/foreground-child/issues",
-          "type": "issue-tracker",
-          "comment": "as detected from PackageJson property \"bugs.url\""
-        },
-        {
-          "url": "https://registry.npmjs.org/foreground-child/-/foreground-child-3.3.1.tgz",
-          "type": "distribution",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "8085e32aab45b96120cc544903d58241e4892d90e380950e302333c6dbc5abfdfb2a88ccd41146b9faac0b2d2be2a4909982ec65831ec91ab321638cba9d37b3"
-            }
-          ],
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/foreground-child"
-        }
-      ],
-      "components": [
-        {
-          "type": "library",
-          "name": "cross-spawn",
-          "version": "7.0.6",
-          "bom-ref": "autonomous-platform|foreground-child@3.3.1|cross-spawn@7.0.6",
-          "author": "André Cruz",
-          "description": "Cross platform child_process#spawn and child_process#spawnSync",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/cross-spawn@7.0.6",
-          "externalReferences": [
-            {
-              "url": "git+ssh://git@github.com/moxystudio/node-cross-spawn.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/moxystudio/node-cross-spawn",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/moxystudio/node-cross-spawn/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/cross-spawn/-/cross-spawn-7.0.6.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "b95d903963f69d6ceccb668ca7c69189b862f5d9731791e0879487681f4e893184c834e2249cb1d2ecb9d505ddc966ed00736e6b85c9cd429c6b73b3294777bc"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/foreground-child/node_modules/cross-spawn"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "path-key",
-          "version": "3.1.1",
-          "bom-ref": "autonomous-platform|foreground-child@3.3.1|path-key@3.1.1",
-          "author": "Sindre Sorhus",
-          "description": "Get the PATH environment variable key cross-platform",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/path-key@3.1.1",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/sindresorhus/path-key.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/sindresorhus/path-key#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/sindresorhus/path-key/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/path-key/-/path-key-3.1.1.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "a2399e374a9dfb2d23b3312da18e3caf43deab97703049089423aee90e5fe3595f92cc17b8ab58ae18284e92e7c887079b6e1486ac7ee53aa6d889d2c0b844e9"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/foreground-child/node_modules/path-key"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "shebang-command",
-          "version": "2.0.0",
-          "bom-ref": "autonomous-platform|foreground-child@3.3.1|shebang-command@2.0.0",
-          "author": "Kevin Mårtensson",
-          "description": "Get the command from a shebang",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/shebang-command@2.0.0",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/kevva/shebang-command.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/kevva/shebang-command#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/kevva/shebang-command/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "907c6bdb366962d766acdd6a0e3aeb5ff675ad1d641bc0f1fa09292b51b87979af5ecc26704d614d6056614ce5ada630d7fc99a7a62e0d8efb62dbdb3747660c"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/foreground-child/node_modules/shebang-command"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "which",
-          "version": "2.0.2",
-          "bom-ref": "autonomous-platform|foreground-child@3.3.1|which@2.0.2",
-          "author": "Isaac Z. Schlueter",
-          "description": "Like which(1) unix command. Find the first instance of an executable in the PATH.",
-          "licenses": [
-            {
-              "license": {
-                "id": "ISC",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/which@2.0.2",
-          "externalReferences": [
-            {
-              "url": "git://github.com/isaacs/node-which.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/isaacs/node-which#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/isaacs/node-which/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/which/-/which-2.0.2.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "04b2374e5d535b73ef97bd25df2ab763ae22f9ac29c17aac181616924a8cb676d782b303fb28fbae15b492e103c7325a6171a3116e6881aa4a34c10a34c8e26c"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/foreground-child/node_modules/which"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "shebang-regex",
-          "version": "3.0.0",
-          "bom-ref": "autonomous-platform|foreground-child@3.3.1|shebang-regex@3.0.0",
-          "author": "Sindre Sorhus",
-          "description": "Regular expression for matching a shebang line",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/shebang-regex@3.0.0",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/sindresorhus/shebang-regex.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/sindresorhus/shebang-regex#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/sindresorhus/shebang-regex/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "efef9d161b5cc77df9dee05aabc0c347836ec417ad0730bb6503a19934089c711de9b4ab5dd884cb30af1b4ed9e3851874b4a1594c97b7933fca1cfc7a471bd4"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/foreground-child/node_modules/shebang-regex"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "library",
       "name": "jackspeak",
       "version": "3.4.3",
       "bom-ref": "autonomous-platform|jackspeak@3.4.3",
@@ -46175,116 +47375,6 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/jackspeak"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "name": "minipass",
-      "version": "7.1.2",
-      "bom-ref": "autonomous-platform|minipass@7.1.2",
-      "author": "Isaac Z. Schlueter",
-      "description": "minimal implementation of a PassThrough stream",
-      "licenses": [
-        {
-          "license": {
-            "id": "ISC",
-            "acknowledgement": "declared"
-          }
-        }
-      ],
-      "purl": "pkg:npm/minipass@7.1.2",
-      "externalReferences": [
-        {
-          "url": "git+https://github.com/isaacs/minipass.git",
-          "type": "vcs",
-          "comment": "as detected from PackageJson property \"repository.url\""
-        },
-        {
-          "url": "https://github.com/isaacs/minipass#readme",
-          "type": "website",
-          "comment": "as detected from PackageJson property \"homepage\""
-        },
-        {
-          "url": "https://github.com/isaacs/minipass/issues",
-          "type": "issue-tracker",
-          "comment": "as detected from PackageJson property \"bugs.url\""
-        },
-        {
-          "url": "https://registry.npmjs.org/minipass/-/minipass-7.1.2.tgz",
-          "type": "distribution",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "a8e3b34b57014d6605e011fc7d578f0c138ef62a6d327194119c0d73f70c5a74d5da754b67b56835610f1e461ccd9034a5da00edd97a7bb14beb9f675fd4b66b"
-            }
-          ],
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/minipass"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "name": "package-json-from-dist",
-      "version": "1.0.1",
-      "bom-ref": "autonomous-platform|package-json-from-dist@1.0.1",
-      "author": "Isaac Z. Schlueter",
-      "description": "Load the local package.json from either src or dist folder",
-      "licenses": [
-        {
-          "license": {
-            "id": "BlueOak-1.0.0",
-            "acknowledgement": "declared"
-          }
-        }
-      ],
-      "purl": "pkg:npm/package-json-from-dist@1.0.1",
-      "externalReferences": [
-        {
-          "url": "git+https://github.com/isaacs/package-json-from-dist.git",
-          "type": "vcs",
-          "comment": "as detected from PackageJson property \"repository.url\""
-        },
-        {
-          "url": "https://github.com/isaacs/package-json-from-dist#readme",
-          "type": "website",
-          "comment": "as detected from PackageJson property \"homepage\""
-        },
-        {
-          "url": "https://github.com/isaacs/package-json-from-dist/issues",
-          "type": "issue-tracker",
-          "comment": "as detected from PackageJson property \"bugs.url\""
-        },
-        {
-          "url": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.1.tgz",
-          "type": "distribution",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "5046484b7fdbcb8382f2f2f73f67535d1113a5e6cb236362239bc8ae3683ff952dae4157fed35bc234d2440182ffeec2028da921c05a4605a670104772c68223"
-            }
-          ],
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/package-json-from-dist"
         }
       ]
     },
@@ -46607,10 +47697,6 @@
         }
       ],
       "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/isexe"
@@ -52686,6 +53772,453 @@
     },
     {
       "type": "library",
+      "name": "signal-exit",
+      "version": "4.1.0",
+      "bom-ref": "autonomous-platform|signal-exit@4.1.0",
+      "author": "Ben Coe",
+      "description": "when you want to fire an event no matter how a process exits.",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/signal-exit@4.1.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/tapjs/signal-exit.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/tapjs/signal-exit#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/tapjs/signal-exit/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/signal-exit/-/signal-exit-4.1.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "6f3c99d5ef3cc3d3b588d25b2a73a5bd84eb58f0e5e3a3b56c6d03dd7227bfef6d90faf1acdf235144e21650e4926296827d4ce827c8035dd2b86a8e6bd2a8af"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/signal-exit"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "cliui",
+      "group": "@isaacs",
+      "version": "8.0.2",
+      "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2",
+      "author": "Ben Coe",
+      "description": "easily create complex multi-column command-line-interfaces",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40isaacs/cliui@8.0.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/yargs/cliui.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/yargs/cliui#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/yargs/cliui/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "3bc8dc8da6d76a578e1bd0d0d3e0115d66414df9cfe16340ab3ba224aee5978e009b118abff2763384cf8f18d8df39c109fbc15c5cee726d6dc1dc85c9b16a10"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@isaacs/cliui"
+        }
+      ],
+      "components": [
+        {
+          "type": "library",
+          "name": "string-width",
+          "version": "5.1.2",
+          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|string-width@5.1.2",
+          "author": "Sindre Sorhus",
+          "description": "Get the visual width of a string - the number of columns required to display it",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/string-width@5.1.2",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/sindresorhus/string-width.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/sindresorhus/string-width#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/sindresorhus/string-width/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/string-width/-/string-width-5.1.2.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "1e72ce091def8dc63c6dea0d2ed723679fe7c67d9a7e6304ea586b0eb79ba24a8c6a9f976de5bc9fd4d7a4f0cea9d18ae6a708de84f418a4d6eb00bb10c895a8"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@isaacs/cliui/node_modules/string-width"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "strip-ansi",
+          "version": "7.1.2",
+          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|strip-ansi@7.1.2",
+          "author": "Sindre Sorhus",
+          "description": "Strip ANSI escape codes from a string",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/strip-ansi@7.1.2",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/chalk/strip-ansi.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/chalk/strip-ansi#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/chalk/strip-ansi/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-7.1.2.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "826046b25a68409b609cc02f395a86669133f5dca82930b3cb69dfcff9fc68816137f8c213fac299cc5a6c1ea338e1d5fb458d9f294ec5ac4140f4af71692584"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@isaacs/cliui/node_modules/strip-ansi"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "wrap-ansi",
+          "version": "8.1.0",
+          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|wrap-ansi@8.1.0",
+          "author": "Sindre Sorhus",
+          "description": "Wordwrap a string with ANSI escape codes",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/wrap-ansi@8.1.0",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/chalk/wrap-ansi.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/chalk/wrap-ansi#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/chalk/wrap-ansi/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-8.1.0.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "b22ed0588eb350cab9e9b11216f6a0b66ccc7463ada317d1f927b3d753286df73bb66f9591472493d6d6d9479f7d319551b3a4b31992c34000da0b3c83bd4d09"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@isaacs/cliui/node_modules/wrap-ansi"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "emoji-regex",
+          "version": "9.2.2",
+          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|emoji-regex@9.2.2",
+          "author": "Mathias Bynens",
+          "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/emoji-regex@9.2.2",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/mathiasbynens/emoji-regex.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://mths.be/emoji-regex",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/mathiasbynens/emoji-regex/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/emoji-regex/-/emoji-regex-9.2.2.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "2f5f03689b17494936fb8da9bfc98bb398c94f686a164144e23db5c0e9a06d4aac67684bef636c514efce60f515e0a37b3464d815978d93887a7766d3affd5ca"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@isaacs/cliui/node_modules/emoji-regex"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "ansi-regex",
+          "version": "6.2.2",
+          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|ansi-regex@6.2.2",
+          "author": "Sindre Sorhus",
+          "description": "Regular expression for matching ANSI escape codes",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/ansi-regex@6.2.2",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/chalk/ansi-regex.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/chalk/ansi-regex#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/chalk/ansi-regex/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-6.2.2.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "06add2992a721476968cf93c21ff7273ab2f33c739e9d079040b56e106f0e631d3c305d77132e844c9290c9a7a54bd17ce559a0874d7ae415444c6260f4b0baa"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@isaacs/cliui/node_modules/ansi-regex"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "ansi-styles",
+          "version": "6.2.3",
+          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|ansi-styles@6.2.3",
+          "author": "Sindre Sorhus",
+          "description": "ANSI escape codes for styling strings in the terminal",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/ansi-styles@6.2.3",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/chalk/ansi-styles.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/chalk/ansi-styles#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/chalk/ansi-styles/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.3.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "e038fa336f0907ea001fc9059132d4a3e6b68f038592ea9bdf2b9c53408035c45151bc52d1c3f49d96021a371cdc1357c1122c5159831a0cdac267bbcef247be"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@isaacs/cliui/node_modules/ansi-styles"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "brace-expansion",
+      "group": "@isaacs",
+      "version": "5.0.0",
+      "bom-ref": "autonomous-platform|@isaacs/brace-expansion@5.0.0",
+      "description": "Brace expansion as known from sh/bash",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40isaacs/brace-expansion@5.0.0",
+      "externalReferences": [
+        {
+          "url": "https://registry.npmjs.org/@isaacs/brace-expansion/-/brace-expansion-5.0.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "653e790432d5d32bf44419b673332267e4aa0863bb02f98e3371bfc36c6154f1feb5ed1a2a0163981bc694bd5d1feaa5dad8063b7315adb6f78c22b2be9827c4"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@isaacs/brace-expansion"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "name": "util-deprecate",
       "version": "1.0.2",
       "bom-ref": "autonomous-platform|util-deprecate@1.0.2",
@@ -53542,449 +55075,6 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/has-tostringtag"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "name": "signal-exit",
-      "version": "4.1.0",
-      "bom-ref": "autonomous-platform|signal-exit@4.1.0",
-      "author": "Ben Coe",
-      "description": "when you want to fire an event no matter how a process exits.",
-      "licenses": [
-        {
-          "license": {
-            "id": "ISC",
-            "acknowledgement": "declared"
-          }
-        }
-      ],
-      "purl": "pkg:npm/signal-exit@4.1.0",
-      "externalReferences": [
-        {
-          "url": "git+https://github.com/tapjs/signal-exit.git",
-          "type": "vcs",
-          "comment": "as detected from PackageJson property \"repository.url\""
-        },
-        {
-          "url": "https://github.com/tapjs/signal-exit#readme",
-          "type": "website",
-          "comment": "as detected from PackageJson property \"homepage\""
-        },
-        {
-          "url": "https://github.com/tapjs/signal-exit/issues",
-          "type": "issue-tracker",
-          "comment": "as detected from PackageJson property \"bugs.url\""
-        },
-        {
-          "url": "https://registry.npmjs.org/signal-exit/-/signal-exit-4.1.0.tgz",
-          "type": "distribution",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "6f3c99d5ef3cc3d3b588d25b2a73a5bd84eb58f0e5e3a3b56c6d03dd7227bfef6d90faf1acdf235144e21650e4926296827d4ce827c8035dd2b86a8e6bd2a8af"
-            }
-          ],
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/signal-exit"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "name": "cliui",
-      "group": "@isaacs",
-      "version": "8.0.2",
-      "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2",
-      "author": "Ben Coe",
-      "description": "easily create complex multi-column command-line-interfaces",
-      "licenses": [
-        {
-          "license": {
-            "id": "ISC",
-            "acknowledgement": "declared"
-          }
-        }
-      ],
-      "purl": "pkg:npm/%40isaacs/cliui@8.0.2",
-      "externalReferences": [
-        {
-          "url": "git+https://github.com/yargs/cliui.git",
-          "type": "vcs",
-          "comment": "as detected from PackageJson property \"repository.url\""
-        },
-        {
-          "url": "https://github.com/yargs/cliui#readme",
-          "type": "website",
-          "comment": "as detected from PackageJson property \"homepage\""
-        },
-        {
-          "url": "https://github.com/yargs/cliui/issues",
-          "type": "issue-tracker",
-          "comment": "as detected from PackageJson property \"bugs.url\""
-        },
-        {
-          "url": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
-          "type": "distribution",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "3bc8dc8da6d76a578e1bd0d0d3e0115d66414df9cfe16340ab3ba224aee5978e009b118abff2763384cf8f18d8df39c109fbc15c5cee726d6dc1dc85c9b16a10"
-            }
-          ],
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/@isaacs/cliui"
-        }
-      ],
-      "components": [
-        {
-          "type": "library",
-          "name": "string-width",
-          "version": "5.1.2",
-          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|string-width@5.1.2",
-          "author": "Sindre Sorhus",
-          "description": "Get the visual width of a string - the number of columns required to display it",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/string-width@5.1.2",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/sindresorhus/string-width.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/sindresorhus/string-width#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/sindresorhus/string-width/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/string-width/-/string-width-5.1.2.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "1e72ce091def8dc63c6dea0d2ed723679fe7c67d9a7e6304ea586b0eb79ba24a8c6a9f976de5bc9fd4d7a4f0cea9d18ae6a708de84f418a4d6eb00bb10c895a8"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/@isaacs/cliui/node_modules/string-width"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "strip-ansi",
-          "version": "7.1.2",
-          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|strip-ansi@7.1.2",
-          "author": "Sindre Sorhus",
-          "description": "Strip ANSI escape codes from a string",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/strip-ansi@7.1.2",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/chalk/strip-ansi.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/chalk/strip-ansi#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/chalk/strip-ansi/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-7.1.2.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "826046b25a68409b609cc02f395a86669133f5dca82930b3cb69dfcff9fc68816137f8c213fac299cc5a6c1ea338e1d5fb458d9f294ec5ac4140f4af71692584"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/@isaacs/cliui/node_modules/strip-ansi"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "wrap-ansi",
-          "version": "8.1.0",
-          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|wrap-ansi@8.1.0",
-          "author": "Sindre Sorhus",
-          "description": "Wordwrap a string with ANSI escape codes",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/wrap-ansi@8.1.0",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/chalk/wrap-ansi.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/chalk/wrap-ansi#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/chalk/wrap-ansi/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-8.1.0.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "b22ed0588eb350cab9e9b11216f6a0b66ccc7463ada317d1f927b3d753286df73bb66f9591472493d6d6d9479f7d319551b3a4b31992c34000da0b3c83bd4d09"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/@isaacs/cliui/node_modules/wrap-ansi"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "emoji-regex",
-          "version": "9.2.2",
-          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|emoji-regex@9.2.2",
-          "author": "Mathias Bynens",
-          "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/emoji-regex@9.2.2",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/mathiasbynens/emoji-regex.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://mths.be/emoji-regex",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/mathiasbynens/emoji-regex/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/emoji-regex/-/emoji-regex-9.2.2.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "2f5f03689b17494936fb8da9bfc98bb398c94f686a164144e23db5c0e9a06d4aac67684bef636c514efce60f515e0a37b3464d815978d93887a7766d3affd5ca"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/@isaacs/cliui/node_modules/emoji-regex"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "ansi-regex",
-          "version": "6.2.2",
-          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|ansi-regex@6.2.2",
-          "author": "Sindre Sorhus",
-          "description": "Regular expression for matching ANSI escape codes",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/ansi-regex@6.2.2",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/chalk/ansi-regex.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/chalk/ansi-regex#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/chalk/ansi-regex/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-6.2.2.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "06add2992a721476968cf93c21ff7273ab2f33c739e9d079040b56e106f0e631d3c305d77132e844c9290c9a7a54bd17ce559a0874d7ae415444c6260f4b0baa"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/@isaacs/cliui/node_modules/ansi-regex"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "ansi-styles",
-          "version": "6.2.3",
-          "bom-ref": "autonomous-platform|@isaacs/cliui@8.0.2|ansi-styles@6.2.3",
-          "author": "Sindre Sorhus",
-          "description": "ANSI escape codes for styling strings in the terminal",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/ansi-styles@6.2.3",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/chalk/ansi-styles.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/chalk/ansi-styles#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/chalk/ansi-styles/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.3.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "e038fa336f0907ea001fc9059132d4a3e6b68f038592ea9bdf2b9c53408035c45151bc52d1c3f49d96021a371cdc1357c1122c5159831a0cdac267bbcef247be"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/@isaacs/cliui/node_modules/ansi-styles"
-            }
-          ]
         }
       ]
     },
@@ -55905,6 +56995,365 @@
     },
     {
       "type": "library",
+      "name": "string-width",
+      "version": "4.2.3",
+      "bom-ref": "autonomous-platform|string-width@4.2.3#2",
+      "author": "Sindre Sorhus",
+      "description": "Get the visual width of a string - the number of columns required to display it",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/string-width@4.2.3",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/sindresorhus/string-width.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/sindresorhus/string-width#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/sindresorhus/string-width/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "c0ac90450a63274b08a7ad84ad265d1ac8cc256b1aa79a1136284786ee86ec954effd8c807a5327af2feb57b8eaab9e0f23fdcc4a4d6c96530bd24eb8a2673fe"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/string-width-cjs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "strip-ansi",
+      "version": "6.0.1",
+      "bom-ref": "autonomous-platform|strip-ansi@6.0.1#2",
+      "author": "Sindre Sorhus",
+      "description": "Strip ANSI escape codes from a string",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/strip-ansi@6.0.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/chalk/strip-ansi.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/chalk/strip-ansi#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/chalk/strip-ansi/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "637f153d21dcaa416b0a916743dbee4979aabaebf9a1738aa46793e9a1abaf7a3719cf409556ba2417d448e0a76f1186645fbfd28a08ecaacfb944b3b54754e4"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/strip-ansi-cjs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "wrap-ansi",
+      "version": "7.0.0",
+      "bom-ref": "autonomous-platform|wrap-ansi@7.0.0#2",
+      "author": "Sindre Sorhus",
+      "description": "Wordwrap a string with ANSI escape codes",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/wrap-ansi@7.0.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/chalk/wrap-ansi.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/chalk/wrap-ansi#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/chalk/wrap-ansi/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "6151888f691a98b493c70e8db198e80717d2c2c9f4c9c75eb26738a7e436d5ce733ee675a65f8d7f155dc4fb5d1ef98d54e43a5d2606e0052dcadfc58bb0f5e9"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/wrap-ansi-cjs"
+        }
+      ],
+      "components": [
+        {
+          "type": "library",
+          "name": "ansi-styles",
+          "version": "4.3.0",
+          "bom-ref": "autonomous-platform|wrap-ansi@7.0.0#2|ansi-styles@4.3.0",
+          "author": "Sindre Sorhus",
+          "description": "ANSI escape codes for styling strings in the terminal",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/ansi-styles@4.3.0",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/chalk/ansi-styles.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/chalk/ansi-styles#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/chalk/ansi-styles/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-4.3.0.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "cdb07dac22404f5adb8e25436f686a2851cd60bc60b64f0d511c59dc86700f717a36dc5b5d94029e74a2d4b931f880e885d3e5169db6db05402c885e64941212"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/wrap-ansi-cjs/node_modules/ansi-styles"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "color-convert",
+          "version": "2.0.1",
+          "bom-ref": "autonomous-platform|wrap-ansi@7.0.0#2|color-convert@2.0.1",
+          "author": "Heather Arthur",
+          "description": "Plain color conversion functions",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/color-convert@2.0.1",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/Qix-/color-convert.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/Qix-/color-convert#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/Qix-/color-convert/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "4511023ec8fb8aeff16f9a0a61cb051d2a6914d9ec8ffe763954d129be333f9a275f0545df3566993a0d70e7c60be0910e97cafd4e7ce1f320dfc64709a12529"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/wrap-ansi-cjs/node_modules/color-convert"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "color-name",
+          "version": "1.1.4",
+          "bom-ref": "autonomous-platform|wrap-ansi@7.0.0#2|color-name@1.1.4",
+          "author": "DY",
+          "description": "A list of color names and its values",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/color-name@1.1.4",
+          "externalReferences": [
+            {
+              "url": "git+ssh://git@github.com/colorjs/color-name.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/colorjs/color-name",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/colorjs/color-name/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/color-name/-/color-name-1.1.4.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "74ecbedc0b96ddadb035b64722e319a537208c6b8b53fb812ffb9b71917d3976c3a3c7dfe0ef32569e417f479f4bcb84a18a39ab8171edd63d3a04065e002c40"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/wrap-ansi-cjs/node_modules/color-name"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "balanced-match",
+      "group": "@isaacs",
+      "version": "4.0.1",
+      "bom-ref": "autonomous-platform|@isaacs/balanced-match@4.0.1",
+      "description": "Match balanced character pairs, like \"{\" and \"}\"",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40isaacs/balanced-match@4.0.1",
+      "externalReferences": [
+        {
+          "url": "git://github.com/isaacs/balanced-match.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/isaacs/balanced-match#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/isaacs/balanced-match/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@isaacs/balanced-match/-/balanced-match-4.0.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "cb3313b7d9446fc1afef3462a148a54a0948d1cd2c999f64e43eb9ebbec32d62ed589697212dc2a9c1b250507260a967523e939232d5b39e1f065ebe4e21900d"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@isaacs/balanced-match"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "name": "generator-function",
       "version": "2.0.1",
       "bom-ref": "autonomous-platform|generator-function@2.0.1",
@@ -56061,338 +57510,6 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/queue-microtask"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "name": "string-width",
-      "version": "4.2.3",
-      "bom-ref": "autonomous-platform|string-width@4.2.3#2",
-      "author": "Sindre Sorhus",
-      "description": "Get the visual width of a string - the number of columns required to display it",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT",
-            "acknowledgement": "declared"
-          }
-        }
-      ],
-      "purl": "pkg:npm/string-width@4.2.3",
-      "externalReferences": [
-        {
-          "url": "git+https://github.com/sindresorhus/string-width.git",
-          "type": "vcs",
-          "comment": "as detected from PackageJson property \"repository.url\""
-        },
-        {
-          "url": "https://github.com/sindresorhus/string-width#readme",
-          "type": "website",
-          "comment": "as detected from PackageJson property \"homepage\""
-        },
-        {
-          "url": "https://github.com/sindresorhus/string-width/issues",
-          "type": "issue-tracker",
-          "comment": "as detected from PackageJson property \"bugs.url\""
-        },
-        {
-          "url": "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz",
-          "type": "distribution",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "c0ac90450a63274b08a7ad84ad265d1ac8cc256b1aa79a1136284786ee86ec954effd8c807a5327af2feb57b8eaab9e0f23fdcc4a4d6c96530bd24eb8a2673fe"
-            }
-          ],
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/string-width-cjs"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "name": "strip-ansi",
-      "version": "6.0.1",
-      "bom-ref": "autonomous-platform|strip-ansi@6.0.1#2",
-      "author": "Sindre Sorhus",
-      "description": "Strip ANSI escape codes from a string",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT",
-            "acknowledgement": "declared"
-          }
-        }
-      ],
-      "purl": "pkg:npm/strip-ansi@6.0.1",
-      "externalReferences": [
-        {
-          "url": "git+https://github.com/chalk/strip-ansi.git",
-          "type": "vcs",
-          "comment": "as detected from PackageJson property \"repository.url\""
-        },
-        {
-          "url": "https://github.com/chalk/strip-ansi#readme",
-          "type": "website",
-          "comment": "as detected from PackageJson property \"homepage\""
-        },
-        {
-          "url": "https://github.com/chalk/strip-ansi/issues",
-          "type": "issue-tracker",
-          "comment": "as detected from PackageJson property \"bugs.url\""
-        },
-        {
-          "url": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz",
-          "type": "distribution",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "637f153d21dcaa416b0a916743dbee4979aabaebf9a1738aa46793e9a1abaf7a3719cf409556ba2417d448e0a76f1186645fbfd28a08ecaacfb944b3b54754e4"
-            }
-          ],
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/strip-ansi-cjs"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "name": "wrap-ansi",
-      "version": "7.0.0",
-      "bom-ref": "autonomous-platform|wrap-ansi@7.0.0#2",
-      "author": "Sindre Sorhus",
-      "description": "Wordwrap a string with ANSI escape codes",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT",
-            "acknowledgement": "declared"
-          }
-        }
-      ],
-      "purl": "pkg:npm/wrap-ansi@7.0.0",
-      "externalReferences": [
-        {
-          "url": "git+https://github.com/chalk/wrap-ansi.git",
-          "type": "vcs",
-          "comment": "as detected from PackageJson property \"repository.url\""
-        },
-        {
-          "url": "https://github.com/chalk/wrap-ansi#readme",
-          "type": "website",
-          "comment": "as detected from PackageJson property \"homepage\""
-        },
-        {
-          "url": "https://github.com/chalk/wrap-ansi/issues",
-          "type": "issue-tracker",
-          "comment": "as detected from PackageJson property \"bugs.url\""
-        },
-        {
-          "url": "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz",
-          "type": "distribution",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "6151888f691a98b493c70e8db198e80717d2c2c9f4c9c75eb26738a7e436d5ce733ee675a65f8d7f155dc4fb5d1ef98d54e43a5d2606e0052dcadfc58bb0f5e9"
-            }
-          ],
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/wrap-ansi-cjs"
-        }
-      ],
-      "components": [
-        {
-          "type": "library",
-          "name": "ansi-styles",
-          "version": "4.3.0",
-          "bom-ref": "autonomous-platform|wrap-ansi@7.0.0#2|ansi-styles@4.3.0",
-          "author": "Sindre Sorhus",
-          "description": "ANSI escape codes for styling strings in the terminal",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/ansi-styles@4.3.0",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/chalk/ansi-styles.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/chalk/ansi-styles#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/chalk/ansi-styles/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-4.3.0.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "cdb07dac22404f5adb8e25436f686a2851cd60bc60b64f0d511c59dc86700f717a36dc5b5d94029e74a2d4b931f880e885d3e5169db6db05402c885e64941212"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/wrap-ansi-cjs/node_modules/ansi-styles"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "color-convert",
-          "version": "2.0.1",
-          "bom-ref": "autonomous-platform|wrap-ansi@7.0.0#2|color-convert@2.0.1",
-          "author": "Heather Arthur",
-          "description": "Plain color conversion functions",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/color-convert@2.0.1",
-          "externalReferences": [
-            {
-              "url": "git+https://github.com/Qix-/color-convert.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/Qix-/color-convert#readme",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/Qix-/color-convert/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "4511023ec8fb8aeff16f9a0a61cb051d2a6914d9ec8ffe763954d129be333f9a275f0545df3566993a0d70e7c60be0910e97cafd4e7ce1f320dfc64709a12529"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/wrap-ansi-cjs/node_modules/color-convert"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "color-name",
-          "version": "1.1.4",
-          "bom-ref": "autonomous-platform|wrap-ansi@7.0.0#2|color-name@1.1.4",
-          "author": "DY",
-          "description": "A list of color names and its values",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT",
-                "acknowledgement": "declared"
-              }
-            }
-          ],
-          "purl": "pkg:npm/color-name@1.1.4",
-          "externalReferences": [
-            {
-              "url": "git+ssh://git@github.com/colorjs/color-name.git",
-              "type": "vcs",
-              "comment": "as detected from PackageJson property \"repository.url\""
-            },
-            {
-              "url": "https://github.com/colorjs/color-name",
-              "type": "website",
-              "comment": "as detected from PackageJson property \"homepage\""
-            },
-            {
-              "url": "https://github.com/colorjs/color-name/issues",
-              "type": "issue-tracker",
-              "comment": "as detected from PackageJson property \"bugs.url\""
-            },
-            {
-              "url": "https://registry.npmjs.org/color-name/-/color-name-1.1.4.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "74ecbedc0b96ddadb035b64722e319a537208c6b8b53fb812ffb9b71917d3976c3a3c7dfe0ef32569e417f479f4bcb84a18a39ab8171edd63d3a04065e002c40"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/wrap-ansi-cjs/node_modules/color-name"
-            }
-          ]
         }
       ]
     },
@@ -57046,10 +58163,6 @@
       ],
       "properties": [
         {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
           "name": "cdx:npm:package:path",
           "value": "node_modules/eastasianwidth"
         }
@@ -57449,6 +58562,7 @@
         "autonomous-platform|@autonomous/implementer@0.1.0",
         "autonomous-platform|@autonomous/mca@0.1.0",
         "autonomous-platform|@autonomous/planner@0.1.0",
+        "autonomous-platform|@autonomous/runner@0.1.0",
         "autonomous-platform|@autonomous/shared@0.1.0",
         "autonomous-platform|@autonomous/vfs@0.1.0",
         "autonomous-platform|@opentelemetry/auto-instrumentations-node@0.55.3",
@@ -57518,6 +58632,20 @@
         "autonomous-platform|express@4.21.2",
         "autonomous-platform|openai@4.104.0",
         "autonomous-platform|ts-node-dev@2.0.0",
+        "autonomous-platform|zod@3.25.76"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@autonomous/runner@0.1.0",
+      "dependsOn": [
+        "autonomous-platform|@e2b/sdk@2.4.0",
+        "autonomous-platform|@types/express@4.17.23",
+        "autonomous-platform|@types/node@22.18.12",
+        "autonomous-platform|@vitest/coverage-v8@2.1.9",
+        "autonomous-platform|express@4.21.2",
+        "autonomous-platform|tsx@4.20.6",
+        "autonomous-platform|typescript@5.9.3",
+        "autonomous-platform|vitest@2.1.9",
         "autonomous-platform|zod@3.25.76"
       ]
     },
@@ -58456,6 +59584,57 @@
         "autonomous-platform|pg-types@2.2.0",
         "autonomous-platform|pgpass@1.0.5"
       ]
+    },
+    {
+      "ref": "autonomous-platform|@e2b/sdk@2.4.0",
+      "dependsOn": [
+        "autonomous-platform|@bufbuild/protobuf@2.10.0",
+        "autonomous-platform|@connectrpc/connect-web@2.0.0-rc.3",
+        "autonomous-platform|@connectrpc/connect@2.0.0-rc.3",
+        "autonomous-platform|@e2b/sdk@2.4.0|chalk@5.6.2",
+        "autonomous-platform|compare-versions@6.1.1",
+        "autonomous-platform|dockerfile-ast@0.7.1",
+        "autonomous-platform|@e2b/sdk@2.4.0|glob@11.0.3",
+        "autonomous-platform|openapi-fetch@0.14.1",
+        "autonomous-platform|platform@1.3.6",
+        "autonomous-platform|tar@7.5.1"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@e2b/sdk@2.4.0|chalk@5.6.2"
+    },
+    {
+      "ref": "autonomous-platform|@e2b/sdk@2.4.0|glob@11.0.3",
+      "dependsOn": [
+        "autonomous-platform|foreground-child@3.3.1",
+        "autonomous-platform|@e2b/sdk@2.4.0|jackspeak@4.1.1",
+        "autonomous-platform|@e2b/sdk@2.4.0|minimatch@10.0.3",
+        "autonomous-platform|minipass@7.1.2",
+        "autonomous-platform|package-json-from-dist@1.0.1",
+        "autonomous-platform|@e2b/sdk@2.4.0|path-scurry@2.0.0"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@e2b/sdk@2.4.0|jackspeak@4.1.1",
+      "dependsOn": [
+        "autonomous-platform|@isaacs/cliui@8.0.2"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@e2b/sdk@2.4.0|minimatch@10.0.3",
+      "dependsOn": [
+        "autonomous-platform|@isaacs/brace-expansion@5.0.0"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@e2b/sdk@2.4.0|path-scurry@2.0.0",
+      "dependsOn": [
+        "autonomous-platform|@e2b/sdk@2.4.0|lru-cache@11.2.2",
+        "autonomous-platform|minipass@7.1.2"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@e2b/sdk@2.4.0|lru-cache@11.2.2"
     },
     {
       "ref": "autonomous-platform|dotenv@16.6.1"
@@ -60756,6 +61935,54 @@
       ]
     },
     {
+      "ref": "autonomous-platform|@bufbuild/protobuf@2.10.0"
+    },
+    {
+      "ref": "autonomous-platform|@connectrpc/connect-web@2.0.0-rc.3",
+      "dependsOn": [
+        "autonomous-platform|@bufbuild/protobuf@2.10.0",
+        "autonomous-platform|@connectrpc/connect@2.0.0-rc.3"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@connectrpc/connect@2.0.0-rc.3",
+      "dependsOn": [
+        "autonomous-platform|@bufbuild/protobuf@2.10.0"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|compare-versions@6.1.1"
+    },
+    {
+      "ref": "autonomous-platform|dockerfile-ast@0.7.1",
+      "dependsOn": [
+        "autonomous-platform|vscode-languageserver-textdocument@1.0.12",
+        "autonomous-platform|vscode-languageserver-types@3.17.5"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|openapi-fetch@0.14.1",
+      "dependsOn": [
+        "autonomous-platform|openapi-typescript-helpers@0.0.15"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|platform@1.3.6"
+    },
+    {
+      "ref": "autonomous-platform|tar@7.5.1",
+      "dependsOn": [
+        "autonomous-platform|@isaacs/fs-minipass@4.0.1",
+        "autonomous-platform|tar@7.5.1|chownr@3.0.0",
+        "autonomous-platform|minipass@7.1.2",
+        "autonomous-platform|minizlib@3.1.0",
+        "autonomous-platform|yallist@5.0.0"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|tar@7.5.1|chownr@3.0.0"
+    },
+    {
       "ref": "autonomous-platform|@ioredis/commands@1.4.0"
     },
     {
@@ -62519,6 +63746,69 @@
       "ref": "autonomous-platform|split2@4.2.0"
     },
     {
+      "ref": "autonomous-platform|vscode-languageserver-textdocument@1.0.12"
+    },
+    {
+      "ref": "autonomous-platform|vscode-languageserver-types@3.17.5"
+    },
+    {
+      "ref": "autonomous-platform|foreground-child@3.3.1",
+      "dependsOn": [
+        "autonomous-platform|foreground-child@3.3.1|cross-spawn@7.0.6",
+        "autonomous-platform|signal-exit@4.1.0"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|foreground-child@3.3.1|cross-spawn@7.0.6",
+      "dependsOn": [
+        "autonomous-platform|foreground-child@3.3.1|path-key@3.1.1",
+        "autonomous-platform|foreground-child@3.3.1|shebang-command@2.0.0",
+        "autonomous-platform|foreground-child@3.3.1|which@2.0.2"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|foreground-child@3.3.1|path-key@3.1.1"
+    },
+    {
+      "ref": "autonomous-platform|foreground-child@3.3.1|shebang-command@2.0.0",
+      "dependsOn": [
+        "autonomous-platform|foreground-child@3.3.1|shebang-regex@3.0.0"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|foreground-child@3.3.1|which@2.0.2",
+      "dependsOn": [
+        "autonomous-platform|isexe@2.0.0"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|foreground-child@3.3.1|shebang-regex@3.0.0"
+    },
+    {
+      "ref": "autonomous-platform|minipass@7.1.2"
+    },
+    {
+      "ref": "autonomous-platform|package-json-from-dist@1.0.1"
+    },
+    {
+      "ref": "autonomous-platform|openapi-typescript-helpers@0.0.15"
+    },
+    {
+      "ref": "autonomous-platform|@isaacs/fs-minipass@4.0.1",
+      "dependsOn": [
+        "autonomous-platform|minipass@7.1.2"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|minizlib@3.1.0",
+      "dependsOn": [
+        "autonomous-platform|minipass@7.1.2"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|yallist@5.0.0"
+    },
+    {
       "ref": "autonomous-platform|readable-stream@3.6.2",
       "dependsOn": [
         "autonomous-platform|inherits@2.0.4",
@@ -62835,50 +64125,11 @@
       "ref": "autonomous-platform|@babel/helper-validator-identifier@7.27.1"
     },
     {
-      "ref": "autonomous-platform|foreground-child@3.3.1",
-      "dependsOn": [
-        "autonomous-platform|foreground-child@3.3.1|cross-spawn@7.0.6",
-        "autonomous-platform|signal-exit@4.1.0"
-      ]
-    },
-    {
-      "ref": "autonomous-platform|foreground-child@3.3.1|cross-spawn@7.0.6",
-      "dependsOn": [
-        "autonomous-platform|foreground-child@3.3.1|path-key@3.1.1",
-        "autonomous-platform|foreground-child@3.3.1|shebang-command@2.0.0",
-        "autonomous-platform|foreground-child@3.3.1|which@2.0.2"
-      ]
-    },
-    {
-      "ref": "autonomous-platform|foreground-child@3.3.1|path-key@3.1.1"
-    },
-    {
-      "ref": "autonomous-platform|foreground-child@3.3.1|shebang-command@2.0.0",
-      "dependsOn": [
-        "autonomous-platform|foreground-child@3.3.1|shebang-regex@3.0.0"
-      ]
-    },
-    {
-      "ref": "autonomous-platform|foreground-child@3.3.1|which@2.0.2",
-      "dependsOn": [
-        "autonomous-platform|isexe@2.0.0"
-      ]
-    },
-    {
-      "ref": "autonomous-platform|foreground-child@3.3.1|shebang-regex@3.0.0"
-    },
-    {
       "ref": "autonomous-platform|jackspeak@3.4.3",
       "dependsOn": [
         "autonomous-platform|@isaacs/cliui@8.0.2",
         "autonomous-platform|@pkgjs/parseargs@0.11.0"
       ]
-    },
-    {
-      "ref": "autonomous-platform|minipass@7.1.2"
-    },
-    {
-      "ref": "autonomous-platform|package-json-from-dist@1.0.1"
     },
     {
       "ref": "autonomous-platform|path-scurry@1.11.1",
@@ -63592,6 +64843,57 @@
       "ref": "autonomous-platform|retry@0.13.1"
     },
     {
+      "ref": "autonomous-platform|signal-exit@4.1.0"
+    },
+    {
+      "ref": "autonomous-platform|@isaacs/cliui@8.0.2",
+      "dependsOn": [
+        "autonomous-platform|string-width@4.2.3#2",
+        "autonomous-platform|@isaacs/cliui@8.0.2|string-width@5.1.2",
+        "autonomous-platform|strip-ansi@6.0.1#2",
+        "autonomous-platform|@isaacs/cliui@8.0.2|strip-ansi@7.1.2",
+        "autonomous-platform|wrap-ansi@7.0.0#2",
+        "autonomous-platform|@isaacs/cliui@8.0.2|wrap-ansi@8.1.0"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|string-width@5.1.2",
+      "dependsOn": [
+        "autonomous-platform|eastasianwidth@0.2.0",
+        "autonomous-platform|@isaacs/cliui@8.0.2|emoji-regex@9.2.2",
+        "autonomous-platform|@isaacs/cliui@8.0.2|strip-ansi@7.1.2"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|strip-ansi@7.1.2",
+      "dependsOn": [
+        "autonomous-platform|@isaacs/cliui@8.0.2|ansi-regex@6.2.2"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|wrap-ansi@8.1.0",
+      "dependsOn": [
+        "autonomous-platform|@isaacs/cliui@8.0.2|ansi-styles@6.2.3",
+        "autonomous-platform|@isaacs/cliui@8.0.2|string-width@5.1.2",
+        "autonomous-platform|@isaacs/cliui@8.0.2|strip-ansi@7.1.2"
+      ]
+    },
+    {
+      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|emoji-regex@9.2.2"
+    },
+    {
+      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|ansi-regex@6.2.2"
+    },
+    {
+      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|ansi-styles@6.2.3"
+    },
+    {
+      "ref": "autonomous-platform|@isaacs/brace-expansion@5.0.0",
+      "dependsOn": [
+        "autonomous-platform|@isaacs/balanced-match@4.0.1"
+      ]
+    },
+    {
       "ref": "autonomous-platform|util-deprecate@1.0.2"
     },
     {
@@ -63666,51 +64968,6 @@
       "dependsOn": [
         "autonomous-platform|has-symbols@1.1.0"
       ]
-    },
-    {
-      "ref": "autonomous-platform|signal-exit@4.1.0"
-    },
-    {
-      "ref": "autonomous-platform|@isaacs/cliui@8.0.2",
-      "dependsOn": [
-        "autonomous-platform|string-width@4.2.3#2",
-        "autonomous-platform|@isaacs/cliui@8.0.2|string-width@5.1.2",
-        "autonomous-platform|strip-ansi@6.0.1#2",
-        "autonomous-platform|@isaacs/cliui@8.0.2|strip-ansi@7.1.2",
-        "autonomous-platform|wrap-ansi@7.0.0#2",
-        "autonomous-platform|@isaacs/cliui@8.0.2|wrap-ansi@8.1.0"
-      ]
-    },
-    {
-      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|string-width@5.1.2",
-      "dependsOn": [
-        "autonomous-platform|eastasianwidth@0.2.0",
-        "autonomous-platform|@isaacs/cliui@8.0.2|emoji-regex@9.2.2",
-        "autonomous-platform|@isaacs/cliui@8.0.2|strip-ansi@7.1.2"
-      ]
-    },
-    {
-      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|strip-ansi@7.1.2",
-      "dependsOn": [
-        "autonomous-platform|@isaacs/cliui@8.0.2|ansi-regex@6.2.2"
-      ]
-    },
-    {
-      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|wrap-ansi@8.1.0",
-      "dependsOn": [
-        "autonomous-platform|@isaacs/cliui@8.0.2|ansi-styles@6.2.3",
-        "autonomous-platform|@isaacs/cliui@8.0.2|string-width@5.1.2",
-        "autonomous-platform|@isaacs/cliui@8.0.2|strip-ansi@7.1.2"
-      ]
-    },
-    {
-      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|emoji-regex@9.2.2"
-    },
-    {
-      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|ansi-regex@6.2.2"
-    },
-    {
-      "ref": "autonomous-platform|@isaacs/cliui@8.0.2|ansi-styles@6.2.3"
     },
     {
       "ref": "autonomous-platform|@pkgjs/parseargs@0.11.0"
@@ -63895,15 +65152,6 @@
       "ref": "autonomous-platform|p-finally@1.0.0"
     },
     {
-      "ref": "autonomous-platform|generator-function@2.0.1"
-    },
-    {
-      "ref": "autonomous-platform|agent-base@7.1.4"
-    },
-    {
-      "ref": "autonomous-platform|queue-microtask@1.2.3"
-    },
-    {
       "ref": "autonomous-platform|string-width@4.2.3#2",
       "dependsOn": [
         "autonomous-platform|emoji-regex@8.0.0",
@@ -63939,6 +65187,18 @@
     },
     {
       "ref": "autonomous-platform|wrap-ansi@7.0.0#2|color-name@1.1.4"
+    },
+    {
+      "ref": "autonomous-platform|@isaacs/balanced-match@4.0.1"
+    },
+    {
+      "ref": "autonomous-platform|generator-function@2.0.1"
+    },
+    {
+      "ref": "autonomous-platform|agent-base@7.1.4"
+    },
+    {
+      "ref": "autonomous-platform|queue-microtask@1.2.3"
     },
     {
       "ref": "autonomous-platform|yocto-queue@0.1.0"
