@@ -259,3 +259,89 @@ jobs:
           echo "--- mca log"; [ -f /tmp/mca.log ] && tail -n 200 /tmp/mca.log || echo "no mca log"
           echo "--- planner log"; [ -f /tmp/planner.log ] && tail -n 200 /tmp/planner.log || echo "no planner log"
           echo "--- evidence dir"; ls -la .automation/evidence/week2 || true; ls -la .automation/evidence/week2/out || true
+
+  smoke-week3:
+    name: smoke-week3 (e2e)
+    needs: openai-check
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      DATABASE_URL: postgresql://umca:umcapassword@localhost:5433/umca
+      REDIS_URL: redis://localhost:6380
+      MINIO_ENDPOINT: http://localhost:9000
+      MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+      MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+      LANGFUSE_PUBLIC_KEY: dummy
+      LANGFUSE_SECRET_KEY: dummy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci --no-audit --fund=false
+
+      - name: Start infrastructure (Postgres, Redis, MinIO, Tempo, Grafana)
+        run: docker compose -f infrastructure/docker-compose.yml up -d
+
+      - name: Wait for infra health
+        run: |
+          tries=60
+          wait_healthy() {
+            local name="$1"; local s
+            while true; do
+              s=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$name" || true)
+              if [ "$s" = "healthy" ]; then echo "$name healthy"; break; fi
+              ((tries--)); if [ $tries -le 0 ]; then echo "$name not healthy"; docker ps; docker inspect "$name" || true; exit 1; fi
+              sleep 2
+            done
+          }
+          wait_healthy umca-postgres
+          wait_healthy umca-redis
+          wait_healthy umca-minio
+
+      - name: Start services in background
+        run: |
+          nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
+          nohup npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
+          nohup npm --prefix packages/planner run dev >/tmp/planner.log 2>&1 &
+          nohup npm --prefix packages/implementer run dev >/tmp/impl.log 2>&1 &
+
+      - name: Wait for services
+        shell: bash
+        run: |
+          for p in 3030 7010 7020 7030; do
+            echo "Waiting for :$p";
+            for i in {1..60}; do
+              (echo > /dev/tcp/127.0.0.1/$p) >/dev/null 2>&1 && break
+              sleep 1
+            done
+          done
+
+      - name: Run e2e smoke via Week 3 collector
+        shell: bash
+        run: |
+          chmod +x .automation/evidence/week3/collect_evidence.sh
+          DEBUG_EVIDENCE=1 ./.automation/evidence/week3/collect_evidence.sh
+          echo "--- SUMMARY"; cat .automation/evidence/week3/WEEK3_SUMMARY.md
+          if grep -q "FAIL" .automation/evidence/week3/WEEK3_SUMMARY.md; then
+            echo "Smoke Week3 failed"; exit 1; fi
+
+      - name: Dump service logs on failure
+        if: failure()
+        run: |
+          echo "--- docker ps"; docker ps
+          echo "--- docker inspect (health)"; docker inspect umca-postgres umca-redis umca-minio | jq '.[].State.Health.Status'
+          echo "--- gateway log"; [ -f /tmp/gw.log ] && tail -n 200 /tmp/gw.log || echo "no gw log"
+          echo "--- mca log"; [ -f /tmp/mca.log ] && tail -n 200 /tmp/mca.log || echo "no mca log"
+          echo "--- planner log"; [ -f /tmp/planner.log ] && tail -n 200 /tmp/planner.log || echo "no planner log"
+          echo "--- implementer log"; [ -f /tmp/impl.log ] && tail -n 200 /tmp/impl.log || echo "no implementer log"
+          echo "--- evidence dir"; ls -la .automation/evidence/week3 || true; ls -la .automation/evidence/week3/out || true
