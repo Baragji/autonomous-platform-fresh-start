@@ -1,4 +1,4 @@
-import { MinioVfs } from '@autonomous/vfs/minio';
+import { MinioVfs } from '@autonomous/vfs';
 import { ARTIFACT_BUCKET, ensureBucket, minio } from './minioClient';
 
 export async function createVfs(execId: string, opts?: { prefixSuffix?: string }) {

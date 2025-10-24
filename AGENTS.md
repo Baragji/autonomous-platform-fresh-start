@@ -100,6 +100,53 @@
 
 ---
 
+## 📎 Task-Scoped Evidence Attachment (How-To)
+
+Follow these steps to populate the evidence bundle deterministically for a given $TASK id (folder name under .automation/evidence/$TASK/):
+
+1) Create the directory
+- mkdir -p .automation/evidence/$TASK/valid
+
+2) Capture environment and provenance
+- node -v > .automation/evidence/$TASK/env.txt
+- npm -v >> .automation/evidence/$TASK/env.txt
+- git rev-parse HEAD >> .automation/evidence/$TASK/env.txt
+- node scripts/collect-facts.mjs > .automation/evidence/$TASK/task_provenance.json
+
+3) Gates (save outputs under valid/)
+- Lint: npm run lint > .automation/evidence/$TASK/valid/lint.txt 2>&1
+- Types: npm run typecheck > .automation/evidence/$TASK/valid/typecheck.txt 2>&1
+- Tests: npm test -- --reporter=json > .automation/evidence/$TASK/valid/tests.json 2>&1
+- Global coverage (≥80%): npm run compliance:coverage && cp .automation/evidence/compliance/valid/coverage.json .automation/evidence/$TASK/valid/coverage.json
+- Validator coverage (≥90%): npm run test:validator && npm run compliance:validator-coverage
+
+4) Compliance scans (optional per task, required in CI)
+- npm run compliance:patterns
+- npm run compliance:sbom
+- npm run compliance:facts
+- npm run compliance:meta
+- npm run compliance:opa
+- npm run compliance:contracts
+- npm run compliance:vuln
+- npm run compliance:secrets
+
+5) Artifact hashing (changed files and key outputs)
+- Find changed files: git diff --name-only HEAD~1 > .automation/evidence/$TASK/changed_files.txt || true
+- Compute hashes:
+  - awk '{print $1}' .automation/evidence/$TASK/changed_files.txt | while read f; do \
+      [ -f "$f" ] && shasum -a 256 "$f"; \
+    done > .automation/evidence/$TASK/artifacts.sha256
+
+6) Summary
+- Write .automation/evidence/$TASK/summary.md with links to valid/*, coverage values, and acceptance verdict.
+
+Notes
+- Evidence must be generated from commands that exit 0 to satisfy binary gates.
+- For executions with validator results, include MinIO paths and SHA256 checksums from <execId>/validator/validation-report.json.
+- Prefer the one-shot pipeline for CI: npm run compliance (persists compliance evidence under .automation/evidence/compliance/).
+
+---
+
 ## 🔄 Iteration Protocol
 ```
 On any gate failure:

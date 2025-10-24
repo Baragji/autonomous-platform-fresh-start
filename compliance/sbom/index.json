@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2025-10-24T10:38:33.642Z",
+  "files": [
+    "_autonomous_gateway.bom.json",
+    "_autonomous_mca.bom.json",
+    "_autonomous_planner.bom.json",
+    "_autonomous_shared.bom.json",
+    "_autonomous_validator.bom.json",
+    "index.json",
+    "root.bom.json"
+  ]
+}

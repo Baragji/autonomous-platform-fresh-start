@@ -33,6 +33,18 @@ app.post('/implement', async (req: Request, res: Response) => {
       createVfs(execId),
       Promise.resolve(getLangfuse())
     ]);
+
+    // Advisory: read validator report if present and attach to plan metadata
+    let advisoryPlan = plan;
+    try {
+      const prefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/,'');
+      const reportPath = `${prefix}/validation-report.json`;
+      const buf = await vfs.readFile(reportPath);
+      const reportJson = JSON.parse(buf.toString('utf8')) as unknown;
+      // Non-invasive: embed under _validator_advisory for the agent prompt construction
+      advisoryPlan = { ...plan, _validator_advisory: reportJson } as unknown as typeof plan;
+    } catch {}
+
     const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
     const publisher = new RedisEventPublisher(execId);
     const agent = new ImplementerAgent({
@@ -43,7 +55,7 @@ app.post('/implement', async (req: Request, res: Response) => {
       vfs,
       langfuse
     });
-    const result = await agent.run({ execId, plan });
+    const result = await agent.run({ execId, plan: advisoryPlan });
     res.json(result);
   } catch (err) {
     const e = err as Error;
