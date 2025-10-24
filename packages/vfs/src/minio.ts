@@ -168,6 +168,9 @@ function buildMetadata(options?: VfsWriteOptions) {
   if (options?.contentType) {
     meta['Content-Type'] = options.contentType;
   }
+  if (options?.sha256) {
+    meta['x-amz-meta-sha256'] = options.sha256;
+  }
   return meta;
 }
 

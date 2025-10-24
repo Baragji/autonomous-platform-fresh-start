@@ -63,6 +63,18 @@ describe('MinioVfs (unit)', () => {
     expect(files.some((e) => e.path.includes('versions/'))).toBe(false);
   });
 
+  it('persists sha256 in metadata when provided', async () => {
+    const client = new FakeMinioClient();
+    const vfs = new MinioVfs({ client: client as unknown as Client, bucket: 'b', prefix: 'tests/meta' });
+    const content = Buffer.from('test content');
+    const hash = 'abc123def456';
+    await vfs.writeFile('src/file.ts', content, { sha256: hash });
+    
+    // Verify metadata was stored
+    const stored = (client as unknown as { store: Map<string, { meta: Record<string, string> }> }).store.get('tests/meta/code/src/file.ts');
+    expect(stored?.meta['x-amz-meta-sha256']).toBe(hash);
+  });
+
   it('deletePrefix removes all objects under prefix', async () => {
     const client = new FakeMinioClient();
     const vfs = new MinioVfs({ client: client as unknown as Client, bucket: 'b', prefix: 'tests/p2' });
