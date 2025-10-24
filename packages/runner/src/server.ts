@@ -22,5 +22,5 @@ app.post('/run', async (req: Request, res: Response) => {
 
 const port = Number(process.env.RUNNER_PORT || 7040);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => process.stdout.write(`[runner] listening on :${port}\n`));
+  app.listen(port, () => logger.info({ port }, 'runner listening'));
 }

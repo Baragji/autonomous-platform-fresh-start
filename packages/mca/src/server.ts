@@ -193,7 +193,7 @@ app.post('/start', async (req: Request, res: Response) => {
 
 const port = Number(process.env.MCA_PORT || 7010);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => process.stdout.write(`[mca] listening on :${port}\n`));
+  app.listen(port, () => logger.info({ port }, 'mca listening'));
 }
 
 async function readPlanFromMinio(objectName: string): Promise<Plan> {

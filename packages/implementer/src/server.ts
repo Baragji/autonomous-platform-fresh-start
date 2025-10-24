@@ -68,5 +68,5 @@ app.post('/implement', async (req: Request, res: Response) => {
 
 const port = Number(process.env.IMPLEMENTER_PORT || 7030);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => process.stdout.write(`[implementer] listening on :${port}\n`));
+  app.listen(port, () => logger.info({ port }, 'implementer listening'));
 }
