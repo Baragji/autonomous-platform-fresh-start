@@ -10,8 +10,11 @@ mkdir -p "$EVID"
 
 DEFAULT_GATEWAY_PORT="${GATEWAY_PORT:-3030}"
 GATEWAY_ORIGIN="${GATEWAY_ORIGIN:-http://localhost:${DEFAULT_GATEWAY_PORT}}"
-POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-umca-postgres}"
-MINIO_CONTAINER="${MINIO_CONTAINER:-umca-minio}"
+POSTGRES_HOST="${POSTGRES_HOST:-localhost}"
+POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+POSTGRES_USER="${POSTGRES_USER:-umca}"
+POSTGRES_DB="${POSTGRES_DB:-umca}"
+MINIO_ENDPOINT="${MINIO_ENDPOINT:-http://localhost:9000}"
 MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-minioadmin}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-minioadmin123}"
 MINIO_BUCKET="${MINIO_BUCKET:-umca-artifacts}"
@@ -66,19 +69,19 @@ DB_EXEC_TMP="$EVID/.db_execution.tmp"
 DB_CHECK_TMP="$EVID/.db_checkpoint.tmp"
 
 for attempt in {1..30}; do
-  docker exec "$POSTGRES_CONTAINER" psql -U umca -d umca -c \
-    "SELECT id, status, created_at FROM executions WHERE id='$EXEC_ID';" > "$DB_EXEC_TMP" && break
+  PGPASSWORD=umcapassword psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+    "SELECT id, status, created_at FROM executions WHERE id='$EXEC_ID';" > "$DB_EXEC_TMP" 2>/dev/null && break
   sleep 2
 done
-mv "$DB_EXEC_TMP" "$EVID/db_execution.txt"
+mv "$DB_EXEC_TMP" "$EVID/db_execution.txt" 2>/dev/null || echo "" > "$EVID/db_execution.txt"
 
-STATUS_PLANNED=$(grep -c "planned" "$EVID/db_execution.txt" || true)
+STATUS_PLANNED=$(grep -c "planned" "$EVID/db_execution.txt" 2>/dev/null || echo 0)
 if [ "$STATUS_PLANNED" -eq 0 ]; then
   for attempt in {1..30}; do
-    docker exec "$POSTGRES_CONTAINER" psql -U umca -d umca -c \
-      "SELECT id, status, created_at FROM executions WHERE id='$EXEC_ID';" > "$DB_EXEC_TMP"
-    mv "$DB_EXEC_TMP" "$EVID/db_execution.txt"
-    if grep -q "planned" "$EVID/db_execution.txt"; then
+    PGPASSWORD=umcapassword psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+      "SELECT id, status, created_at FROM executions WHERE id='$EXEC_ID';" > "$DB_EXEC_TMP" 2>/dev/null
+    mv "$DB_EXEC_TMP" "$EVID/db_execution.txt" 2>/dev/null || true
+    if grep -q "planned" "$EVID/db_execution.txt" 2>/dev/null; then
       break
     fi
     sleep 2
@@ -86,33 +89,39 @@ if [ "$STATUS_PLANNED" -eq 0 ]; then
 fi
 
 for attempt in {1..30}; do
-  docker exec "$POSTGRES_CONTAINER" psql -U umca -d umca -c \
-    "SELECT thread_id, checkpoint_id, created_at FROM checkpoints WHERE thread_id='$EXEC_ID' LIMIT 1;" > "$DB_CHECK_TMP"
-  mv "$DB_CHECK_TMP" "$EVID/db_checkpoint.txt"
-  if grep -q "$EXEC_ID" "$EVID/db_checkpoint.txt"; then
+  PGPASSWORD=umcapassword psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+    "SELECT thread_id, checkpoint_id, created_at FROM checkpoints WHERE thread_id='$EXEC_ID' LIMIT 1;" > "$DB_CHECK_TMP" 2>/dev/null
+  mv "$DB_CHECK_TMP" "$EVID/db_checkpoint.txt" 2>/dev/null || true
+  if grep -q "$EXEC_ID" "$EVID/db_checkpoint.txt" 2>/dev/null; then
     break
   fi
   sleep 2
 done
 
-# G3 — Plan artifact (wait for MinIO object)
-NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{printf "%s" $k}}{{end}}' "$MINIO_CONTAINER" 2>/dev/null || echo "bridge")
-if [ -z "$NET" ]; then NET="bridge"; fi
-MC_ENV=("-e" "MC_HOST_local=http://$MINIO_ACCESS_KEY:$MINIO_SECRET_KEY@${MINIO_CONTAINER}:9000")
-if [ "$NET" = "bridge" ]; then
-  # In CI, MinIO is on host network, use localhost
-  MC_ENV=("-e" "MC_HOST_local=http://$MINIO_ACCESS_KEY:$MINIO_SECRET_KEY@host.docker.internal:9000")
+# G3 — Plan artifact (wait for MinIO object) - use mc client directly
+MC_ALIAS="local"
+MC_HOST=$(echo "$MINIO_ENDPOINT" | sed 's|http://||')
+if command -v mc >/dev/null 2>&1; then
+  mc alias set "$MC_ALIAS" "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" >/dev/null 2>&1 || true
+  for attempt in {1..30}; do
+    if mc ls "${MC_ALIAS}/${MINIO_BUCKET}/$EXEC_ID/" > "$EVID/minio_ls.txt" 2>/dev/null \
+      && grep -q 'plan.json' "$EVID/minio_ls.txt"; then
+      break
+    fi
+    sleep 2
+  done
+  mc cat "${MC_ALIAS}/${MINIO_BUCKET}/$EXEC_ID/plan.json" > "$EVID/plan.json" 2>/dev/null || echo '{}' > "$EVID/plan.json"
+else
+  # Fallback: use curl to check MinIO
+  for attempt in {1..30}; do
+    if curl -s "$MINIO_ENDPOINT/${MINIO_BUCKET}/$EXEC_ID/plan.json" > "$EVID/plan.json" 2>/dev/null \
+      && [ -s "$EVID/plan.json" ]; then
+      echo "plan.json" > "$EVID/minio_ls.txt"
+      break
+    fi
+    sleep 2
+  done
 fi
-
-for attempt in {1..30}; do
-  if docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc ls local/${MINIO_BUCKET}/$EXEC_ID/ > "$EVID/minio_ls.txt" 2>/dev/null \
-    && grep -q 'plan.json' "$EVID/minio_ls.txt"; then
-    break
-  fi
-  sleep 2
-done
-
-docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc cat local/${MINIO_BUCKET}/$EXEC_ID/plan.json > "$EVID/plan.json" || true
 
 # G4 — Observability
 curl -s http://localhost:3200/ready | tee "$EVID/tempo_ready.txt" >/dev/null
