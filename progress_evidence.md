@@ -103,7 +103,7 @@ Scope: Summary reflects only what is verifiable directly in source files. Every 
   - packages/runner/src/agent.ts L96–104 (write code/ files from VFS into sandbox src/)
   - packages/runner/src/agent.ts L106–110 (npm install, npm run test capturing stdout JSON)
   - packages/runner/src/agent.ts L112–118 (save vitest json to VFS at runner/vitest-results.json and junit.xml via adapter)
-  - packages/runner/src/agent.ts L120–128 (read coverage-summary.json from sandbox and write to VFS at runner/coverage-summary.json)
+  - packages/runner/src/agent.ts L120–128 (read coverage summary from sandbox and write to VFS at runner/coverage-summary.json)
   - packages/runner/src/agent.ts L129–137 (publish artifact events; return ok with junitObject + coverageObject; error path publishes failed)
 
 - MCA integration proves end-to-end inclusion of Runner
@@ -146,3 +146,14 @@ Scope: Summary reflects only what is verifiable directly in source files. Every 
 - VFS with pre-write versioning: Implemented. Evidence: packages/vfs/src/minio.ts L38–45, L81–101, L109–126.
 
 No claims in this report rely on external artifacts or documents; all are substantiated by cited source code lines.
+
+---
+
+## Validation Evidence
+- Artifact paths under <execId>/validator/*:
+  - validator/validator-junit.xml
+  - validator/validator-coverage.json
+  - validator/validation-report.json
+- Each artifact has a recorded SHA256 checksum embedded in validation-report.json under checksums: { junit, coverage, report }.
+- Verdict and coverage values captured in validation-report.json, with coverage threshold controlled by VALIDATOR_COVERAGE_THRESHOLD_GLOBAL.
+- MCA state transitions include runner → validator → (implementer|END) with failure_count increment and escalation at 3.

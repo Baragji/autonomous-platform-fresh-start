@@ -12,6 +12,8 @@ try {
   }
 } catch {}
 
+const WEAK_DEFAULTS = ['umcapassword', 'minioadmin', 'minioadmin123'];
+
 export const env = {
   PORT: parseInt(process.env.PORT || '3000', 10),
   DATABASE_URL: process.env.DATABASE_URL || 'postgresql://umca:umcapassword@localhost:5433/umca',
@@ -25,3 +27,26 @@ export const env = {
   LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY || '',
   LANGFUSE_HOST: process.env.LANGFUSE_HOST || undefined
 };
+
+// Production environment guards
+if (process.env.NODE_ENV === 'production') {
+  // Enforce required secrets
+  if (!env.OPENAI_API_KEY) {
+    // eslint-disable-next-line no-console
+    console.error('[FATAL] Production environment requires OPENAI_API_KEY');
+    process.exit(1);
+  }
+
+  // Reject weak defaults
+  const hasWeakDefaults = [
+    env.DATABASE_URL,
+    env.MINIO_ACCESS_KEY,
+    env.MINIO_SECRET_KEY
+  ].some(val => WEAK_DEFAULTS.some(weak => val.includes(weak)));
+
+  if (hasWeakDefaults) {
+    // eslint-disable-next-line no-console
+    console.error('[FATAL] Production environment detected weak default credentials (umcapassword, minioadmin)');
+    process.exit(1);
+  }
+}

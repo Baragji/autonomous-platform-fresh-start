@@ -47,6 +47,33 @@ describe('runner server', () => {
     );
   });
 
+  it('responds to /healthz', async () => {
+    ({ app } = await import('../server'));
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+  });
+
+  it('returns 400 for missing execId', async () => {
+    ({ app } = await import('../server'));
+    const res = await request(app).post('/run').send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('invalid request');
+  });
+
+  it('returns 500 when no code files found', async () => {
+    ({ app } = await import('../server'));
+    vi.spyOn(vfsMod, 'createVfs').mockResolvedValue({
+      listFiles: async () => [],
+      writeFile: async () => {},
+      readFile: async () => Buffer.from(''),
+      listVersions: async () => []
+    } as unknown as Awaited<ReturnType<typeof vfsMod.createVfs>>);
+    const res = await request(app).post('/run').send({ execId: 'no-code' });
+    expect(res.status).toBe(500);
+    expect(res.body.error).toContain('no code files');
+  });
+
   it('runs tests and uploads artifacts', async () => {
     // Import server after mocks are in place
     ({ app } = await import('../server'));

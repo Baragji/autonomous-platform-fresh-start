@@ -1,5 +1,6 @@
 export type VfsWriteOptions = {
   contentType?: string;
+  sha256?: string;
 };
 
 export type VfsFileEntry = {
