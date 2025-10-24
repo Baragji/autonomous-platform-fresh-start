@@ -1,0 +1,128 @@
+
+> test
+> vitest run
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/autonomous-platform-fresh-start/autonomous-platform-fresh-start[39m
+
+{"level":30,"time":1761341952015,"service":"mca","name":"mca","execId":"exec-1","intent":"Build","msg":"invoking graph"}
+{"level":30,"time":1761341952018,"service":"mca","name":"mca","execId":"exec-1","msg":"graph invoke completed"}
+ [32m✓[39m packages/mca/src/__tests__/server.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 749[2mms[22m[39m
+MinIO unavailable for Implementer tests: Log message "API: http://0.0.0.0:9000" not received after 60000ms
+MinIO unavailable; skipping implementer agent test
+ [32m✓[39m packages/implementer/src/__tests__/agent.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 61114[2mms[22m[39m
+{"level":50,"time":1761342013995,"service":"test","name":"test","tool":"unknown_tool","err":"Unknown tool: unknown_tool","msg":"tool execution failed"}
+ [32m✓[39m packages/implementer/src/__tests__/agent.unit.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m packages/gateway/src/__tests__/server.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 515[2mms[22m[39m
+MinIO unavailable for VFS tests: Log message "API: http://0.0.0.0:9000" not received after 60000ms
+MinIO unavailable; skipping write/read test
+MinIO unavailable; skipping list test
+MinIO unavailable; skipping versioning test
+ [32m✓[39m packages/vfs/src/__tests__/minioVfs.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 60882[2mms[22m[39m
+ [32m✓[39m packages/vfs/src/__tests__/minioVfs.unit.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m packages/implementer/src/__tests__/tools.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+[90mstderr[2m | packages/runner/src/__tests__/server.test.ts[2m > [22m[2mrunner server[2m > [22m[2mresponds to /healthz
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/runner/src/__tests__/server.test.ts[2m > [22m[2mrunner server[2m > [22m[2mresponds to /healthz
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/runner/src/__tests__/server.test.ts[2m > [22m[2mrunner server[2m > [22m[2mresponds to /healthz
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+ [32m✓[39m packages/runner/src/__tests__/server.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 501[2mms[22m[39m
+   [33m[2m✓[22m[39m runner server[2m > [22mresponds to /healthz [33m481[2mms[22m[39m
+ [32m✓[39m packages/planner/src/__tests__/server.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 525[2mms[22m[39m
+ [32m✓[39m packages/shared/src/__tests__/env.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 20[2mms[22m[39m
+ [32m✓[39m packages/shared/src/__tests__/events.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 67[2mms[22m[39m
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2mreturns 200 for valid request
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2m400 on invalid body
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2m500 when agent throws
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2m500 when agent throws
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+{"level":50,"time":1761342080337,"service":"implementer","name":"implementer","execId":"e2","err":"boom","msg":"implementer run failed"}
+ [32m✓[39m packages/implementer/src/__tests__/server.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 752[2mms[22m[39m
+   [33m[2m✓[22m[39m implementer server[2m > [22mresponds to /healthz [33m598[2mms[22m[39m
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | EventEmitter.silentEmit (/home/runner/work/autonomous-platform-fresh-start/autonomous-platform-fresh-start/node_modules/ioredis/built/Redis.js:487:21)
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+ [32m✓[39m packages/shared/src/__tests__/minioClient.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+ [32m✓[39m packages/shared/src/__tests__/db.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 23[2mms[22m[39m
+ [32m✓[39m packages/shared/src/__tests__/langfuse.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m packages/implementer/src/__tests__/publisher.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 2[2mms[22m[39m
+ [32m✓[39m packages/planner/src/plan.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m packages/planner/src/__tests__/plan.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m18 passed[39m[22m[90m (18)[39m
+[2m      Tests [22m [1m[32m52 passed[39m[22m[90m (52)[39m
+[2m   Start at [22m 21:39:10
+[2m   Duration [22m 130.54s[2m (transform 529ms, setup 108ms, collect 1.80s, tests 125.21s, environment 3ms, prepare 1.11s)[22m
+

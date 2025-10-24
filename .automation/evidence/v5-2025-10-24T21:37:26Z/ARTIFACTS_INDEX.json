@@ -1,0 +1,61 @@
+{
+  "generated": "2025-10-24T21:37:26Z",
+  "evidence_dir": "v5-2025-10-24T21:37:26Z",
+  "files": [
+    {
+      "path": "./bootstrap.txt",
+      "size": 457,
+      "sha256": "799f023240483e8ec11066aac84807e296387ff62ecfa13c4286c206c134903f"
+    },
+    {
+      "path": "./logging-parity-evidence.md",
+      "size": 3760,
+      "sha256": "23db61b64460fc3b221de4994a6c352b85ee12d6a2635d5e9dff0079a3cbd6bb"
+    },
+    {
+      "path": "./env-guards-evidence.md",
+      "size": 2716,
+      "sha256": "4bd7d08452aa144a22558aa546e92e822ba81f55848e81b1c7ed761710217d4b"
+    },
+    {
+      "path": "./healthz-evidence.md",
+      "size": 1705,
+      "sha256": "b976595c42a2144fc40abc7eaebd730323629a191d3f676cf2bc6ab5d8998393"
+    },
+    {
+      "path": "./artifact-provenance-evidence.md",
+      "size": 3000,
+      "sha256": "937d6a0572139fa3274d564ce7de0b13d753975cc592bf77db463da47ef7caa9"
+    },
+    {
+      "path": "./V5_REPORT.md",
+      "size": 9712,
+      "sha256": "4b8692ce0bacd3de3803ba881e74d24ce41ad21fb16d2eaa030dd6f968d94e6f"
+    },
+    {
+      "path": "./tests/test-run.log",
+      "size": 8416,
+      "sha256": "a845b3bc2a0a0e8bebe8e5d6db9ef3cd2fd7bf496aa1cb35a806a45ce600755b"
+    },
+    {
+      "path": "./tests/test-coverage-run.log",
+      "size": 13081,
+      "sha256": "409d594d93c26e6350172c4e703f4539302509b282d56c240be02a978005a484"
+    },
+    {
+      "path": "./valid/lint.txt",
+      "size": 335,
+      "sha256": "277ed5f627018222f40269a013bd664e232ba850db65fbb85194ded34eb84642"
+    },
+    {
+      "path": "./valid/typecheck.txt",
+      "size": 790,
+      "sha256": "84ef371d3f1eb667d175c6ee8900bde2ecfffee78116e994a2fbf3fd7a6e1b02"
+    },
+    {
+      "path": "./ARTIFACTS_INDEX.txt",
+      "size": 707,
+      "sha256": "(self-reference)"
+    }
+  ]
+}
