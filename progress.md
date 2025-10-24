@@ -130,3 +130,9 @@ Recommended next actions:
 - Add `/healthz` endpoints to Gateway, Planner, MCA.
 - Raise coverage ≥80% focusing on low-covered modules (MCA, Shared index/VFS).
 - Integrate secrets/coverage gates in CI for enforcement and publish SARIF.
+
+---
+
+## Production Readiness Validation
+- Evidence: [docs/production_readiness_evidence_with_data.md](docs/production_readiness_evidence_with_data.md)
+- Status: **INCOMPLETE** — 3/8 criteria passed; logging consistency, configuration safety, negative tests, coverage thresholds, artifact metadata, and health checks require remediation.
