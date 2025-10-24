@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
+trap 'echo "Error on line $LINENO"' ERR
 
 # Write artifacts into a subfolder to avoid deleting this script on reruns
 BASE_DIR=".automation/evidence/week2"
@@ -44,7 +45,11 @@ ATTEMPTS=30
 DELAY=1
 POLLED_STATUS=""
 for i in $(seq 1 $ATTEMPTS); do
-  curl -s "$GATEWAY_ORIGIN/api/executions/$EXEC_ID" | tee "$EVID/get_execution.json" >/dev/null
+  if ! curl -s "$GATEWAY_ORIGIN/api/executions/$EXEC_ID" | tee "$EVID/get_execution.json" >/dev/null; then
+    echo "Failed to fetch execution status (attempt $i/$ATTEMPTS)"
+    sleep $DELAY
+    continue
+  fi
   POLLED_STATUS=$(jq -r '.status // ""' "$EVID/get_execution.json" 2>/dev/null || echo "")
   # Accept any forward progress beyond planning to avoid race conditions
   if jq -e '.status == "planned" or .status == "implementing" or .status == "implemented"' "$EVID/get_execution.json" >/dev/null 2>&1; then
