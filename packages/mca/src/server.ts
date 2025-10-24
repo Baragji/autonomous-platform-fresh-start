@@ -17,6 +17,8 @@ export const app = express();
 app.use(express.json());
 const logger = createLogger('mca');
 
+app.get('/healthz', (_req, res) => res.json({ ok: true }));
+
 type McaState = {
   execId: string;
   intent: string;

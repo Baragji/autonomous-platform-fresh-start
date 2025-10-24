@@ -15,6 +15,8 @@ startOtel('implementer');
 export const app = express();
 app.use(express.json({ limit: '2mb' }));
 
+app.get('/healthz', (_req, res) => res.json({ ok: true }));
+
 const RequestSchema = z.object({
   execId: z.string().min(1),
   plan: PlanSchema
