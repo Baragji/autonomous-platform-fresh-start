@@ -1,0 +1,10 @@
+
+> typecheck
+> tsc -p tsconfig.base.json --noEmit && npm --prefix packages/gateway run typecheck && npm --prefix packages/mca run typecheck && npm --prefix packages/planner run typecheck && npm --prefix packages/runner run typecheck && npm --prefix packages/validator run typecheck
+
+packages/shared/src/__tests__/env.test.ts(39,7): error TS2349: This expression is not callable.
+  Type 'TaskContext<Test<object>> & TestContext' has no call signatures.
+packages/shared/src/__tests__/env.test.ts(63,7): error TS2349: This expression is not callable.
+  Type 'TaskContext<Test<object>> & TestContext' has no call signatures.
+packages/shared/src/__tests__/env.test.ts(85,7): error TS2349: This expression is not callable.
+  Type 'TaskContext<Test<object>> & TestContext' has no call signatures.

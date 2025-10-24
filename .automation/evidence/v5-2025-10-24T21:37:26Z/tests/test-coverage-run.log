@@ -1,0 +1,194 @@
+
+> test
+> vitest run --coverage --run
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/autonomous-platform-fresh-start/autonomous-platform-fresh-start[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+{"level":30,"time":1761342096662,"service":"mca","name":"mca","execId":"exec-1","intent":"Build","msg":"invoking graph"}
+{"level":30,"time":1761342096666,"service":"mca","name":"mca","execId":"exec-1","msg":"graph invoke completed"}
+ [32m✓[39m packages/mca/src/__tests__/server.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 764[2mms[22m[39m
+MinIO unavailable for Implementer tests: Log message "API: http://0.0.0.0:9000" not received after 60000ms
+MinIO unavailable; skipping implementer agent test
+ [32m✓[39m packages/implementer/src/__tests__/agent.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 61085[2mms[22m[39m
+{"level":50,"time":1761342158816,"service":"test","name":"test","tool":"unknown_tool","err":"Unknown tool: unknown_tool","msg":"tool execution failed"}
+ [32m✓[39m packages/implementer/src/__tests__/agent.unit.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m packages/gateway/src/__tests__/server.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 566[2mms[22m[39m
+MinIO unavailable for VFS tests: Log message "API: http://0.0.0.0:9000" not received after 60000ms
+MinIO unavailable; skipping write/read test
+MinIO unavailable; skipping list test
+MinIO unavailable; skipping versioning test
+ [32m✓[39m packages/vfs/src/__tests__/minioVfs.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 60919[2mms[22m[39m
+ [32m✓[39m packages/vfs/src/__tests__/minioVfs.unit.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m packages/implementer/src/__tests__/tools.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+[90mstderr[2m | packages/runner/src/__tests__/server.test.ts[2m > [22m[2mrunner server[2m > [22m[2mresponds to /healthz
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/runner/src/__tests__/server.test.ts[2m > [22m[2mrunner server[2m > [22m[2mresponds to /healthz
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/runner/src/__tests__/server.test.ts[2m > [22m[2mrunner server[2m > [22m[2mresponds to /healthz
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/runner/src/__tests__/server.test.ts[2m > [22m[2mrunner server[2m > [22m[2mresponds to /healthz
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+ [32m✓[39m packages/runner/src/__tests__/server.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 582[2mms[22m[39m
+   [33m[2m✓[22m[39m runner server[2m > [22mresponds to /healthz [33m561[2mms[22m[39m
+ [32m✓[39m packages/planner/src/__tests__/server.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 570[2mms[22m[39m
+ [32m✓[39m packages/shared/src/__tests__/env.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 21[2mms[22m[39m
+ [32m✓[39m packages/shared/src/__tests__/events.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2mreturns 200 for valid request
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2m400 on invalid body
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2m400 on invalid body
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2m500 when agent throws
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2m500 when agent throws
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2m500 when agent throws
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts[2m > [22m[2mimplementer server[2m > [22m[2m500 when agent throws
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+{"level":50,"time":1761342225872,"service":"implementer","name":"implementer","execId":"e2","err":"boom","msg":"implementer run failed"}
+[90mstderr[2m | packages/implementer/src/__tests__/server.test.ts
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+ [32m✓[39m packages/implementer/src/__tests__/server.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 829[2mms[22m[39m
+   [33m[2m✓[22m[39m implementer server[2m > [22mresponds to /healthz [33m665[2mms[22m[39m
+[90mstderr[2m | EventEmitter.silentEmit (/home/runner/work/autonomous-platform-fresh-start/autonomous-platform-fresh-start/node_modules/ioredis/built/Redis.js:487:21)
+[22m[39m[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+[ioredis] Unhandled error event: AggregateError: 
+    at internalConnectMultiple (node:net:1122:18)
+    at afterConnectMultiple (node:net:1689:7)
+
+ [32m✓[39m packages/shared/src/__tests__/minioClient.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+ [32m✓[39m packages/shared/src/__tests__/db.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+ [32m✓[39m packages/shared/src/__tests__/langfuse.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m packages/implementer/src/__tests__/publisher.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m packages/planner/src/plan.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+ [32m✓[39m packages/planner/src/__tests__/plan.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m18 passed[39m[22m[90m (18)[39m
+[2m      Tests [22m [1m[32m52 passed[39m[22m[90m (52)[39m
+[2m   Start at [22m 21:41:35
+[2m   Duration [22m 132.25s[2m (transform 504ms, setup 108ms, collect 1.87s, tests 125.45s, environment 5ms, prepare 1.29s)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-----------------|---------|----------|---------|---------|---------------------
+File             | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s   
+-----------------|---------|----------|---------|---------|---------------------
+All files        |    69.4 |    68.46 |   81.33 |    69.4 |                     
+ gateway/src     |      90 |    81.81 |     100 |      90 |                     
+  server.ts      |      90 |    81.81 |     100 |      90 | 35-36,49,66-67      
+ implementer/src |   92.77 |    83.63 |     100 |   92.77 |                     
+  agent.ts       |   80.34 |    66.66 |     100 |   80.34 | ...,164-166,183-184 
+  publisher.ts   |     100 |      100 |     100 |     100 |                     
+  server.ts      |   96.07 |    85.71 |     100 |   96.07 | 71-72               
+  tools.ts       |     100 |      100 |     100 |     100 |                     
+  types.ts       |       0 |        0 |       0 |       0 |                     
+ mca/src         |    59.5 |       50 |   33.33 |    59.5 |                     
+  server.ts      |    59.5 |       50 |   33.33 |    59.5 | ...,186-191,196-197 
+ planner/src     |   85.98 |    55.55 |     100 |   85.98 |                     
+  plan.ts        |     100 |      100 |     100 |     100 |                     
+  server.ts      |   85.84 |    55.55 |     100 |   85.84 | ...,124-126,131-132 
+ runner/src      |   88.65 |       50 |     100 |   88.65 |                     
+  agent.ts       |   88.61 |    42.85 |     100 |   88.61 | ...,150-152,160-161 
+  server.ts      |   88.88 |    83.33 |     100 |   88.88 | 25-26               
+ shared/src      |   75.95 |    61.29 |      75 |   75.95 |                     
+  db.ts          |   88.46 |       50 |      75 |   88.46 | 6-9                 
+  env.ts         |   54.05 |       50 |     100 |   54.05 | 11-13,34-52         
+  events.ts      |     100 |    83.33 |     100 |     100 | 24                  
+  index.ts       |       0 |        0 |       0 |       0 | 1-9                 
+  langfuse.ts    |   88.23 |       75 |     100 |   88.23 | 20-21               
+  logger.ts      |     100 |      100 |     100 |     100 |                     
+  minioClient.ts |     100 |       75 |     100 |     100 | 8                   
+  otel.ts        |      70 |    33.33 |      50 |      70 | 22-27               
+  plan.ts        |     100 |      100 |     100 |     100 |                     
+  vfs.ts         |    12.5 |      100 |       0 |    12.5 | 4-10                
+ validator/src   |       0 |        0 |       0 |       0 |                     
+  server.ts      |       0 |        0 |       0 |       0 | 1-320               
+ vfs/src         |    94.7 |       80 |   95.45 |    94.7 |                     
+  index.ts       |     100 |      100 |     100 |     100 |                     
+  interface.ts   |       0 |        0 |       0 |       0 |                     
+  minio.ts       |   94.63 |       80 |   95.45 |   94.63 | 169-170,181-186     
+-----------------|---------|----------|---------|---------|---------------------

@@ -316,5 +316,5 @@ export function vitestJsonToJUnit(stdout: string): string {
 
 const port = Number(process.env.VALIDATOR_PORT || 7050);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => process.stdout.write(`[validator] listening on :${port}\n`));
+  app.listen(port, () => logger.info({ port }, 'validator listening'));
 }
