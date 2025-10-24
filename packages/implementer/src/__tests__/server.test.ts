@@ -25,6 +25,12 @@ describe('implementer server', () => {
     app = mod.app;
   });
 
+  it('responds to /healthz', async () => {
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+  });
+
   it('returns 200 for valid request', async () => {
     const plan = { tasks: [{ id: '1', title: 'a', description: 'a' }, { id: '2', title: 'b', description: 'b' }], acceptance_criteria: ['x'] };
     const res = await request(app).post('/implement').send({ execId: 'e1', plan });
