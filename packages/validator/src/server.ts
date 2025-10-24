@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from 'express';
 import { z } from 'zod';
 import OpenAI from 'openai';
+import crypto from 'crypto';
 import { startOtel } from '@autonomous/shared/src/otel';
 import { createLogger } from '@autonomous/shared/src/logger';
 import { getLangfuse } from '@autonomous/shared/src/langfuse';
@@ -19,8 +20,8 @@ const ValidateRequestSchema = z.object({
 // Minimal secret patterns (extend as needed)
 const secretRegexes: Array<{ name: string; re: RegExp }> = [
   { name: 'AWS Access Key', re: /AKIA[0-9A-Z]{16}/ },
-  { name: 'AWS Secret Key', re: /(?i)aws(.{0,20})?(secret|access).{0,20}?[=:\s][A-Za-z0-9\/+=]{40}/ },
-  { name: 'Generic Password', re: /(?i)password\s*[:=]\s*['\"][^'\"]+['\"]/ },
+  { name: 'AWS Secret Key', re: /aws(.{0,20})?(secret|access).{0,20}?[=:\s][A-Za-z0-9\/+=]{40}/i },
+  { name: 'Generic Password', re: /password\s*[:=]\s*['\"][^'\"]+['\"]/i },
   { name: 'JWT', re: /eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/ }
 ];
 
@@ -74,7 +75,13 @@ app.post('/validate', async (req: Request, res: Response) => {
   }
 
   const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
-  const sandbox: SandboxApi = new Sandbox({ apiKey }) as unknown as SandboxApi;
+  // Relax types to align with runner usage and avoid SDK constructor typing drift
+  const SandboxCtor = Sandbox as unknown as { new (opts: { apiKey: string }): SandboxApi };
+  const sandbox: SandboxApi = new SandboxCtor({ apiKey });
+
+  const prefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/,'');
+  const threshold = Number(process.env.VALIDATOR_COVERAGE_THRESHOLD_GLOBAL || 80);
+  const judgeEnabled = ['1','true','yes'].includes(String(process.env.VALIDATOR_LLM_JUDGE || '0').toLowerCase());
 
   let junitObject: string | undefined;
   let coverageObject: string | undefined;
@@ -126,14 +133,15 @@ app.post('/validate', async (req: Request, res: Response) => {
 
     // Save vitest JSON as validator artifact and convert to JUnit
     const vitestJson = testOutcome.stdout;
-    junitObject = `validator/validator-junit.xml`;
-    await vfs.writeFile(junitObject, vitestJsonToJUnit(vitestJson), { contentType: 'application/xml' });
+    junitObject = `${prefix}/validator-junit.xml`;
+    const junitXml = vitestJsonToJUnit(vitestJson);
+    await vfs.writeFile(junitObject, junitXml, { contentType: 'application/xml' });
 
     // Coverage summary
     const coverageSummaryPath = `${projectRoot}/coverage/coverage-summary.json`;
     const coverageJson = await sandbox.filesystem.read(coverageSummaryPath).catch(() => null);
     if (coverageJson) {
-      coverageObject = `validator/validator-coverage.json`;
+      coverageObject = `${prefix}/validator-coverage.json`;
       await vfs.writeFile(coverageObject, coverageJson);
     }
 
@@ -145,7 +153,7 @@ app.post('/validate', async (req: Request, res: Response) => {
     try { const parsed = JSON.parse(String(coverageJson || '{}')); linesPct = parsed.total?.lines?.pct ?? null; } catch {}
 
     const testsPassed = parseVitestPassed(vitestJson);
-    const coveragePassed = linesPct == null ? false : linesPct >= 80;
+    const coveragePassed = linesPct == null ? false : linesPct >= threshold;
 
     let report = {
       verdict: testsPassed && coveragePassed && secretsCount === 0 ? 'PASS' : 'FAIL',
@@ -157,7 +165,7 @@ app.post('/validate', async (req: Request, res: Response) => {
     } as z.infer<typeof ValidationReportSchema>;
 
     // LLM judge only if FAIL
-    if (report.verdict === 'FAIL') {
+    if (report.verdict === 'FAIL' && judgeEnabled) {
       try {
         const lf = getLangfuse();
         const trace = lf?.trace?.({ name: 'validator.judge', metadata: { execId } });
@@ -165,31 +173,40 @@ app.post('/validate', async (req: Request, res: Response) => {
         const response = await client.chat.completions.create({
           model: process.env.OPENAI_MODEL || 'gpt-4o-2024-08-06',
           messages: [
-            { role: 'system', content: 'You are a zero-trust validator. Analyze failures and propose specific remediations. Keep responses concise and actionable.' },
+            { role: 'system', content: 'You are a zero-trust validator. Analyze failures and propose specific remediations. Keep responses concise and actionable. Respond in JSON.' },
             { role: 'user', content: JSON.stringify({ testsPassed, coverage: linesPct, secretsFound: secretsCount }) }
-          ],
-          response_format: {
-            type: 'json_schema',
-            json_schema: {
-              name: 'Validation',
-              schema: ValidationReportSchema,
-              strict: true
-            }
-          }
+          ]
         });
         const content = response.choices?.[0]?.message?.content || '';
         const parsed = ValidationReportSchema.safeParse(JSON.parse(content || '{}'));
         if (parsed.success) report = parsed.data;
-        trace?.generation?.({ model: String((response as any)?.model || 'openai'), input: {}, output: report, usage: (response as any)?.usage });
-        try { await (lf as any)?.flush?.(); } catch {}
+        const respObj = response as unknown as { model?: unknown; usage?: unknown };
+        const modelId = typeof respObj.model === 'string' ? respObj.model : 'openai';
+        trace?.generation?.({ model: String(modelId), input: {}, output: report });
+        const lfMaybe = lf as unknown as { flush?: () => Promise<void> };
+        try { await lfMaybe.flush?.(); } catch {}
       } catch (err) {
         logger.warn({ err: (err as Error).message }, 'LLM judge failed; keeping automated report');
       }
     }
 
     // Store validation report
-    validationReportObject = `validator/validation-report.json`;
-    await vfs.writeFile(validationReportObject, JSON.stringify(report, null, 2), { contentType: 'application/json' });
+    validationReportObject = `${prefix}/validation-report.json`;
+
+    // Compute checksums and embed
+    const checksums: { junit?: string; coverage?: string; report?: string } = {};
+    if (junitObject) {
+      const buf = await vfs.readFile(junitObject);
+      checksums.junit = sha256(buf);
+    }
+    if (coverageObject) {
+      const buf = await vfs.readFile(coverageObject);
+      checksums.coverage = sha256(buf);
+    }
+    const reportWithChecksums = { ...report, checksums } as Record<string, unknown>;
+    const reportBuf = Buffer.from(JSON.stringify(reportWithChecksums, null, 2));
+    checksums.report = sha256(reportBuf);
+    await vfs.writeFile(validationReportObject, reportBuf, { contentType: 'application/json' });
 
     await publish(execId, 'artifact', { type: 'validation', report: validationReportObject, junit: junitObject, coverage: coverageObject });
     await publish(execId, 'status', { status: report.verdict === 'PASS' ? 'validated' : 'needs_remediation' });
@@ -205,16 +222,16 @@ app.post('/validate', async (req: Request, res: Response) => {
   }
 });
 
-function buildReasons(testsPassed: boolean, coveragePassed: boolean, secretsCount: number): string[] {
+export function buildReasons(testsPassed: boolean, coveragePassed: boolean, secretsCount: number): string[] {
   const reasons: string[] = [];
   if (!testsPassed) reasons.push('Tests failed');
-  if (!coveragePassed) reasons.push('Coverage below 80%');
+  if (!coveragePassed) reasons.push('Coverage below threshold');
   if (secretsCount > 0) reasons.push(`Secrets detected (${secretsCount})`);
   if (reasons.length === 0) reasons.push('All automated checks passed');
   return reasons;
 }
 
-function buildIssues(secretsCount: number) {
+export function buildIssues(secretsCount: number) {
   const issues: Array<{ type: string; severity: 'critical'|'high'|'medium'|'low'; description: string; remediation?: string }> = [];
   if (secretsCount > 0) {
     issues.push({ type: 'secrets', severity: 'high', description: 'Hardcoded secrets detected', remediation: 'Remove secrets from source; use environment variables and secret manager.' });
@@ -222,7 +239,7 @@ function buildIssues(secretsCount: number) {
   return issues;
 }
 
-async function scanForSecrets(sandbox: SandboxApi, root: string): Promise<number> {
+export async function scanForSecrets(sandbox: SandboxApi, root: string): Promise<number> {
   // If listDir not available, do simple heuristic: scan the files we wrote (src tree) by reading them back is non-trivial without listing.
   // For now, rely on patterns likely present in code files written. This can be extended when Sandbox supports listing.
   let count = 0;
@@ -239,7 +256,7 @@ async function scanForSecrets(sandbox: SandboxApi, root: string): Promise<number
   return count;
 }
 
-function parseVitestPassed(stdout: string): boolean {
+export function parseVitestPassed(stdout: string): boolean {
   try {
     const j = JSON.parse(stdout);
     const passed = typeof j.numPassedTests === 'number' ? j.numPassedTests : 0;
@@ -250,7 +267,7 @@ function parseVitestPassed(stdout: string): boolean {
   }
 }
 
-async function exec(sandbox: SandboxApi, cwd: string, cmd: string, args: string[]): Promise<SandboxProcessOutcome> {
+export async function exec(sandbox: SandboxApi, cwd: string, cmd: string, args: string[]): Promise<SandboxProcessOutcome> {
   const p: SandboxProcess = await sandbox.process.start({ cmd, args, cwd, env: {} });
   const outcome: SandboxProcessOutcome = await p.wait({ timeout: 1000 * 60 * 3 });
   if (outcome.exitCode !== 0) {
@@ -260,16 +277,24 @@ async function exec(sandbox: SandboxApi, cwd: string, cmd: string, args: string[
   return outcome;
 }
 
-function vitestJsonToJUnit(stdout: string): string {
-  let results: any = {};
-  try { results = JSON.parse(stdout); } catch { results = {}; }
-  const cases = Array.isArray(results.testResults) ? results.testResults : [];
-  const total = results.numTotalTests ?? cases.length ?? 0;
-  const passed = results.numPassedTests ?? cases.filter((c: any) => c.status === 'pass').length;
+export function sha256(buf: Buffer | string): string {
+  const h = crypto.createHash('sha256');
+  h.update(typeof buf === 'string' ? Buffer.from(buf) : buf);
+  return h.digest('hex');
+}
+
+export function vitestJsonToJUnit(stdout: string): string {
+  type VitestTestCase = { name?: string; testFilePath?: string; status?: string; duration?: number; error?: { message?: string } };
+  type VitestJson = { numTotalTests?: number; numPassedTests?: number; duration?: number; testResults?: VitestTestCase[] };
+  let results: VitestJson = { numTotalTests: 0, numPassedTests: 0, duration: 0, testResults: [] };
+  try { results = JSON.parse(stdout) as VitestJson; } catch { /* keep defaults */ }
+  const cases: VitestTestCase[] = Array.isArray(results.testResults) ? results.testResults : [];
+  const total = typeof results.numTotalTests === 'number' ? results.numTotalTests : cases.length;
+  const passed = typeof results.numPassedTests === 'number' ? results.numPassedTests : cases.filter((c) => c.status === 'pass').length;
   const failed = Math.max(0, total - passed);
   const time = (results.duration ?? 0) / 1000;
-  const esc = (s: string) => String(s).replace(/[&<>"]+/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
-  const testcases = cases.map((c: any) => {
+  const esc = (s: string) => String(s).replace(/[&<>"]+/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
+  const testcases = cases.map((c) => {
     const name = esc(c.name || c.testFilePath || 'test');
     if (c.status === 'pass') return `<testcase name="${name}" time="${(c.duration || 0) / 1000}"></testcase>`;
     const msg = esc(c.error?.message || 'test failed');
