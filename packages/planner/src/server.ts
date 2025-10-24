@@ -5,10 +5,14 @@ import { env } from '@autonomous/shared/src/env';
 import { ensureBucket, minio, ARTIFACT_BUCKET } from '@autonomous/shared/src/minioClient';
 import { startOtel } from '@autonomous/shared/src/otel';
 import { getLangfuse } from '@autonomous/shared/src/langfuse';
+import { createLogger } from '@autonomous/shared/src/logger';
 
 startOtel('planner');
 export const app = express();
 app.use(express.json());
+const logger = createLogger('planner');
+
+app.get('/healthz', (_req, res) => res.json({ ok: true }));
 
 import { PlanSchema } from './plan';
 import fs from 'fs';
@@ -124,7 +128,5 @@ app.post('/plan', async (req: Request, res: Response) => {
 
 const port = Number(process.env.PLANNER_PORT || 7020);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
-    process.stdout.write(`[planner] listening on :${port}\n`);
-  });
+  app.listen(port, () => logger.info({ port }, 'planner listening'));
 }

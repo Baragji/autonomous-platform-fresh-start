@@ -3,10 +3,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { upsertExecution, getExecution } from '@autonomous/shared/src/db';
 import { publish, subscribe } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
+import { createLogger } from '@autonomous/shared/src/logger';
 
 startOtel('gateway');
 export const app = express();
 app.use(express.json());
+const logger = createLogger('gateway');
+
+app.get('/healthz', (_req, res) => res.json({ ok: true }));
 
 app.post('/api/executions', async (req: Request, res: Response) => {
   const intent = String(req.body?.intent || '').trim();
@@ -59,5 +63,5 @@ app.get('/api/executions/:id/stream', async (req: Request, res: Response) => {
 
 const port = Number(process.env.GATEWAY_PORT || 3030);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => process.stdout.write(`[gateway] listening on :${port}\n`));
+  app.listen(port, () => logger.info({ port }, 'gateway listening'));
 }

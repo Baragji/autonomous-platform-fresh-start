@@ -1,0 +1,8 @@
+Claim,Agreement Status,Severity,Versions,Notes
+Global coverage below 80%,Agreement,Critical,V1|V2|V3a|V3b|V4a|V4b,All reports cite ~70% line coverage and missing validator ≥90% enforcement.
+Gateway and Planner missing structured logger,Agreement,Critical,V2|V3a|V3b|V4a|V4b,Every structured report flags process.stdout.write usage; V1 did not evaluate logging explicitly.
+Secrets scanning maturity,Discrepancy (Improving),Moderate,V2→V3a/V3b/V4a/V4b,Status moved from PARTIAL to PASS once regex tests were introduced.
+Startup guard/secret validation absent,Agreement,Critical,V1|V2|V3a|V3b|V4a|V4b,Services boot without verifying OPENAI_API_KEY or rejecting weak defaults.
+Health endpoints missing,Agreement,Critical,V1|V2|V3a|V3b|V4a|V4b,Only Runner/Validator expose /healthz; others remain unchecked.
+Artifact checksums not in MinIO metadata,Agreement,Moderate,V2|V3a|V3b|V4a|V4b,Validator computes digests but VFS layer never persists them as metadata.
+MCA remediation loop functional,Agreement,Minor,V2|V3a|V3b|V4a|V4b,Failure counting and escalation publishing consistently confirmed.

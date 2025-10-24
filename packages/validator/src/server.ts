@@ -135,14 +135,22 @@ app.post('/validate', async (req: Request, res: Response) => {
     const vitestJson = testOutcome.stdout;
     junitObject = `${prefix}/validator-junit.xml`;
     const junitXml = vitestJsonToJUnit(vitestJson);
-    await vfs.writeFile(junitObject, junitXml, { contentType: 'application/xml' });
+    const junitBuf = Buffer.from(junitXml, 'utf8');
+    await vfs.writeFile(junitObject, junitBuf, { 
+      contentType: 'application/xml',
+      sha256: sha256(junitBuf)
+    });
 
     // Coverage summary
     const coverageSummaryPath = `${projectRoot}/coverage/coverage-summary.json`;
     const coverageJson = await sandbox.filesystem.read(coverageSummaryPath).catch(() => null);
     if (coverageJson) {
       coverageObject = `${prefix}/validator-coverage.json`;
-      await vfs.writeFile(coverageObject, coverageJson);
+      const coverageBuf = Buffer.from(coverageJson, 'utf8');
+      await vfs.writeFile(coverageObject, coverageBuf, {
+        contentType: 'application/json',
+        sha256: sha256(coverageBuf)
+      });
     }
 
     // Secrets scan (simple regex across src/)
@@ -206,7 +214,10 @@ app.post('/validate', async (req: Request, res: Response) => {
     const reportWithChecksums = { ...report, checksums } as Record<string, unknown>;
     const reportBuf = Buffer.from(JSON.stringify(reportWithChecksums, null, 2));
     checksums.report = sha256(reportBuf);
-    await vfs.writeFile(validationReportObject, reportBuf, { contentType: 'application/json' });
+    await vfs.writeFile(validationReportObject, reportBuf, { 
+      contentType: 'application/json',
+      sha256: checksums.report
+    });
 
     await publish(execId, 'artifact', { type: 'validation', report: validationReportObject, junit: junitObject, coverage: coverageObject });
     await publish(execId, 'status', { status: report.verdict === 'PASS' ? 'validated' : 'needs_remediation' });

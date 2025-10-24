@@ -1,0 +1,9 @@
+Criterion,V1,V2,V3a,V3b,V4a,V4b,Notes
+Logging Consistency,N/A,Fail,Fail,Fail,Fail,Fail,Gateway and Planner missing createLogger in every structured report; V1 did not evaluate logging explicitly.
+Configuration Externalization,Pass,Partial,Fail,Fail,Fail,Fail,V1 treated defaults as acceptable; later reports classify hardcoded creds as failing.
+Error Handling & Negative Tests,Partial,Partial,Fail,Fail,Fail,Fail,Runner/Validator negative coverage missing throughout; classification tightened after V2 review.
+Secrets Scanning,Pass,Partial,Pass,Pass,Pass,Pass,V3 introduced regex suite plus tests raising status to PASS.
+Coverage Enforcement,Fail,Fail,Fail,Fail,Fail,Fail,Global coverage ~70% and validator ≥90% gate absent across all versions.
+MCA Remediation Loop,Pass,Pass,Pass,Pass,Pass,Pass,Escalation routing and failure counting confirmed in every version.
+Artifact Provenance,Partial,Partial,Fail,Fail,Fail,Fail,Checksums computed but never stored as MinIO metadata.
+Operational Readiness,Partial,Fail,Fail,Fail,Fail,Fail,Missing /healthz endpoints and production startup guards from V2 onward.

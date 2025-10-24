@@ -55,6 +55,12 @@ afterEach(() => {
 });
 
 describe('planner server', () => {
+  it('responds to /healthz', async () => {
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+  });
+
   it('requires execId and intent', async () => {
     const res = await request(app).post('/plan').send({});
     expect(res.status).toBe(400);

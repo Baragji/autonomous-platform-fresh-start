@@ -11,6 +11,9 @@ coverage/
 dist/
 build/
 
+# Turbo
+.turbo/
+
 # Environment
 .env
 .env.local

@@ -49,6 +49,12 @@ afterEach(() => {
 });
 
 describe('gateway server', () => {
+  it('responds to /healthz', async () => {
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+  });
+
   it('rejects missing intent', async () => {
     const res = await request(app).post('/api/executions').send({});
     expect(res.status).toBe(400);
