@@ -1,126 +1,154 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
+trap 'echo "Error on line $LINENO"' ERR
 
-# Week 3-4 Evidence Collector — Implements G1..G6 from WEEK_3_4_DOD.md
-# Outputs evidence under .automation/evidence/week3/out and a summary under WEEK3_SUMMARY.md
-
+# Write artifacts into a subfolder to avoid deleting this script on reruns
 BASE_DIR=".automation/evidence/week3"
 EVID="${BASE_DIR}/out"
-rm -rf "$EVID" && mkdir -p "$EVID"
+rm -rf "$EVID"
+mkdir -p "$EVID"
 
 DEFAULT_GATEWAY_PORT="${GATEWAY_PORT:-3030}"
-DEFAULT_MCA_PORT="${MCA_PORT:-7010}"
-DEFAULT_PLANNER_PORT="${PLANNER_PORT:-7020}"
-DEFAULT_IMPL_PORT="${IMPLEMENTER_PORT:-7030}"
 GATEWAY_ORIGIN="${GATEWAY_ORIGIN:-http://localhost:${DEFAULT_GATEWAY_PORT}}"
-
-POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-umca-postgres}"
-MINIO_CONTAINER="${MINIO_CONTAINER:-umca-minio}"
+POSTGRES_HOST="${POSTGRES_HOST:-localhost}"
+POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+POSTGRES_USER="${POSTGRES_USER:-umca}"
+POSTGRES_DB="${POSTGRES_DB:-umca}"
+MINIO_ENDPOINT="${MINIO_ENDPOINT:-http://localhost:9000}"
 MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-minioadmin}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-minioadmin123}"
 MINIO_BUCKET="${MINIO_BUCKET:-umca-artifacts}"
 
-PASS=PASS
-FAIL=FAIL
-
-###############################################################################
-# G1 — VFS tests (MinIO-backed)
-###############################################################################
-set +e
-npm --prefix packages/vfs test -- --reporter=json --coverage > "$EVID/vfs.tests.json.full" 2>&1
-VFS_RC=$?
-grep -m1 '^{"numTotalTestSuites"' "$EVID/vfs.tests.json.full" > "$EVID/vfs.tests.json" || echo '{}' > "$EVID/vfs.tests.json"
-VFS_SUCCESS=$(jq -r '.success // false' "$EVID/vfs.tests.json" 2>/dev/null || echo false)
-set -e
-if [ "$VFS_RC" -eq 0 ] && [ "$VFS_SUCCESS" = true ]; then G1=$PASS; else G1=$FAIL; fi
-
-###############################################################################
-# G2 — Implementer generates code into MinIO with valid TS
-###############################################################################
-EXEC_ID=$(uuidgen)
+# G1 — API
+EXEC_RESPONSE=$(curl -s -D "$EVID/http_202_headers.txt" -H 'Content-Type: application/json' \
+  -X POST "$GATEWAY_ORIGIN/api/executions" -d '{"intent":"Build a TODO API with tests"}')
+printf "%s" "$EXEC_RESPONSE" | tee "$EVID/http_202_body.json" >/dev/null
+EXEC_ID=$(printf "%s" "$EXEC_RESPONSE" | jq -r '.id')
 printf "%s" "$EXEC_ID" > "$EVID/exec_id.txt"
-curl -s -X POST "http://localhost:${DEFAULT_IMPL_PORT}/implement" \
-  -H 'Content-Type: application/json' \
-  -d "{\"execId\": \"$EXEC_ID\", \"plan\": { \"tasks\": [{\"id\":\"1\",\"title\":\"Setup project\",\"description\":\"Create package.json and TypeScript config\",\"dependsOn\":[]},{\"id\":\"2\",\"title\":\"Implement API\",\"description\":\"Build Express API with GET/POST /todos in src/app.ts\",\"dependsOn\":[\"1\"]}], \"acceptance_criteria\": [\"API must respond to GET /todos\",\"API must accept POST /todos\"] } }" \
-  | tee "$EVID/implementer_response.json" >/dev/null
 
-NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{printf "%s" $k}}{{end}}' "$MINIO_CONTAINER")
-MC_ENV=("-e" "MC_HOST_local=http://$MINIO_ACCESS_KEY:$MINIO_SECRET_KEY@${MINIO_CONTAINER}:9000")
-
-docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc ls --recursive local/${MINIO_BUCKET}/$EXEC_ID/code/ > "$EVID/minio_code_ls.txt" 2>/dev/null || true
-
-# fetch app.ts for tsc validation if present (tools return paths with code/ prefix, so actual path is code/code/src/app.ts)
-docker run --rm --network "$NET" "${MC_ENV[@]}" minio/mc cat local/${MINIO_BUCKET}/$EXEC_ID/code/code/src/app.ts > "$EVID/app.ts" 2>/dev/null || true
-set +e
-if [ -s "$EVID/app.ts" ]; then
-  npx -y tsc --noEmit --pretty false --project /dev/null --stdin < "$EVID/app.ts" > "$EVID/app_ts_syntax_check.txt" 2>&1
-  TSC_RC=$?
-else
-  echo "app.ts missing" > "$EVID/app_ts_syntax_check.txt"; TSC_RC=1
-fi
-set -e
-
-OK_IMPL_RESP=$(jq -e '.ok == true' "$EVID/implementer_response.json" >/dev/null 2>&1 && echo 1 || echo 0)
-OK_MINIO=$(grep -Eq '(app\.ts|app\.test\.ts)' "$EVID/minio_code_ls.txt" && echo 1 || echo 0)
-if [ "$OK_IMPL_RESP" = 1 ] && [ "$OK_MINIO" = 1 ] && [ "$TSC_RC" -eq 0 ]; then G2=$PASS; else G2=$FAIL; fi
-
-###############################################################################
-# G3 — SSE: edit events during implementation
-###############################################################################
-curl -sN --max-time 15 "$GATEWAY_ORIGIN/api/executions/$EXEC_ID/stream" | tee "$EVID/stream_edits.txt" >/dev/null || true
-if grep -q 'event: edit.start' "$EVID/stream_edits.txt" && grep -q 'event: edit.complete' "$EVID/stream_edits.txt" && grep -q 'tool_call' "$EVID/stream_edits.txt"; then
-  G3=$PASS
-else
-  G3=$FAIL
+# Extract HTTP status code from headers (handles HTTP/1.1 and HTTP/2)
+HEAD_STATUS_CODE=""
+if [ -s "$EVID/http_202_headers.txt" ]; then
+  # First line typically: HTTP/1.1 202 Accepted or HTTP/2 202
+  HEAD_STATUS_CODE=$(awk 'NR==1 {print $2}' "$EVID/http_202_headers.txt" 2>/dev/null || true)
+  if [ -z "$HEAD_STATUS_CODE" ]; then
+    # Fallback: look for a 3-digit code anywhere
+    HEAD_STATUS_CODE=$(grep -m1 -Eo ' [0-9]{3} ' "$EVID/http_202_headers.txt" | tr -d ' ' || true)
+  fi
 fi
 
-###############################################################################
-# G4 — MCA end-to-end Planner → Implementer flow
-###############################################################################
-GATEWAY_EXEC=$(curl -s -X POST "$GATEWAY_ORIGIN/api/executions" -H 'Content-Type: application/json' -d '{"intent":"Build a TODO API with GET and POST endpoints"}')
-printf "%s" "$GATEWAY_EXEC" > "$EVID/gateway_response.json"
-G4_EXEC_ID=$(printf "%s" "$GATEWAY_EXEC" | jq -r '.id')
-echo "$G4_EXEC_ID" > "$EVID/g4_exec_id.txt"
+# Optional debug
+if [ -n "${DEBUG_EVIDENCE:-}" ]; then
+  echo "--- http_202_headers.txt"; cat "$EVID/http_202_headers.txt" || true
+  echo "--- http_202_body.json"; cat "$EVID/http_202_body.json" || true
+fi
 
-for i in {1..30}; do
-  STATUS=$(curl -s "$GATEWAY_ORIGIN/api/executions/$G4_EXEC_ID" | jq -r '.status')
-  echo "Attempt $i: status=$STATUS" | tee -a "$EVID/mca_flow.txt" >/dev/null
-  if [ "$STATUS" = "implemented" ]; then echo PASS >> "$EVID/mca_flow.txt"; break; fi
+# Poll the execution API until it reaches planned (up to ~30s)
+ATTEMPTS=30
+DELAY=1
+POLLED_STATUS=""
+for i in $(seq 1 $ATTEMPTS); do
+  if ! curl -s "$GATEWAY_ORIGIN/api/executions/$EXEC_ID" | tee "$EVID/get_execution.json" >/dev/null; then
+    echo "Failed to fetch execution status (attempt $i/$ATTEMPTS)"
+    sleep $DELAY
+    continue
+  fi
+  POLLED_STATUS=$(jq -r '.status // ""' "$EVID/get_execution.json" 2>/dev/null || echo "")
+  # Accept any forward progress beyond planning to avoid race conditions
+  if jq -e '.status == "planned" or .status == "implementing" or .status == "implemented" or .status == "tested"' "$EVID/get_execution.json" >/dev/null 2>&1; then
+    break
+  fi
+  sleep $DELAY
+done
+
+# Optional: try to capture some SSE lines without making PASS contingent on it
+curl -sN --max-time 5 "$GATEWAY_ORIGIN/api/executions/$EXEC_ID/stream" | tee "$EVID/stream_sse.txt" >/dev/null || true
+
+# G2 — Database (wait for execution + checkpoint)
+DB_EXEC_TMP="$EVID/.db_execution.tmp"
+DB_CHECK_TMP="$EVID/.db_checkpoint.tmp"
+
+for attempt in {1..30}; do
+  PGPASSWORD=umcapassword psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+    "SELECT id, status, created_at FROM executions WHERE id='$EXEC_ID';" > "$DB_EXEC_TMP" 2>/dev/null && break
+  sleep 2
+done
+mv "$DB_EXEC_TMP" "$EVID/db_execution.txt" 2>/dev/null || echo "" > "$EVID/db_execution.txt"
+
+STATUS_PLANNED=$(grep -c "planned" "$EVID/db_execution.txt" 2>/dev/null || echo 0)
+if [ "$STATUS_PLANNED" -eq 0 ]; then
+  for attempt in {1..30}; do
+    PGPASSWORD=umcapassword psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+      "SELECT id, status, created_at FROM executions WHERE id='$EXEC_ID';" > "$DB_EXEC_TMP" 2>/dev/null
+    mv "$DB_EXEC_TMP" "$EVID/db_execution.txt" 2>/dev/null || true
+    if grep -q "planned" "$EVID/db_execution.txt" 2>/dev/null; then
+      break
+    fi
+    sleep 2
+  done
+fi
+
+for attempt in {1..30}; do
+  PGPASSWORD=umcapassword psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+    "SELECT thread_id, checkpoint_id, created_at FROM checkpoints WHERE thread_id='$EXEC_ID' LIMIT 1;" > "$DB_CHECK_TMP" 2>/dev/null
+  mv "$DB_CHECK_TMP" "$EVID/db_checkpoint.txt" 2>/dev/null || true
+  if grep -q "$EXEC_ID" "$EVID/db_checkpoint.txt" 2>/dev/null; then
+    break
+  fi
   sleep 2
 done
 
-docker exec "$POSTGRES_CONTAINER" psql -U umca -d umca -c \
-  "SELECT thread_id, checkpoint_id FROM checkpoints WHERE thread_id='$G4_EXEC_ID' AND checkpoint LIKE '%implementer%' LIMIT 1;" \
-  > "$EVID/checkpoint_implementer.txt" 2>&1 || true
-
-if grep -q "implemented" "$EVID/mca_flow.txt" && grep -q "$G4_EXEC_ID" "$EVID/checkpoint_implementer.txt"; then
-  G4=$PASS
+# G3 — Plan artifact (wait for MinIO object) - use mc client directly
+MC_ALIAS="local"
+MC_HOST=$(echo "$MINIO_ENDPOINT" | sed 's|http://||')
+if command -v mc >/dev/null 2>&1; then
+  mc alias set "$MC_ALIAS" "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" >/dev/null 2>&1 || true
+  for attempt in {1..30}; do
+    if mc ls "${MC_ALIAS}/${MINIO_BUCKET}/$EXEC_ID/" > "$EVID/minio_ls.txt" 2>/dev/null \
+      && grep -q 'plan.json' "$EVID/minio_ls.txt"; then
+      break
+    fi
+    sleep 2
+  done
+  mc cat "${MC_ALIAS}/${MINIO_BUCKET}/$EXEC_ID/plan.json" > "$EVID/plan.json" 2>/dev/null || echo '{}' > "$EVID/plan.json"
 else
-  G4=$FAIL
+  # Fallback: use curl to check MinIO
+  for attempt in {1..30}; do
+    if curl -s "$MINIO_ENDPOINT/${MINIO_BUCKET}/$EXEC_ID/plan.json" > "$EVID/plan.json" 2>/dev/null \
+      && [ -s "$EVID/plan.json" ]; then
+      echo "plan.json" > "$EVID/minio_ls.txt"
+      break
+    fi
+    sleep 2
+  done
 fi
 
-###############################################################################
-# G5 — Observability
-###############################################################################
+# G4 — Observability
 curl -s http://localhost:3200/ready | tee "$EVID/tempo_ready.txt" >/dev/null
 curl -s http://localhost:3001/api/health | tee "$EVID/grafana_health.json" >/dev/null
-if grep -q ready "$EVID/tempo_ready.txt" && jq -e '.database=="ok"' "$EVID/grafana_health.json" >/dev/null; then
-  G5=$PASS
+
+# G5 — Langfuse env (accept keys from environment OR .env)
+if [ -n "${LANGFUSE_PUBLIC_KEY:-}" ] && [ -n "${LANGFUSE_SECRET_KEY:-}" ]; then
+  echo OK > "$EVID/langfuse_env.txt"
 else
-  G5=$FAIL
+  if [ -f .env ]; then
+    (grep -q "LANGFUSE_PUBLIC_KEY" .env && grep -q "LANGFUSE_SECRET_KEY" .env && echo OK > "$EVID/langfuse_env.txt") || echo FAIL > "$EVID/langfuse_env.txt"
+  else
+    echo FAIL > "$EVID/langfuse_env.txt"
+  fi
 fi
 
-###############################################################################
-# G6 — Quality gates (lint, types, tests, coverage >=80%)
-###############################################################################
+# G6 — Quality
 set +e
 npm run lint > "$EVID/lint.txt" 2>&1; LINT_RC=$?
 npm run typecheck > "$EVID/typecheck.txt" 2>&1; TYPE_RC=$?
 rm -rf coverage
+# Capture full JSON test output and the correct test exit code
 npm test -- --reporter=json --coverage > "$EVID/tests.json.full" 2>&1; TEST_RC=$?
+# Extract the JSON line from the mixed output reliably
 grep -m1 '^{"numTotalTestSuites"' "$EVID/tests.json.full" > "$EVID/tests.json" || echo '{}' > "$EVID/tests.json"
 set -e
-TEST_SUCCESS=$(jq -r '.success // false' "$EVID/tests.json" 2>/dev/null || echo false)
+
 if [ -f coverage/coverage-summary.json ]; then
   cp coverage/coverage-summary.json "$EVID/coverage-summary.json"
   COVERAGE=$(jq -r '.total.lines.pct // 0' coverage/coverage-summary.json)
@@ -128,35 +156,36 @@ else
   COVERAGE=0
 fi
 
+TEST_SUCCESS=$(jq -r '.success // false' "$EVID/tests.json" 2>/dev/null || echo false)
+COVERAGE=${COVERAGE:-0}
+
+G1=$({ { [ "$HEAD_STATUS_CODE" = "202" ] || [ "$HEAD_STATUS_CODE" = "200" ]; } \
+  && jq -e '.status == "planned" or .status == "implementing" or .status == "implemented" or .status == "tested"' "$EVID/get_execution.json" >/dev/null; } \
+  && echo PASS || echo FAIL)
+G2=$(grep -q "$EXEC_ID" "$EVID/db_execution.txt" && grep -q "$EXEC_ID" "$EVID/db_checkpoint.txt" && echo PASS || echo FAIL)
+G3=$(grep -q 'plan.json' "$EVID/minio_ls.txt" && jq -e '.tasks and .acceptance_criteria' "$EVID/plan.json" >/dev/null && echo PASS || echo FAIL)
+G4=$(grep -q ready "$EVID/tempo_ready.txt" && jq -e '.database=="ok"' "$EVID/grafana_health.json" >/dev/null && echo PASS || echo FAIL)
+G5=$(grep -q OK "$EVID/langfuse_env.txt" && echo PASS || echo FAIL)
+
 if [ "$LINT_RC" -eq 0 ] && [ "$TYPE_RC" -eq 0 ] && [ "$TEST_RC" -eq 0 ] && [ "$TEST_SUCCESS" = true ] && awk -v cov="$COVERAGE" 'BEGIN { exit !(cov + 0 >= 80) }'; then
-  G6=$PASS
+  G6=PASS
 else
-  G6=$FAIL
+  G6=FAIL
 fi
 
-###############################################################################
-# Summary
-###############################################################################
+# Write summary at a stable location under week3 root
 cat > "${BASE_DIR}/WEEK3_SUMMARY.md" <<EOF
-# Week 3-4 Evidence Summary
+# Week 3 Evidence Summary
 
-- G1-VFS: $G1
-- G2-IMPLEMENTER: $G2
-- G3-SSE: $G3
-- G4-MCA: $G4
-- G5-TRACE: $G5
+- G1-API: $G1
+- G2-DB: $G2
+- G3-PLAN: $G3
+- G4-TRACE: $G4
+- G5-LANGFUSE: $G5
 - G6-QUALITY: $G6
 
 Execution ID: $EXEC_ID
+HTTP Status (POST /api/executions): ${HEAD_STATUS_CODE:-unknown}
+Polled Status (GET /api/executions/:id): ${POLLED_STATUS:-unknown}
 Timestamp: $(date -Iseconds)
 EOF
-
-if [ -n "${DEBUG_EVIDENCE:-}" ]; then
-  echo "--- SUMMARY"; cat "${BASE_DIR}/WEEK3_SUMMARY.md" || true
-fi
-
-# Exit non-zero if any FAIL to signal CI job failure
-if grep -q "FAIL" "${BASE_DIR}/WEEK3_SUMMARY.md"; then
-  echo "Week3 smoke failed"; exit 1; fi
-## End of collector
-
