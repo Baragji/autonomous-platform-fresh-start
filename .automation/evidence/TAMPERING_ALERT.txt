@@ -1,0 +1,6 @@
+UTC: 2025-10-25T20:01:43Z
+HEAD: 44b3a4e381b1ea32000167b73568ad96507eadd0
+
+All previous evidence is untrusted; it was produced before enforcement.
+From now on, ONLY machine-generated, reproducible outputs are allowed.
+Human narrative in evidence is FORBIDDEN.
