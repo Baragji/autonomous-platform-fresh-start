@@ -1,9 +1,9 @@
 {
   "threshold": 80,
   "metric": "statements",
-  "total": 1085,
-  "covered": 942,
-  "pct": 86.82,
-  "pass": true,
+  "total": 1352,
+  "covered": 957,
+  "pct": 70.78,
+  "pass": false,
   "note": "lines metric missing; using statements coverage as proxy"
 }

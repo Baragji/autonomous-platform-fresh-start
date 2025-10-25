@@ -8,12 +8,13 @@ type PutObjectReturn = Awaited<ReturnType<MinioModule['minio']['putObject']>>;
 
 const putObjectMock = vi.fn();
 const ensureBucketMock = vi.fn();
+const bucketExistsMock = vi.fn();
 const getLangfuseMock = vi.fn<() => Langfuse | null>(() => null);
 const createMock = vi.fn();
 
 vi.mock('@autonomous/shared/src/minioClient', () => ({
   ensureBucket: ensureBucketMock,
-  minio: { putObject: putObjectMock },
+  minio: { putObject: putObjectMock, bucketExists: bucketExistsMock },
   ARTIFACT_BUCKET: 'umca-artifacts'
 }));
 
@@ -30,12 +31,15 @@ vi.mock('openai', () => ({
 let app: Express;
 let ensureBucket: MockedFunction<MinioModule['ensureBucket']>;
 let putObject: MockedFunction<MinioModule['minio']['putObject']>;
+let bucketExists: MockedFunction<MinioModule['minio']['bucketExists']>;
 
 beforeAll(async () => {
+  process.env.OPENAI_API_KEY = 'test-key';
   ({ app } = await import('../server'));
   const minioModule = await import('@autonomous/shared/src/minioClient');
   ensureBucket = vi.mocked(minioModule.ensureBucket);
   putObject = vi.mocked(minioModule.minio.putObject);
+  bucketExists = vi.mocked(minioModule.minio.bucketExists);
 });
 
 beforeEach(() => {
@@ -45,6 +49,8 @@ beforeEach(() => {
   ensureBucket.mockResolvedValue(undefined as unknown as void);
   putObject.mockReset();
   putObject.mockResolvedValue({} as PutObjectReturn);
+  bucketExists.mockReset();
+  bucketExists.mockResolvedValue(true);
   createMock.mockReset();
   getLangfuseMock.mockReset();
   getLangfuseMock.mockReturnValue(null);
@@ -76,5 +82,31 @@ describe('planner server', () => {
     const planPayload = JSON.parse(firstCall[2].toString());
     expect(Array.isArray(planPayload.tasks)).toBe(true);
     expect(planPayload.acceptance_criteria).toContain('plan.json stored in MinIO');
+  });
+
+  it('returns healthy status when dependencies succeed', async () => {
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true, checks: { minio: true, openaiKey: true } });
+    expect(ensureBucket).toHaveBeenCalled();
+    expect(bucketExists).toHaveBeenCalled();
+  });
+
+  it('returns 503 when OpenAI key is missing or MinIO unavailable', async () => {
+    const envModule = await import('@autonomous/shared/src/env');
+    const originalKey = envModule.env.OPENAI_API_KEY;
+    process.env.OPENAI_API_KEY = '';
+    envModule.env.OPENAI_API_KEY = '';
+    bucketExists.mockResolvedValueOnce(false);
+
+    const res = await request(app).get('/healthz');
+
+    expect(ensureBucket).toHaveBeenCalled();
+    expect(bucketExists).toHaveBeenCalled();
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ ok: false, checks: { minio: false, openaiKey: false } });
+
+    envModule.env.OPENAI_API_KEY = originalKey;
+    process.env.OPENAI_API_KEY = originalKey || 'test-key';
   });
 });

@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import { createLogger } from './logger';
 
 // Load local .env (package CWD)
 dotenv.config();
@@ -25,3 +26,30 @@ export const env = {
   LANGFUSE_SECRET_KEY: process.env.LANGFUSE_SECRET_KEY || '',
   LANGFUSE_HOST: process.env.LANGFUSE_HOST || undefined
 };
+
+if (process.env.NODE_ENV === 'production') {
+  const logger = createLogger('env');
+  const fail = (reason: string) => {
+    logger.fatal({ reason }, 'production environment validation failed');
+    process.exit(1);
+  };
+
+  if (!env.OPENAI_API_KEY) {
+    fail('OPENAI_API_KEY missing');
+  }
+
+  const weakDefaults: string[] = [];
+  if (env.DATABASE_URL.includes('umcapassword')) {
+    weakDefaults.push('DATABASE_URL');
+  }
+  if (env.MINIO_ACCESS_KEY === 'minioadmin') {
+    weakDefaults.push('MINIO_ACCESS_KEY');
+  }
+  if (['minioadmin', 'minioadmin123'].includes(env.MINIO_SECRET_KEY)) {
+    weakDefaults.push('MINIO_SECRET_KEY');
+  }
+
+  if (weakDefaults.length > 0) {
+    fail(`Weak defaults detected: ${weakDefaults.join(', ')}`);
+  }
+}

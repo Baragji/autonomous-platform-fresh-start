@@ -8,12 +8,17 @@ type EventsModule = typeof import('@autonomous/shared/src/events');
 
 vi.mock('@autonomous/shared/src/db', () => ({
   upsertExecution: vi.fn(),
-  getExecution: vi.fn()
+  getExecution: vi.fn(),
+  pool: {
+    query: vi.fn()
+  }
 }));
 
 vi.mock('@autonomous/shared/src/events', () => ({
   publish: vi.fn().mockResolvedValue(undefined),
-  subscribe: vi.fn().mockResolvedValue(() => {})
+  subscribe: vi.fn().mockResolvedValue(() => {}),
+  redisPub: { ping: vi.fn().mockResolvedValue('PONG') },
+  redisSub: { ping: vi.fn().mockResolvedValue('PONG') }
 }));
 
 let app: Express;
@@ -21,6 +26,9 @@ let upsertExecution: MockedFunction<DbModule['upsertExecution']>;
 let getExecution: MockedFunction<DbModule['getExecution']>;
 let publish: MockedFunction<EventsModule['publish']>;
 let subscribe: MockedFunction<EventsModule['subscribe']>;
+let poolQuery: MockedFunction<DbModule['pool']['query']>;
+let redisPubPing: MockedFunction<EventsModule['redisPub']['ping']>;
+let redisSubPing: MockedFunction<EventsModule['redisSub']['ping']>;
 const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
 
 beforeAll(async () => {
@@ -29,8 +37,11 @@ beforeAll(async () => {
   const eventsModule = await import('@autonomous/shared/src/events');
   upsertExecution = vi.mocked(dbModule.upsertExecution);
   getExecution = vi.mocked(dbModule.getExecution);
+  poolQuery = vi.mocked(dbModule.pool.query);
   publish = vi.mocked(eventsModule.publish);
   subscribe = vi.mocked(eventsModule.subscribe);
+  redisPubPing = vi.mocked(eventsModule.redisPub.ping);
+  redisSubPing = vi.mocked(eventsModule.redisSub.ping);
 });
 
 beforeEach(() => {
@@ -41,6 +52,9 @@ beforeEach(() => {
   publish.mockResolvedValue(undefined as unknown as void);
   subscribe.mockReset();
   subscribe.mockResolvedValue(() => {});
+  poolQuery.mockResolvedValue({} as never);
+  redisPubPing.mockResolvedValue('PONG');
+  redisSubPing.mockResolvedValue('PONG');
 });
 
 afterEach(() => {
@@ -111,5 +125,28 @@ describe('gateway server', () => {
 
     req.emit('close');
     expect(res.end).toHaveBeenCalled();
+  });
+
+  it('exposes healthz endpoint', async () => {
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true, checks: { db: true, redisPub: true, redisSub: true } });
+    expect(poolQuery).toHaveBeenCalledWith('SELECT 1');
+    expect(redisPubPing).toHaveBeenCalled();
+    expect(redisSubPing).toHaveBeenCalled();
+  });
+
+  it('returns 503 when a dependency check fails', async () => {
+    poolQuery.mockRejectedValueOnce(new Error('db down'));
+    redisPubPing.mockRejectedValueOnce(new Error('redis pub down'));
+    redisSubPing.mockRejectedValueOnce(new Error('redis sub down'));
+
+    const res = await request(app).get('/healthz');
+
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ ok: false, checks: { db: false, redisPub: false, redisSub: false } });
+    expect(poolQuery).toHaveBeenCalledWith('SELECT 1');
+    expect(redisPubPing).toHaveBeenCalled();
+    expect(redisSubPing).toHaveBeenCalled();
   });
 });

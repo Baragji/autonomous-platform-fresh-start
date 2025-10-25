@@ -5,10 +5,12 @@ import { env } from '@autonomous/shared/src/env';
 import { ensureBucket, minio, ARTIFACT_BUCKET } from '@autonomous/shared/src/minioClient';
 import { startOtel } from '@autonomous/shared/src/otel';
 import { getLangfuse } from '@autonomous/shared/src/langfuse';
+import { createLogger } from '@autonomous/shared/src/logger';
 
 startOtel('planner');
 export const app = express();
 app.use(express.json());
+const logger = createLogger('planner');
 
 import { PlanSchema } from './plan';
 import fs from 'fs';
@@ -118,13 +120,42 @@ app.post('/plan', async (req: Request, res: Response) => {
     res.json({ ok: true, object: objectName });
   } catch (err: unknown) {
     const e = err as Error;
+    logger.error({ err: e.message }, 'planner failed to create plan');
     res.status(500).json({ error: e.message || String(err) });
   }
+});
+
+app.get('/healthz', async (_req, res) => {
+  const checks: Record<string, boolean> = {
+    minio: false,
+    openaiKey: false
+  };
+
+  try {
+    await ensureBucket();
+    const exists = await minio.bucketExists(ARTIFACT_BUCKET);
+    checks.minio = exists;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'planner minio health check failed');
+  }
+
+  if (env.OPENAI_API_KEY) {
+    checks.openaiKey = true;
+  } else {
+    logger.error('planner missing OPENAI_API_KEY');
+  }
+
+  const ok = Object.values(checks).every(Boolean);
+  if (!ok) {
+    return res.status(503).json({ ok: false, checks });
+  }
+  return res.json({ ok: true, checks });
 });
 
 const port = Number(process.env.PLANNER_PORT || 7020);
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
-    process.stdout.write(`[planner] listening on :${port}\n`);
+    logger.info({ port }, 'planner listening');
   });
 }

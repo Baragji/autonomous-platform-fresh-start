@@ -2,12 +2,12 @@ import express, { type Request, type Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { upsertExecution } from '@autonomous/shared/src/db';
-import { publish } from '@autonomous/shared/src/events';
+import { publish, redisPub, redisSub } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
 import { createLogger } from '@autonomous/shared/src/logger';
 import { env } from '@autonomous/shared/src/env';
 import { PlanSchema, type Plan } from '@autonomous/shared/src/plan';
-import { minio, ARTIFACT_BUCKET } from '@autonomous/shared/src/minioClient';
+import { minio, ARTIFACT_BUCKET, ensureBucket } from '@autonomous/shared/src/minioClient';
 import { StateGraph, START, END } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { Pool } from 'pg';
@@ -23,6 +23,7 @@ type McaState = {
   status?: string;
   current_agent?: string;
   plan?: Plan;
+  failure_count?: number;
 };
 
 const pool = new Pool({ connectionString: env.DATABASE_URL });
@@ -105,6 +106,28 @@ async function runnerNode(state: McaState): Promise<McaState> {
   return { ...state, status: 'tested', current_agent: 'runner' };
 }
 
+async function validatorNode(state: McaState): Promise<McaState> {
+  const validatorUrl = process.env.VALIDATOR_URL || 'http://localhost:7050/validate';
+  await publish(state.execId, 'agent', { agent: 'validator', status: 'working' });
+  const response = await fetch(validatorUrl, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ execId: state.execId })
+  });
+  const payload = (await response.json()) as { ok?: boolean; verdict?: 'PASS'|'FAIL'; report?: string; junitObject?: string; coverageObject?: string; error?: string };
+  if (!response.ok || payload.ok !== true || !payload.verdict) {
+    throw new Error(payload.error || 'validator failed');
+  }
+  const verdict = payload.verdict;
+  await publish(state.execId, 'artifact', { type: 'validation', report: payload.report, junit: payload.junitObject, coverage: payload.coverageObject });
+  await upsertExecution(state.execId, verdict === 'PASS' ? 'validated' : 'needs_remediation', state.intent, 'validator');
+  await publish(state.execId, 'status', { status: verdict === 'PASS' ? 'validated' : 'needs_remediation' });
+  const failure_count = verdict === 'FAIL' ? (state.failure_count ?? 0) + 1 : (state.failure_count ?? 0);
+  if (failure_count >= 3 && verdict === 'FAIL') {
+    await publish(state.execId, 'escalated', { failure_count });
+  }
+  return { ...state, current_agent: 'validator', status: verdict === 'PASS' ? 'validated' : 'needs_remediation', failure_count };
+}
+
 const graphBuilder = new StateGraph<McaState>({
   // Keep channels mapping for forward compatibility, but run planner as first node
   channels: {
@@ -128,9 +151,19 @@ if (plannerOnly) {
   graphBuilder
     .addNode('implementer', implementerNode)
     .addNode('runner', runnerNode)
+    .addNode('validator', validatorNode)
     .addEdge('planner', 'implementer')
     .addEdge('implementer', 'runner')
-    .addEdge('runner', END);
+    .addEdge('runner', 'validator')
+    .addConditionalEdges('validator', (state: McaState) => {
+      if (state.status === 'validated') return END;
+      if ((state.failure_count ?? 0) >= 3) {
+        // escalate and still go to implementer for another attempt if policy allows
+        state.status = 'escalated';
+        publish(state.execId, 'status', { status: 'escalated' }).catch(() => {});
+      }
+      return 'implementer';
+    });
 }
 
 const graph = graphBuilder.compile({ checkpointer });
@@ -156,9 +189,55 @@ app.post('/start', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/healthz', async (_req, res) => {
+  const checks: Record<string, boolean> = {
+    db: false,
+    redisPub: false,
+    redisSub: false,
+    minio: false
+  };
+
+  try {
+    await pool.query('SELECT 1');
+    checks.db = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'mca db health check failed');
+  }
+
+  try {
+    await redisPub.ping();
+    checks.redisPub = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'mca redisPub health check failed');
+  }
+
+  try {
+    await redisSub.ping();
+    checks.redisSub = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'mca redisSub health check failed');
+  }
+
+  try {
+    await ensureBucket();
+    const exists = await minio.bucketExists(ARTIFACT_BUCKET);
+    checks.minio = exists;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'mca minio health check failed');
+  }
+
+  const ok = Object.values(checks).every(Boolean);
+  if (!ok) return res.status(503).json({ ok: false, checks });
+  return res.json({ ok: true, checks });
+});
+
 const port = Number(process.env.MCA_PORT || 7010);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => process.stdout.write(`[mca] listening on :${port}\n`));
+  app.listen(port, () => logger.info({ port }, 'mca listening'));
 }
 
 async function readPlanFromMinio(objectName: string): Promise<Plan> {

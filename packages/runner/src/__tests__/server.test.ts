@@ -41,6 +41,7 @@ let app: import('express').Express;
 describe('runner server', () => {
   beforeEach(() => {
     process.env.E2B_API_KEY = 'test-key';
+    vi.restoreAllMocks();
     vi.spyOn(events, 'publish').mockResolvedValue();
     vi.spyOn(vfsMod, 'createVfs').mockResolvedValue(
       new MemVfs() as unknown as Awaited<ReturnType<typeof vfsMod.createVfs>>
@@ -56,5 +57,22 @@ describe('runner server', () => {
     const res = await request(app).post('/run').send({ execId: 'x' });
     expect(res.status).toBe(200);
     expect(res.body.ok).toBe(true);
+  });
+
+  it('returns healthy status when dependencies succeed', async () => {
+    ({ app } = await import('../server'));
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true, checks: { vfs: true, e2bKey: true } });
+    expect(vfsMod.createVfs).toHaveBeenCalledWith('healthz', { prefixSuffix: 'runner' });
+  });
+
+  it('returns 503 when E2B key is missing', async () => {
+    process.env.E2B_API_KEY = '';
+    ({ app } = await import('../server'));
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ ok: false, checks: { vfs: true, e2bKey: false } });
+    process.env.E2B_API_KEY = 'test-key';
   });
 });

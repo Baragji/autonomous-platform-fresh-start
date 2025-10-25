@@ -1,0 +1,2 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+{"level":60,"time":1761369715969,"service":"env","name":"env","reason":"OPENAI_API_KEY missing","msg":"production environment validation failed"}
