@@ -64,7 +64,33 @@ app.post('/implement', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/healthz', async (_req, res) => {
+  const checks: Record<string, boolean> = {
+    minio: false,
+    openaiKey: false
+  };
+
+  try {
+    const vfs = await createVfs('healthz', { prefixSuffix: 'implementer' });
+    await vfs.listFiles();
+    checks.minio = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'implementer vfs health check failed');
+  }
+
+  if (env.OPENAI_API_KEY) {
+    checks.openaiKey = true;
+  } else {
+    logger.error('implementer missing OPENAI_API_KEY');
+  }
+
+  const ok = Object.values(checks).every(Boolean);
+  if (!ok) return res.status(503).json({ ok: false, checks });
+  return res.json({ ok: true, checks });
+});
+
 const port = Number(process.env.IMPLEMENTER_PORT || 7030);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => process.stdout.write(`[implementer] listening on :${port}\n`));
+  app.listen(port, () => logger.info({ port }, 'implementer listening'));
 }

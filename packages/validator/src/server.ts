@@ -28,7 +28,7 @@ const secretRegexes: Array<{ name: string; re: RegExp }> = [
 // E2B sandbox API (subset)
 type SandboxProcessOutcome = { exitCode: number; stdout: string; stderr: string };
 type SandboxProcess = { wait: (opts?: { timeout?: number }) => Promise<SandboxProcessOutcome> };
-type SandboxApi = {
+export type SandboxApi = {
   filesystem: {
     makeDir: (path: string, opts?: { recursive?: boolean }) => Promise<void>;
     write: (path: string, content: string | Uint8Array) => Promise<void>;
@@ -53,7 +53,31 @@ const ValidationReportSchema = z.object({
   secretsFound: z.number().optional()
 });
 
-app.get('/healthz', (_req, res) => res.json({ ok: true }));
+app.get('/healthz', async (_req, res) => {
+  const checks: Record<string, boolean> = {
+    vfs: false,
+    e2bKey: false
+  };
+
+  try {
+    const vfs = await createVfs('healthz', { prefixSuffix: 'validator' });
+    await vfs.listFiles();
+    checks.vfs = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'validator vfs health check failed');
+  }
+
+  if (process.env.E2B_API_KEY) {
+    checks.e2bKey = true;
+  } else {
+    logger.error('validator missing E2B_API_KEY');
+  }
+
+  const ok = Object.values(checks).every(Boolean);
+  if (!ok) return res.status(503).json({ ok: false, checks });
+  return res.json({ ok: true, checks });
+});
 
 app.post('/validate', async (req: Request, res: Response) => {
   const parse = ValidateRequestSchema.safeParse(req.body);
@@ -133,16 +157,21 @@ app.post('/validate', async (req: Request, res: Response) => {
 
     // Save vitest JSON as validator artifact and convert to JUnit
     const vitestJson = testOutcome.stdout;
-    junitObject = `${prefix}/validator-junit.xml`;
     const junitXml = vitestJsonToJUnit(vitestJson);
-    await vfs.writeFile(junitObject, junitXml, { contentType: 'application/xml' });
+    junitObject = `${prefix}/validator-junit.xml`;
+    const junitBuffer = Buffer.from(junitXml, 'utf8');
+    const junitSha = sha256(junitBuffer);
+    await vfs.writeFile(junitObject, junitBuffer, { contentType: 'application/xml', sha256: junitSha });
 
     // Coverage summary
     const coverageSummaryPath = `${projectRoot}/coverage/coverage-summary.json`;
     const coverageJson = await sandbox.filesystem.read(coverageSummaryPath).catch(() => null);
+    let coverageSha: string | undefined;
     if (coverageJson) {
       coverageObject = `${prefix}/validator-coverage.json`;
-      await vfs.writeFile(coverageObject, coverageJson);
+      const coverageBuffer = Buffer.from(coverageJson, 'utf8');
+      coverageSha = sha256(coverageBuffer);
+      await vfs.writeFile(coverageObject, coverageBuffer, { contentType: 'application/json', sha256: coverageSha });
     }
 
     // Secrets scan (simple regex across src/)
@@ -196,17 +225,16 @@ app.post('/validate', async (req: Request, res: Response) => {
     // Compute checksums and embed
     const checksums: { junit?: string; coverage?: string; report?: string } = {};
     if (junitObject) {
-      const buf = await vfs.readFile(junitObject);
-      checksums.junit = sha256(buf);
+      checksums.junit = junitSha;
     }
-    if (coverageObject) {
-      const buf = await vfs.readFile(coverageObject);
-      checksums.coverage = sha256(buf);
+    if (coverageObject && coverageSha) {
+      checksums.coverage = coverageSha;
     }
     const reportWithChecksums = { ...report, checksums } as Record<string, unknown>;
     const reportBuf = Buffer.from(JSON.stringify(reportWithChecksums, null, 2));
-    checksums.report = sha256(reportBuf);
-    await vfs.writeFile(validationReportObject, reportBuf, { contentType: 'application/json' });
+    const reportSha = sha256(reportBuf);
+    checksums.report = reportSha;
+    await vfs.writeFile(validationReportObject, reportBuf, { contentType: 'application/json', sha256: reportSha });
 
     await publish(execId, 'artifact', { type: 'validation', report: validationReportObject, junit: junitObject, coverage: coverageObject });
     await publish(execId, 'status', { status: report.verdict === 'PASS' ? 'validated' : 'needs_remediation' });
@@ -304,6 +332,11 @@ export function vitestJsonToJUnit(stdout: string): string {
 }
 
 const port = Number(process.env.VALIDATOR_PORT || 7050);
+
+export function startServer() {
+  return app.listen(port, () => logger.info({ port }, 'validator listening'));
+}
+
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => process.stdout.write(`[validator] listening on :${port}\n`));
+  startServer();
 }

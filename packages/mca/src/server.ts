@@ -2,12 +2,12 @@ import express, { type Request, type Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { upsertExecution } from '@autonomous/shared/src/db';
-import { publish } from '@autonomous/shared/src/events';
+import { publish, redisPub, redisSub } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
 import { createLogger } from '@autonomous/shared/src/logger';
 import { env } from '@autonomous/shared/src/env';
 import { PlanSchema, type Plan } from '@autonomous/shared/src/plan';
-import { minio, ARTIFACT_BUCKET } from '@autonomous/shared/src/minioClient';
+import { minio, ARTIFACT_BUCKET, ensureBucket } from '@autonomous/shared/src/minioClient';
 import { StateGraph, START, END } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { Pool } from 'pg';
@@ -189,9 +189,55 @@ app.post('/start', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/healthz', async (_req, res) => {
+  const checks: Record<string, boolean> = {
+    db: false,
+    redisPub: false,
+    redisSub: false,
+    minio: false
+  };
+
+  try {
+    await pool.query('SELECT 1');
+    checks.db = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'mca db health check failed');
+  }
+
+  try {
+    await redisPub.ping();
+    checks.redisPub = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'mca redisPub health check failed');
+  }
+
+  try {
+    await redisSub.ping();
+    checks.redisSub = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'mca redisSub health check failed');
+  }
+
+  try {
+    await ensureBucket();
+    const exists = await minio.bucketExists(ARTIFACT_BUCKET);
+    checks.minio = exists;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'mca minio health check failed');
+  }
+
+  const ok = Object.values(checks).every(Boolean);
+  if (!ok) return res.status(503).json({ ok: false, checks });
+  return res.json({ ok: true, checks });
+});
+
 const port = Number(process.env.MCA_PORT || 7010);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => process.stdout.write(`[mca] listening on :${port}\n`));
+  app.listen(port, () => logger.info({ port }, 'mca listening'));
 }
 
 async function readPlanFromMinio(objectName: string): Promise<Plan> {

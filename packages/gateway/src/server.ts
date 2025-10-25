@@ -1,12 +1,14 @@
 import express, { type Request, type Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { upsertExecution, getExecution } from '@autonomous/shared/src/db';
-import { publish, subscribe } from '@autonomous/shared/src/events';
+import { pool, upsertExecution, getExecution } from '@autonomous/shared/src/db';
+import { publish, subscribe, redisPub, redisSub } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
+import { createLogger } from '@autonomous/shared/src/logger';
 
 startOtel('gateway');
 export const app = express();
 app.use(express.json());
+const logger = createLogger('gateway');
 
 app.post('/api/executions', async (req: Request, res: Response) => {
   const intent = String(req.body?.intent || '').trim();
@@ -57,7 +59,45 @@ app.get('/api/executions/:id/stream', async (req: Request, res: Response) => {
   });
 });
 
+app.get('/healthz', async (_req, res) => {
+  const checks: Record<string, boolean> = {
+    db: false,
+    redisPub: false,
+    redisSub: false
+  };
+
+  try {
+    await pool.query('SELECT 1');
+    checks.db = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'database health check failed');
+  }
+
+  try {
+    await redisPub.ping();
+    checks.redisPub = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'redis publisher health check failed');
+  }
+
+  try {
+    await redisSub.ping();
+    checks.redisSub = true;
+  } catch (err) {
+    const error = err as Error;
+    logger.error({ err: error.message }, 'redis subscriber health check failed');
+  }
+
+  const ok = Object.values(checks).every(Boolean);
+  if (!ok) {
+    return res.status(503).json({ ok: false, checks });
+  }
+  return res.json({ ok: true, checks });
+});
+
 const port = Number(process.env.GATEWAY_PORT || 3030);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => process.stdout.write(`[gateway] listening on :${port}\n`));
+  app.listen(port, () => logger.info({ port }, 'gateway listening'));
 }

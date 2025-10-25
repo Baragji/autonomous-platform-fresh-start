@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { Client } from 'minio';
 import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainers';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -104,6 +104,21 @@ describe('MinioVfs', () => {
     const entries = await vfs.listFiles('src');
     const paths = entries.map((e) => e.path).sort();
     expect(paths).toEqual(['src/a.ts', 'src/b.ts']);
+  });
+
+  it('persists sha256 metadata when provided', async () => {
+    if (!minioAvailable) {
+      process.stderr.write('MinIO unavailable; skipping metadata test\n');
+      return;
+    }
+    const prefix = `tests/vfs-${randomUUID()}`;
+    prefixes.push(prefix);
+    const vfs = new MinioVfs({ client, bucket, prefix });
+    const content = Buffer.from('integrity-check');
+    const sha = createHash('sha256').update(content).digest('hex');
+    await vfs.writeFile('src/app.ts', content, { sha256: sha });
+    const stat = await client.statObject(bucket, `${prefix}/code/src/app.ts`);
+    expect((stat.metaData || {})['x-amz-meta-sha256']).toBe(sha);
   });
 
   it('creates shadow copies before overwriting', async () => {

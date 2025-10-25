@@ -80,11 +80,14 @@ vi.mock('pg', () => ({
 }));
 
 vi.mock('@autonomous/shared/src/db', () => ({
-  upsertExecution: vi.fn()
+  upsertExecution: vi.fn(),
+  pool: { query: vi.fn() }
 }));
 
 vi.mock('@autonomous/shared/src/events', () => ({
-  publish: vi.fn().mockResolvedValue(undefined)
+  publish: vi.fn().mockResolvedValue(undefined),
+  redisPub: { ping: vi.fn().mockResolvedValue('PONG') },
+  redisSub: { ping: vi.fn().mockResolvedValue('PONG') }
 }));
 
 vi.mock('@autonomous/shared/src/minioClient', () => {
@@ -97,7 +100,8 @@ vi.mock('@autonomous/shared/src/minioClient', () => {
     acceptance_criteria: ['ok']
   })]));
   return {
-    minio: { getObject } as unknown as MinioModule['minio'],
+    ensureBucket: vi.fn().mockResolvedValue(undefined),
+    minio: { getObject, bucketExists: vi.fn().mockResolvedValue(true) } as unknown as MinioModule['minio'],
     ARTIFACT_BUCKET: 'umca-artifacts'
   } satisfies Partial<MinioModule>;
 });
@@ -106,6 +110,8 @@ let app: Express;
 let upsertExecution: MockedFunction<DbModule['upsertExecution']>;
 let publish: MockedFunction<EventsModule['publish']>;
 let minioGetObject: MockedFunction<MinioModule['minio']['getObject']>;
+let ensureBucket: MockedFunction<MinioModule['ensureBucket']>;
+let bucketExists: MockedFunction<MinioModule['minio']['bucketExists']>;
 
 beforeAll(async () => {
   // Use global fetch stub since server uses global fetch
@@ -118,6 +124,8 @@ beforeAll(async () => {
   upsertExecution = vi.mocked(dbModule.upsertExecution);
   publish = vi.mocked(eventsModule.publish);
   minioGetObject = vi.mocked(minioModule.minio.getObject);
+  ensureBucket = vi.mocked(minioModule.ensureBucket);
+  bucketExists = vi.mocked(minioModule.minio.bucketExists);
 });
 
 beforeEach(() => {
@@ -128,6 +136,8 @@ beforeEach(() => {
   publish.mockReset();
   publish.mockResolvedValue(undefined as unknown as void);
   minioGetObject.mockClear();
+  ensureBucket.mockResolvedValue(undefined as unknown as void);
+  bucketExists.mockResolvedValue(true);
 });
 
 afterEach(() => {
@@ -160,5 +170,13 @@ describe('mca server', () => {
       expect.objectContaining({ execId: 'exec-1', intent: 'Build', status: 'implemented' }),
       { configurable: { thread_id: 'exec-1' } }
     );
+  });
+
+  it('reports healthy when dependencies respond', async () => {
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true, checks: { db: true, redisPub: true, redisSub: true, minio: true } });
+    expect(ensureBucket).toHaveBeenCalled();
+    expect(bucketExists).toHaveBeenCalled();
   });
 });

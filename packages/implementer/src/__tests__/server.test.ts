@@ -6,11 +6,13 @@ vi.mock('../agent', () => {
   return { ImplementerAgent: MockAgent };
 });
 
+const listFilesMock = vi.fn(async () => []);
+
 vi.mock('@autonomous/shared/src/vfs', () => ({
   createVfs: vi.fn(async () => ({
     writeFile: async () => {},
     readFile: async () => Buffer.from('x'),
-    listFiles: async () => [],
+    listFiles: listFilesMock,
     listVersions: async () => []
   }))
 }));
@@ -21,8 +23,10 @@ describe('implementer server', () => {
   let app: import('express').Express;
   beforeEach(async () => {
     vi.resetModules();
+    process.env.OPENAI_API_KEY = 'test-key';
     const mod = await import('../server');
     app = mod.app;
+    listFilesMock.mockClear();
   });
 
   it('returns 200 for valid request', async () => {
@@ -51,5 +55,12 @@ describe('implementer server', () => {
     const res = await request(badApp).post('/implement').send({ execId: 'e2', plan });
     expect(res.status).toBe(500);
     expect(res.body.error).toBe('boom');
+  });
+
+  it('reports healthy when dependencies succeed', async () => {
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true, checks: { minio: true, openaiKey: true } });
+    expect(listFilesMock).toHaveBeenCalled();
   });
 });
