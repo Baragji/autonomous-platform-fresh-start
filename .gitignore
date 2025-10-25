@@ -36,6 +36,14 @@ Thumbs.db
 .automation/evidence/*
 !.automation/
 !.automation/evidence/
+# Allow specific machine-generated evidence artifacts (no narrative)
+!.automation/evidence/TAMPERING_ALERT.txt
+!.automation/evidence/ATTACHMENT_MANIFEST.json
+!.automation/evidence/coverage.json
+!.automation/evidence/healthz_sweep.json
+!.automation/evidence/prod_env_guard.json
+!.automation/evidence/e2e_request_response.json
+!.automation/evidence/v5-report.json
 !.automation/evidence/week2/
 !.automation/evidence/week2/collect_evidence.sh
 !.automation/evidence/week3/collect_evidence.sh

@@ -52,4 +52,16 @@ if (process.env.NODE_ENV === 'production') {
   if (weakDefaults.length > 0) {
     fail(`Weak defaults detected: ${weakDefaults.join(', ')}`);
   }
+
+  // On success, emit a sanitized summary (no secrets)
+  try {
+    const summary = {
+      hasOpenAiKey: Boolean(env.OPENAI_API_KEY && env.OPENAI_API_KEY.length > 0),
+      minioAccessKeyLength: env.MINIO_ACCESS_KEY ? env.MINIO_ACCESS_KEY.length : 0,
+      minioSecretKeyLength: env.MINIO_SECRET_KEY ? env.MINIO_SECRET_KEY.length : 0,
+      hasLangfusePublicKey: Boolean(env.LANGFUSE_PUBLIC_KEY && env.LANGFUSE_PUBLIC_KEY.length > 0),
+      hasLangfuseSecretKey: Boolean(env.LANGFUSE_SECRET_KEY && env.LANGFUSE_SECRET_KEY.length > 0)
+    };
+    logger.info(summary, 'env-loaded');
+  } catch {}
 }

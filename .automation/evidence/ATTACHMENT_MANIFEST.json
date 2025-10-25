@@ -1,0 +1,11 @@
+{
+  "commit": "aab53156bae04cc06c3f3891aac10ea59817d304",
+  "generated_at_utc": "2025-10-25T19:46:49Z",
+  "files": [
+    {
+      "path": ".automation/evidence/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    }
+  ]
+}
