@@ -1,0 +1,20 @@
+{
+  "lint": {
+    "exitCode": 0,
+    "ok": true
+  },
+  "typecheck": {
+    "exitCode": 2,
+    "ok": false
+  },
+  "test": {
+    "exitCode": 1,
+    "ok": false
+  },
+  "coverage": {
+    "metric": "lines",
+    "total": 0,
+    "covered": 0,
+    "pct": 0
+  }
+}

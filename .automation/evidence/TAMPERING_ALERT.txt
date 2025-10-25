@@ -1,6 +1,8 @@
 UTC: 2025-10-25T20:01:43Z
 HEAD: 44b3a4e381b1ea32000167b73568ad96507eadd0
+QUARANTINED_DIR: .automation/evidence_quarantined/20251025T200143Z
 
-All previous evidence is untrusted; it was produced before enforcement.
-From now on, ONLY machine-generated, reproducible outputs are allowed.
-Human narrative in evidence is FORBIDDEN.
+All previous evidence was quarantined to .automation/evidence_quarantined/20251025T200143Z and is untrusted.
+Narrative/human-written evidence is banned going forward.
+Only machine-generated, reproducible, SHA256-attested evidence is allowed.
+This branch is under merge freeze as part of an active incident.

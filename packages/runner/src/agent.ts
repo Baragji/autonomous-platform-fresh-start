@@ -1,6 +1,10 @@
 import type { Logger } from '@autonomous/shared/src/logger';
-import { publish } from '@autonomous/shared/src/events';
-import { createVfs, type Vfs, type VfsFileEntry } from '@autonomous/shared/src/vfs';
+import sharedEvents from '@autonomous/shared/src/events';
+const { publish } = (sharedEvents as unknown as { publish: (execId: string, event: string, data: unknown) => Promise<void> });
+// Import from CJS module in an ESM context: use default and pull named
+import sharedVfs from '@autonomous/shared/src/vfs';
+import type { Vfs, VfsFileEntry } from '@autonomous/shared/src/vfs';
+const { createVfs } = (sharedVfs as unknown as { createVfs: (execId: string, opts?: { prefixSuffix?: string }) => Promise<Vfs> });
 import { z } from 'zod';
 
 

@@ -1,0 +1,18 @@
+{
+  "timestamp_utc": "2025-10-25T20:16:03.736Z",
+  "coverage": {
+    "pct": 0
+  },
+  "healthz": {
+    "all_ok": false
+  },
+  "env_guard": {
+    "pass_ok": true,
+    "fail_ok": true
+  },
+  "e2e": {
+    "exercised_chain": true,
+    "touched_validator": false
+  },
+  "verdict": "NOT_READY"
+}

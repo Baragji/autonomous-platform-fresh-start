@@ -1,0 +1,33 @@
+{
+  "request": {
+    "ts_utc": "2025-10-25T20:14:47Z",
+    "url": "http://localhost:3030/api/executions",
+    "body": {
+      "intent": "Build a TODO API with tests"
+    }
+  },
+  "response": {
+    "http_status": 0,
+    "body": {
+      "id": "7fd0997b-2da7-4c30-8c45-54a1271f366b",
+      "status": "accepted",
+      "location": "/api/executions/7fd0997b-2da7-4c30-8c45-54a1271f366b",
+      "stream": "/api/executions/7fd0997b-2da7-4c30-8c45-54a1271f366b/stream"
+    }
+  },
+  "execId": "7fd0997b-2da7-4c30-8c45-54a1271f366b",
+  "execution_trace": [
+    {
+      "ts": "2025-10-25T20:14:47Z",
+      "phase": "planning"
+    },
+    {
+      "ts": "2025-10-25T20:14:54Z",
+      "phase": "implementing"
+    },
+    {
+      "ts": "2025-10-25T20:15:10Z",
+      "phase": "failed"
+    }
+  ]
+}

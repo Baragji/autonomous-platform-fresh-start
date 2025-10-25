@@ -167,9 +167,15 @@ function buildMetadata(options?: VfsWriteOptions) {
   const meta: Record<string, string> = {};
   if (options?.contentType) {
     meta['Content-Type'] = options.contentType;
+    meta['content-type'] = options.contentType; // ensure MinIO captures header regardless of casing
   }
   if (options?.sha256) {
+    // Some MinIO/S3 client versions expect custom metadata keys without the prefix
+    // and will serialize them as x-amz-meta-*. Others accept the full header key.
+    // Provide both to maximize compatibility and satisfy statObject expectations.
     meta['x-amz-meta-sha256'] = options.sha256;
+    meta['X-Amz-Meta-Sha256'] = options.sha256;
+    meta['sha256'] = options.sha256;
   }
   return meta;
 }

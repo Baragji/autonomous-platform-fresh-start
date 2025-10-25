@@ -1,8 +1,11 @@
 import express, { type Request, type Response } from 'express';
 import { z } from 'zod';
-import { startOtel } from '@autonomous/shared/src/otel';
-import { createLogger } from '@autonomous/shared/src/logger';
-import { createVfs } from '@autonomous/shared/src/vfs';
+import sharedOtel from '@autonomous/shared/src/otel';
+import sharedLogger from '@autonomous/shared/src/logger';
+import sharedVfs from '@autonomous/shared/src/vfs';
+const { startOtel } = (sharedOtel as unknown as { startOtel: (service: string) => void });
+const { createLogger } = (sharedLogger as unknown as { createLogger: (service: string) => { info: Function; error: Function } });
+const { createVfs } = (sharedVfs as unknown as { createVfs: (execId: string, opts?: { prefixSuffix?: string }) => Promise<unknown> });
 import { RunnerAgent, RunRequestSchema } from './agent';
 
 startOtel('runner');
