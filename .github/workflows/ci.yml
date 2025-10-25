@@ -42,6 +42,7 @@ jobs:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:4318
       GRAFANA_URL: http://localhost:3001
       OPENAI_API_KEY: dummy
+      E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
       CI_ENFORCE_INTEGRATION: "1"
     steps:
       - name: Checkout
@@ -100,6 +101,63 @@ jobs:
 
       - name: No skipped tests
         run: VITEST_JSON_PATH=.automation/evidence/ci-tests.json npm run ci:no-skips
+
+      - name: Evidence | collect-coverage, healthz, env-guard, e2e, readiness
+        run: |
+          mkdir -p .automation/evidence
+          npx tsx scripts/collect-coverage.ts
+          npx tsx scripts/collect-healthz.ts || true
+          # Build shared so env dist entry exists
+          npm --prefix packages/shared run build
+          npx tsx scripts/collect-env-guard.ts
+          # Attempt full chain; capture evidence even if run fails
+          npx tsx scripts/run-e2e-intent.ts || true
+          npx tsx scripts/generate-readiness-report.ts
+
+      - name: Evidence | Attest (CI)
+        run: |
+          bash scripts/attest-evidence.sh
+          cp .automation/evidence/ATTACHMENT_MANIFEST.json .automation/evidence/ATTACHMENT_MANIFEST.ci.json
+
+      - name: Evidence | Ban narrative prose
+        run: |
+          set -e
+          if rg -n --ignore-case --no-heading "(I can't run the stack|I cant run the stack|I'll need to|will regenerate|we believe|should be fine|TODO|FIXME)" .automation/evidence/; then
+            echo "Narrative prose detected in evidence directory" >&2
+            exit 1
+          fi
+
+      - name: Evidence | Ensure validator executed (fail if skipped)
+        run: |
+          set -e
+          test -f .automation/evidence/v5-report.json || { echo "Missing v5-report.json"; exit 1; }
+          touched=$(jq -r '.e2e.touched_validator' .automation/evidence/v5-report.json || echo false)
+          if [ "$touched" != "true" ]; then
+            echo "Validator was not executed in e2e trace" >&2
+            cat .automation/evidence/v5-report.json || true
+            exit 1
+          fi
+
+      - name: Evidence | Compare CI vs committed hashes (if manifest present)
+        run: |
+          set -e
+          if [ -f .automation/evidence/ATTACHMENT_MANIFEST.json ]; then
+            jq -r '.files[] | "\(.path) \(.sha256)"' .automation/evidence/ATTACHMENT_MANIFEST.json | sort > /tmp/branch.hashes || true
+          else
+            : > /tmp/branch.hashes
+          fi
+          jq -r '.files[] | "\(.path) \(.sha256)"' .automation/evidence/ATTACHMENT_MANIFEST.ci.json | sort > /tmp/ci.hashes
+          if [ -s /tmp/branch.hashes ]; then
+            comm -12 <(cut -d' ' -f1 /tmp/branch.hashes) <(cut -d' ' -f1 /tmp/ci.hashes) | while read p; do
+              bh=$(grep -E "^$p " /tmp/branch.hashes | awk '{print $2}')
+              ch=$(grep -E "^$p " /tmp/ci.hashes | awk '{print $2}')
+              if [ "$bh" != "$ch" ]; then
+                echo "Hash mismatch for $p" >&2
+                exit 1
+              fi
+            done
+          fi
+          echo "Evidence compare OK"
 
       - name: Capture prod guard failure evidence
         run: |
