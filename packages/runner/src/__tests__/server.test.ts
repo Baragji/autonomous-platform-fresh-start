@@ -66,4 +66,13 @@ describe('runner server', () => {
     expect(res.body).toEqual({ ok: true, checks: { vfs: true, e2bKey: true } });
     expect(vfsMod.createVfs).toHaveBeenCalledWith('healthz', { prefixSuffix: 'runner' });
   });
+
+  it('returns 503 when E2B key is missing', async () => {
+    process.env.E2B_API_KEY = '';
+    ({ app } = await import('../server'));
+    const res = await request(app).get('/healthz');
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ ok: false, checks: { vfs: true, e2bKey: false } });
+    process.env.E2B_API_KEY = 'test-key';
+  });
 });

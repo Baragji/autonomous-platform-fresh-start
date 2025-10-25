@@ -1,0 +1,7 @@
+Reviewed existing service tests and health check implementations:
+- packages/gateway/src/__tests__/server.test.ts already covers happy-path /healthz and 404 but lacks failure branch coverage.
+- packages/planner/src/__tests__/server.test.ts exercises fallback logic and healthy /healthz but not failure when OpenAI key missing or MinIO unavailable.
+- packages/implementer/src/__tests__/server.test.ts validates request handling and healthy /healthz; needs missing OPENAI_API_KEY coverage.
+- packages/mca/src/__tests__/server.test.ts covers LangGraph orchestration and healthy /healthz; failure branch when MinIO check fails remains untested.
+- packages/runner/src/__tests__/server.test.ts verifies healthy /healthz only; missing coverage for absent E2B_API_KEY branch.
+Inspected corresponding server implementations under packages/*/src/server.ts to confirm health check behavior and determine necessary mocks for new tests.

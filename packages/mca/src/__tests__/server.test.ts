@@ -179,4 +179,15 @@ describe('mca server', () => {
     expect(ensureBucket).toHaveBeenCalled();
     expect(bucketExists).toHaveBeenCalled();
   });
+
+  it('returns 503 when MinIO bucket check fails', async () => {
+    bucketExists.mockResolvedValueOnce(false);
+
+    const res = await request(app).get('/healthz');
+
+    expect(ensureBucket).toHaveBeenCalled();
+    expect(bucketExists).toHaveBeenCalled();
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ ok: false, checks: { db: true, redisPub: true, redisSub: true, minio: false } });
+  });
 });
