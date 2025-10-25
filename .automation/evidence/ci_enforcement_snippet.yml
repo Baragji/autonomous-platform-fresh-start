@@ -1,0 +1,12 @@
+# Extract from .github/workflows/ci.yml enforcing coverage thresholds
+- name: Test with coverage
+  run: |
+    mkdir -p .automation/evidence
+    npm test -- --coverage --run
+    npm test -- --reporter=json --run | tee .automation/evidence/ci-tests.json
+- name: Validator tests with coverage
+  run: npm run test:validator -- --coverage --run
+- name: Enforce coverage threshold
+  run: npm run compliance:coverage
+- name: Enforce validator coverage threshold
+  run: npm run compliance:validator-coverage

@@ -63,4 +63,23 @@ describe('implementer server', () => {
     expect(res.body).toEqual({ ok: true, checks: { minio: true, openaiKey: true } });
     expect(listFilesMock).toHaveBeenCalled();
   });
+
+  it('returns 503 when OPENAI_API_KEY is missing', async () => {
+    vi.resetModules();
+    process.env.OPENAI_API_KEY = '';
+    const envModule = await import('@autonomous/shared/src/env');
+    const originalKey = envModule.env.OPENAI_API_KEY;
+    envModule.env.OPENAI_API_KEY = '';
+
+    const mod = await import('../server');
+    const unhealthyApp = mod.app;
+
+    const res = await request(unhealthyApp).get('/healthz');
+
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ ok: false, checks: { minio: true, openaiKey: false } });
+
+    envModule.env.OPENAI_API_KEY = originalKey || 'test-key';
+    process.env.OPENAI_API_KEY = 'test-key';
+  });
 });

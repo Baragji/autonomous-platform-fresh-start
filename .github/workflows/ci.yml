@@ -89,11 +89,60 @@ jobs:
           npm test -- --coverage --run
           npm test -- --reporter=json --run | tee .automation/evidence/ci-tests.json
 
+      - name: Validator tests with coverage
+        run: npm run test:validator -- --coverage --run
+
       - name: Enforce coverage threshold
         run: npm run compliance:coverage
 
+      - name: Enforce validator coverage threshold
+        run: npm run compliance:validator-coverage
+
       - name: No skipped tests
         run: VITEST_JSON_PATH=.automation/evidence/ci-tests.json npm run ci:no-skips
+
+      - name: Capture prod guard failure evidence
+        run: |
+          mkdir -p .automation/evidence
+          set +e
+          OUTPUT=$(NODE_ENV=production \
+            OPENAI_API_KEY= \
+            DATABASE_URL=postgresql://umca:umcapassword@localhost:5432/umca \
+            MINIO_ACCESS_KEY=minioadmin \
+            MINIO_SECRET_KEY=minioadmin \
+            node -e "require('./packages/shared/src/env');" 2>&1)
+          STATUS=$?
+          set -e
+          echo "$OUTPUT" | tee .automation/evidence/ci_guard_failure.txt
+          if [ "$STATUS" -eq 0 ]; then
+            echo "Expected env guard to exit with failure" >&2
+            exit 1
+          fi
+
+      - name: Capture prod guard success evidence
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+        run: |
+          mkdir -p .automation/evidence
+          : "${OPENAI_API_KEY:=sk-test-123}"
+          : "${MINIO_ACCESS_KEY:=strongaccess}"
+          : "${MINIO_SECRET_KEY:=strongsecret}"
+          set +e
+          OUTPUT=$(NODE_ENV=production \
+            OPENAI_API_KEY="$OPENAI_API_KEY" \
+            DATABASE_URL=postgresql://umca:SuperSecureP@ssw0rd@localhost:5432/umca \
+            MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY" \
+            MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
+            node -e "require('./packages/shared/src/env');" 2>&1)
+          STATUS=$?
+          set -e
+          echo "$OUTPUT" | tee .automation/evidence/ci_guard_success.txt
+          if [ "$STATUS" -ne 0 ]; then
+            echo "Expected env guard to succeed" >&2
+            exit 1
+          fi
 
   openai-check:
     name: OpenAI Connectivity (staging)

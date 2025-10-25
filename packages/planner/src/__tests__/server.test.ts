@@ -91,4 +91,22 @@ describe('planner server', () => {
     expect(ensureBucket).toHaveBeenCalled();
     expect(bucketExists).toHaveBeenCalled();
   });
+
+  it('returns 503 when OpenAI key is missing or MinIO unavailable', async () => {
+    const envModule = await import('@autonomous/shared/src/env');
+    const originalKey = envModule.env.OPENAI_API_KEY;
+    process.env.OPENAI_API_KEY = '';
+    envModule.env.OPENAI_API_KEY = '';
+    bucketExists.mockResolvedValueOnce(false);
+
+    const res = await request(app).get('/healthz');
+
+    expect(ensureBucket).toHaveBeenCalled();
+    expect(bucketExists).toHaveBeenCalled();
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ ok: false, checks: { minio: false, openaiKey: false } });
+
+    envModule.env.OPENAI_API_KEY = originalKey;
+    process.env.OPENAI_API_KEY = originalKey || 'test-key';
+  });
 });

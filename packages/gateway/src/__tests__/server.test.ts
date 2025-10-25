@@ -135,4 +135,18 @@ describe('gateway server', () => {
     expect(redisPubPing).toHaveBeenCalled();
     expect(redisSubPing).toHaveBeenCalled();
   });
+
+  it('returns 503 when a dependency check fails', async () => {
+    poolQuery.mockRejectedValueOnce(new Error('db down'));
+    redisPubPing.mockRejectedValueOnce(new Error('redis pub down'));
+    redisSubPing.mockRejectedValueOnce(new Error('redis sub down'));
+
+    const res = await request(app).get('/healthz');
+
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ ok: false, checks: { db: false, redisPub: false, redisSub: false } });
+    expect(poolQuery).toHaveBeenCalledWith('SELECT 1');
+    expect(redisPubPing).toHaveBeenCalled();
+    expect(redisSubPing).toHaveBeenCalled();
+  });
 });
