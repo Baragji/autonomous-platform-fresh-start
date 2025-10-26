@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
+    "predev": "npm --prefix ../../packages/shared run build || true",
     "dev": "next dev -p 4000",
     "build": "next build",
     "start": "next start -p 4000",

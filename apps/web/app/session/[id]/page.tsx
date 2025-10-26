@@ -16,6 +16,7 @@ export default function SessionPage() {
   const [phase, setPhase] = useState<string>('starting');
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [active, setActive] = useState<string>('');
+  const [loadingFile, setLoadingFile] = useState<boolean>(false);
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,6 +49,27 @@ export default function SessionPage() {
   }, [events.length]);
 
   const activeContent = useMemo(() => files.find((f) => f.path === active)?.content || '', [files, active]);
+
+  // Fetch file content when active changes (live or evidence via /api/file)
+  useEffect(() => {
+    const fetchContent = async () => {
+      if (!active) return;
+      setLoadingFile(true);
+      try {
+        const res = await fetch(`/api/file?sessionId=${encodeURIComponent(sessionId)}&path=${encodeURIComponent(active)}`);
+        if (res.ok) {
+          const text = await res.text();
+          setFiles((prev) => prev.map((f) => (f.path === active ? { ...f, content: text } : f)));
+        }
+      } catch {
+        // swallow
+      } finally {
+        setLoadingFile(false);
+      }
+    };
+    fetchContent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, sessionId]);
 
   return (
     <main className="grid grid-cols-12 gap-4">
@@ -82,7 +104,10 @@ export default function SessionPage() {
         <div className="card min-h-[420px]">
           <div className="card-header">Editor {active ? `— ${active}` : ''}</div>
           <div className="card-body">
-            <div className="h-[360px] border border-neutral-800 rounded">
+            <div className="h-[360px] border border-neutral-800 rounded relative">
+              {loadingFile && (
+                <div className="absolute inset-0 flex items-center justify-center text-sm opacity-70">Loading…</div>
+              )}
               <Monaco height="100%" language={getLanguage(active)} theme="vs-dark" value={activeContent} options={{ readOnly: true, wordWrap: 'on' }} />
             </div>
           </div>
@@ -108,4 +133,3 @@ function getLanguage(path: string) {
   if (path.endsWith('.yml') || path.endsWith('.yaml')) return 'yaml';
   return 'plaintext';
 }
-

@@ -37,11 +37,15 @@ export async function POST(req: NextRequest) {
     } catch {}
   }
   const buf = await zip.generateAsync({ type: 'nodebuffer' });
-  return new Response(buf, {
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new Uint8Array(buf));
+      controller.close();
+    }
+  });
+  return new Response(stream, {
     headers: {
-      'Content-Type': 'application/zip',
       'Content-Disposition': 'attachment; filename="artifacts.zip"'
     }
   });
 }
-
