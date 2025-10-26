@@ -108,17 +108,22 @@ jobs:
       - name: No skipped tests
         run: VITEST_JSON_PATH=.automation/evidence/ci-tests.json npm run ci:no-skips
 
-      - name: Evidence | collect-coverage, healthz, env-guard, e2e, readiness
+      - name: Evidence | collect-coverage, healthz (keep alive), env-guard, e2e, readiness
         run: |
           mkdir -p .automation/evidence
           npx tsx scripts/collect-coverage.ts
-          npx tsx scripts/collect-healthz.ts || true
+          KEEP_RUNNING=1 npx tsx scripts/collect-healthz.ts || true
           # Build shared so env dist entry exists
           npm --prefix packages/shared run build
           npx tsx scripts/collect-env-guard.ts
           # Attempt full chain; capture evidence even if run fails
           npx tsx scripts/run-e2e-intent.ts || true
           npx tsx scripts/generate-readiness-report.ts
+
+      - name: Stop spawned services
+        if: always()
+        run: |
+          npx tsx scripts/stop-services.ts || true
 
       - name: Evidence | Attest (CI)
         run: |

@@ -18,7 +18,11 @@ async function waitForHttp(url: string, timeoutMs = 60000) {
 async function main() {
   const outDir = path.resolve('.automation', 'evidence');
   ensureDir(outDir);
-  spawnSync('docker', ['compose', '-f', 'infrastructure/docker-compose.yml', 'up', '-d', 'postgres', 'redis', 'minio', 'tempo', 'grafana'], { stdio: 'inherit' });
+  // Best-effort: in local/dev we bring up compose infra. In CI we already have
+  // service containers; this will no-op if docker or compose is unavailable.
+  try {
+    spawnSync('docker', ['compose', '-f', 'infrastructure/docker-compose.yml', 'up', '-d', 'postgres', 'redis', 'minio', 'tempo', 'grafana'], { stdio: 'ignore' });
+  } catch {}
   const env = {
     ...process.env,
     // Force services to use our compose-backed infra (ports from infrastructure/docker-compose.yml)
@@ -54,8 +58,15 @@ async function main() {
       catch (e) { results.push({ service: t.service, url: t.url, error: (e as Error).message }); }
     }
     fs.writeFileSync(path.join(outDir, 'healthz_sweep.json'), JSON.stringify({ timestamp_utc: ts, services: results }, null, 2));
+    // Persist PIDs for optional later shutdown
+    const pidFile = process.env.UMCA_PID_FILE || '/tmp/umca-pids.json';
+    const pidPayload = procs.map(p => ({ name: p.name, pid: p.proc.pid }));
+    fs.writeFileSync(pidFile, JSON.stringify({ pids: pidPayload }, null, 2));
   } finally {
-    for (const p of procs) { try { p.proc.kill('SIGINT'); } catch {} }
+    // If KEEP_RUNNING=1, leave services alive for subsequent steps (e2e intent)
+    if (process.env.KEEP_RUNNING !== '1') {
+      for (const p of procs) { try { p.proc.kill('SIGINT'); } catch {} }
+    }
   }
 }
 
