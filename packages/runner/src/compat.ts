@@ -4,16 +4,18 @@
   and load the compiled dist files. Keep this file minimal to satisfy both runtime and tsc.
 */
 import { createRequire } from 'module';
+import path from 'path';
 const req = createRequire(process.cwd() + '/package.json');
 
 function r(mod: string, fallback: string) {
   try { return req(mod); } catch { return req(fallback); }
 }
 
-const vfsMod = r('@autonomous/shared/dist/vfs.js', '../shared/dist/vfs.js');
-const eventsMod = r('@autonomous/shared/dist/events.js', '../shared/dist/events.js');
-const loggerMod = r('@autonomous/shared/dist/logger.js', '../shared/dist/logger.js');
-const otelMod = r('@autonomous/shared/dist/otel.js', '../shared/dist/otel.js');
+const root = process.cwd();
+const vfsMod = r('@autonomous/shared/dist/vfs.js', path.join(root, 'packages/shared/dist/vfs.js'));
+const eventsMod = r('@autonomous/shared/dist/events.js', path.join(root, 'packages/shared/dist/events.js'));
+const loggerMod = r('@autonomous/shared/dist/logger.js', path.join(root, 'packages/shared/dist/logger.js'));
+const otelMod = r('@autonomous/shared/dist/otel.js', path.join(root, 'packages/shared/dist/otel.js'));
 
 export const createVfs = vfsMod.createVfs as (execId: string, opts?: { prefixSuffix?: string }) => Promise<unknown>;
 export const publish = eventsMod.publish as (execId: string, event: string, data: unknown) => Promise<void>;
