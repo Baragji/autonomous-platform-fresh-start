@@ -15,7 +15,7 @@ app.get('/healthz', async (_req, res) => {
   };
 
   try {
-    const vfs = await createVfs('healthz', { prefixSuffix: 'runner' });
+    const vfs: any = await createVfs('healthz', { prefixSuffix: 'runner' });
     await vfs.listFiles();
     checks.vfs = true;
   } catch (err) {
