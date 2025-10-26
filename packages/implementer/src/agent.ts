@@ -80,14 +80,31 @@ export class ImplementerAgent {
     const maxIterations = this.deps.maxIterations ?? 8;
     let toolCallsObserved = false;
     for (let i = 0; i < maxIterations; i += 1) {
-      const response = await this.deps.client.chat.completions.create({
-        model: this.deps.model,
-        messages,
-        tools: toolExecutor.tools,
-        // Encourage the model to actually call tools at least once to generate artifacts
-        // Then relax to auto after we observe a tool call.
-        tool_choice: toolCallsObserved ? 'auto' : 'required'
-      });
+      let response: ChatCompletionResult;
+      try {
+        response = await this.deps.client.chat.completions.create({
+          model: this.deps.model,
+          messages,
+          tools: toolExecutor.tools,
+          // Encourage the model to actually call tools at least once to generate artifacts
+          // Then relax to auto after we observe a tool call.
+          tool_choice: toolCallsObserved ? 'auto' : 'required'
+        });
+      } catch (e) {
+        // Model/API error: ensure scaffold and gracefully hand off partial
+        this.deps.logger.warn({ err: (e as Error).message }, 'openai call failed; ensuring scaffold and handing off partial');
+        await this.ensureScaffold(input);
+        const listed = await this.deps.vfs.listFiles('code/').catch(() => [] as VfsFileEntry[]);
+        const files = listed.map((e) => e.path).sort();
+        await this.deps.publisher.publish({
+          type: 'implementer.partial',
+          status: 'implementer_partial',
+          reason: 'tool_error',
+          files,
+          artifact_prefix: `${input.execId}/code`
+        });
+        return { ok: true, files, summary: 'partial' };
+      }
       const choice = response.choices[0];
       const message = choice?.message;
       if (!choice || !message) {
