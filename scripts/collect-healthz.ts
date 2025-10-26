@@ -19,7 +19,17 @@ async function main() {
   const outDir = path.resolve('.automation', 'evidence');
   ensureDir(outDir);
   spawnSync('docker', ['compose', '-f', 'infrastructure/docker-compose.yml', 'up', '-d', 'postgres', 'redis', 'minio', 'tempo', 'grafana'], { stdio: 'inherit' });
-  const env = { ...process.env, OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'sk-local-dummy', E2B_API_KEY: process.env.E2B_API_KEY || 'e2b_local_dummy' };
+  const env = {
+    ...process.env,
+    // Force services to use our compose-backed infra (ports from infrastructure/docker-compose.yml)
+    DATABASE_URL: 'postgresql://umca:umcapassword@localhost:5433/umca',
+    REDIS_URL: 'redis://localhost:6380',
+    MINIO_ENDPOINT: process.env.MINIO_ENDPOINT || 'http://localhost:9000',
+    MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY || 'minioadmin',
+    MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY || 'minioadmin123',
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'sk-local-dummy',
+    E2B_API_KEY: process.env.E2B_API_KEY || 'e2b_local_dummy'
+  };
   const procs: Proc[] = [
     { name: 'gateway', proc: spawn('npm', ['--prefix', 'packages/gateway', 'run', 'dev'], { env, stdio: 'ignore' }) },
     { name: 'mca', proc: spawn('npm', ['--prefix', 'packages/mca', 'run', 'dev'], { env, stdio: 'ignore' }) },
