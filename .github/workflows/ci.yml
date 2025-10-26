@@ -190,7 +190,7 @@ jobs:
             DATABASE_URL=postgresql://umca:umcapassword@localhost:5432/umca \
             MINIO_ACCESS_KEY=minioadmin \
             MINIO_SECRET_KEY=minioadmin \
-            node -e "require('./packages/shared/src/env');" 2>&1)
+            node -e "require('./packages/shared/dist/packages/shared/src/env.js');" 2>&1)
           STATUS=$?
           set -e
           echo "$OUTPUT" | tee .automation/evidence/ci_guard_failure.txt
@@ -215,7 +215,7 @@ jobs:
             DATABASE_URL=postgresql://umca:SuperSecureP@ssw0rd@localhost:5432/umca \
             MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY" \
             MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
-            node -e "require('./packages/shared/src/env');" 2>&1)
+            node -e "require('./packages/shared/dist/packages/shared/src/env.js');" 2>&1)
           STATUS=$?
           set -e
           echo "$OUTPUT" | tee .automation/evidence/ci_guard_success.txt
