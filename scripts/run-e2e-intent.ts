@@ -36,7 +36,8 @@ async function main() {
   const payload = {
     request: { ts_utc: 'STATIC', url: 'http://localhost:3030/api/executions', body: reqBody },
     response: sanitize({ http_status: initialStatus, body: initialJson }),
-    execId: id ? 'SANITIZED' : null,
+    // Exec ID is not a secret; keep it to allow readiness fallback to inspect VFS artifacts
+    execId: id || null,
     execution_trace: trace.map((t) => ({ ts: 'STATIC', phase: t.phase }))
   };
   fs.writeFileSync(path.join(outDir, 'e2e_request_response.json'), JSON.stringify(payload, null, 2));
