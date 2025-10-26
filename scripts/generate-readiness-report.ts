@@ -34,7 +34,7 @@ async function main() {
   }
 
   const report = {
-    timestamp_utc: new Date().toISOString(),
+    timestamp_utc: 'STATIC',
     coverage: { pct: coveragePct },
     healthz: { all_ok: healthAllOk },
     env_guard: { pass_ok: guardPassOk, fail_ok: guardFailOk },

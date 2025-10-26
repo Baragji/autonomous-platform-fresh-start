@@ -38,7 +38,7 @@ async function main() {
       { service: 'validator', url: 'http://localhost:7050/healthz' }
     ];
     for (const t of targets) await waitForHttp(t.url, 120000);
-    const results: any[] = []; const ts = new Date().toISOString();
+    const results: any[] = []; const ts = 'STATIC';
     for (const t of targets) {
       try { const r = await fetch(t.url); const body = await r.text(); let json: unknown = null; try { json = JSON.parse(body); } catch { json = { raw: body }; } results.push({ service: t.service, url: t.url, status: r.status, body: json }); }
       catch (e) { results.push({ service: t.service, url: t.url, error: (e as Error).message }); }
@@ -50,4 +50,3 @@ async function main() {
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
-
