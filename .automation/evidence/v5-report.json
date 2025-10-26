@@ -1,7 +1,7 @@
 {
-  "timestamp_utc": "2025-10-26T01:06:37.180Z",
+  "timestamp_utc": "STATIC",
   "coverage": {
-    "pct": 84.01
+    "pct": 83.05
   },
   "healthz": {
     "all_ok": true
