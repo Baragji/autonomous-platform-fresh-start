@@ -17,5 +17,9 @@
       "@autonomous/vfs": ["./packages/vfs/src/index"],
       "@autonomous/vfs/*": ["./packages/vfs/src/*"]
     }
-  }
+  },
+  "exclude": [
+    "apps/**",
+    "node_modules"
+  ]
 }
