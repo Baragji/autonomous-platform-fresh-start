@@ -1,4 +1,21 @@
-export { createVfs } from '@autonomous/shared/src/vfs';
-export { publish } from '@autonomous/shared/src/events';
-export { createLogger } from '@autonomous/shared/src/logger';
-export { startOtel } from '@autonomous/shared/src/otel';
+/*
+  Runner runs under ESM (type: module) while @autonomous/shared compiles to CJS.
+  Named ESM imports from CJS are not available at runtime, so we bridge via createRequire
+  and load the compiled dist files. Keep this file minimal to satisfy both runtime and tsc.
+*/
+import { createRequire } from 'module';
+const req = createRequire(process.cwd() + '/package.json');
+
+function r(mod: string, fallback: string) {
+  try { return req(mod); } catch { return req(fallback); }
+}
+
+const vfsMod = r('@autonomous/shared/dist/vfs.js', '../shared/dist/vfs.js');
+const eventsMod = r('@autonomous/shared/dist/events.js', '../shared/dist/events.js');
+const loggerMod = r('@autonomous/shared/dist/logger.js', '../shared/dist/logger.js');
+const otelMod = r('@autonomous/shared/dist/otel.js', '../shared/dist/otel.js');
+
+export const createVfs = vfsMod.createVfs as (execId: string, opts?: { prefixSuffix?: string }) => Promise<unknown>;
+export const publish = eventsMod.publish as (execId: string, event: string, data: unknown) => Promise<void>;
+export const createLogger = loggerMod.createLogger as (service: string) => { info: Function; error: Function };
+export const startOtel = otelMod.startOtel as (service: string) => void;

@@ -92,14 +92,20 @@ async function implementerNode(state: McaState): Promise<McaState> {
 async function runnerNode(state: McaState): Promise<McaState> {
   const runnerUrl = process.env.RUNNER_URL || 'http://localhost:7040/run';
   await publish(state.execId, 'agent', { agent: 'runner', status: 'working' });
-  const response = await fetch(runnerUrl, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ execId: state.execId })
-  });
-  const payload = (await response.json()) as { ok?: boolean; junitObject?: string; coverageObject?: string; error?: string };
-  if (!response.ok || payload.ok !== true) {
-    // Warn and proceed to validator; do not hard-abort here
-    logger.warn({ execId: state.execId, err: payload.error || 'runner failed' }, 'runner step encountered error; continuing to validator');
+  let payload: { ok?: boolean; junitObject?: string; coverageObject?: string; error?: string } = {};
+  try {
+    const response = await fetch(runnerUrl, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ execId: state.execId })
+    });
+    payload = (await response.json()) as { ok?: boolean; junitObject?: string; coverageObject?: string; error?: string };
+    if (!response.ok || payload.ok !== true) {
+      // Warn and proceed to validator; do not hard-abort here
+      logger.warn({ execId: state.execId, err: payload.error || 'runner failed' }, 'runner step encountered error; continuing to validator');
+    }
+  } catch (err) {
+    logger.warn({ execId: state.execId, err: (err as Error).message }, 'runner fetch failed; continuing to validator');
+    payload = { ok: false, error: (err as Error).message };
   }
   await upsertExecution(state.execId, 'tested', state.intent, 'runner');
   await publish(state.execId, 'status', { status: 'tested' });

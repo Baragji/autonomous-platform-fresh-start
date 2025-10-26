@@ -22,7 +22,23 @@ async function main() {
       await sleep(1000);
     }
   }
-  const payload = { request: { ts_utc: request_ts, url: 'http://localhost:3030/api/executions', body: reqBody }, response: { http_status: initialStatus, body: initialJson }, execId: id || null, execution_trace: trace };
+  function sanitize(obj: any): any {
+    try {
+      const j = JSON.parse(JSON.stringify(obj));
+      if (j && j.body) {
+        if (j.body.id) j.body.id = 'SANITIZED';
+        if (j.body.location) j.body.location = '/api/executions/SANITIZED';
+        if (j.body.stream) j.body.stream = '/api/executions/SANITIZED/stream';
+      }
+      return j;
+    } catch { return obj; }
+  }
+  const payload = {
+    request: { ts_utc: 'STATIC', url: 'http://localhost:3030/api/executions', body: reqBody },
+    response: sanitize({ http_status: initialStatus, body: initialJson }),
+    execId: id ? 'SANITIZED' : null,
+    execution_trace: trace.map((t) => ({ ts: 'STATIC', phase: t.phase }))
+  };
   fs.writeFileSync(path.join(outDir, 'e2e_request_response.json'), JSON.stringify(payload, null, 2));
 }
 
