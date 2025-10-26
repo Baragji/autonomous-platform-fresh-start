@@ -41,9 +41,8 @@ export async function publish(execId: string, event: string, data: unknown) {
 
 export function createLogger(service: string) {
   if (IS_TEST) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const m = req('@autonomous/shared/src/logger');
-    return (m as { createLogger: (s: string) => { info: Function; error: Function } }).createLogger(service);
+    // Minimal no-op logger for tests
+    return { info: () => {}, error: () => {} } as { info: Function; error: Function };
   }
   const m = loadDist('@autonomous/shared/dist/logger.js', 'packages/shared/dist/logger.js');
   return (m as { createLogger: (s: string) => { info: Function; error: Function } }).createLogger(service);
@@ -51,11 +50,7 @@ export function createLogger(service: string) {
 
 export function startOtel(service: string) {
   try {
-    if (IS_TEST) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const m = req('@autonomous/shared/src/otel');
-      return (m as { startOtel: (s: string) => void }).startOtel(service);
-    }
+    if (IS_TEST) { return; }
     const m = loadDist('@autonomous/shared/dist/otel.js', 'packages/shared/dist/otel.js');
     return (m as { startOtel: (s: string) => void }).startOtel(service);
   } catch {
