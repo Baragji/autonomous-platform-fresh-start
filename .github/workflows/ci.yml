@@ -84,6 +84,15 @@ jobs:
           done
           docker inspect --format='{{.State.Health.Status}}' umca-minio | grep -q healthy || { echo "MinIO not healthy"; docker logs umca-minio; exit 1; }
 
+      - name: DB | Init schema
+        run: |
+          # Ensure Postgres is reachable before applying schema
+          for i in {1..60}; do
+            (echo > /dev/tcp/127.0.0.1/5432) >/dev/null 2>&1 && break
+            echo "Waiting for Postgres... ($i/60)"; sleep 1;
+          done
+          npx tsx scripts/init-db.ts
+
       - name: Lint
         run: npm run lint
 
