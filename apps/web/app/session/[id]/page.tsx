@@ -21,26 +21,55 @@ export default function SessionPage() {
 
   useEffect(() => {
     const src = new EventSource(`/api/stream?sessionId=${encodeURIComponent(sessionId)}`);
-    src.onmessage = (ev) => {
+    const handleMessage = (ev: MessageEvent) => {
       try {
         const payload = JSON.parse(ev.data);
         setEvents((prev) => [...prev, { type: 'message', data: payload }]);
         if (payload?.status) setPhase(payload.status);
-        if (payload?.file) {
-          // Simplified: push file with content if provided
+      } catch {}
+    };
+    const handleStatus = (ev: MessageEvent) => {
+      try {
+        const payload = JSON.parse(ev.data);
+        setEvents((prev) => [...prev, { type: 'status', data: payload }]);
+        if (payload?.status) setPhase(payload.status);
+      } catch {}
+    };
+    const handleAgent = (ev: MessageEvent) => {
+      try { setEvents((prev) => [...prev, { type: 'agent', data: JSON.parse(ev.data) }]); } catch {}
+    };
+    const handleArtifact = (ev: MessageEvent) => {
+      try {
+        const payload = JSON.parse(ev.data);
+        setEvents((prev) => [...prev, { type: 'artifact', data: payload }]);
+        if (payload?.type === 'code' && Array.isArray(payload.files)) {
           setFiles((prev) => {
-            const existing = prev.find((f) => f.path === payload.file.path);
-            if (existing) return prev.map((f) => (f.path === payload.file.path ? { ...f, ...payload.file } : f));
-            return [...prev, payload.file as FileEntry];
+            const set = new Map(prev.map((f) => [f.path, f] as const));
+            for (const p of payload.files as string[]) {
+              if (!set.has(p)) set.set(p, { path: p });
+            }
+            return Array.from(set.values());
           });
         }
       } catch {}
     };
-    src.onerror = () => {
+    const handleError = () => {
       setEvents((prev) => [...prev, { type: 'error', data: 'stream error' }]);
       src.close();
     };
-    return () => src.close();
+
+    src.onmessage = handleMessage;
+    src.addEventListener('status', handleStatus);
+    src.addEventListener('agent', handleAgent);
+    src.addEventListener('artifact', handleArtifact);
+    src.onerror = handleError;
+
+    return () => {
+      src.removeEventListener('status', handleStatus);
+      src.removeEventListener('agent', handleAgent);
+      src.removeEventListener('artifact', handleArtifact);
+      src.close();
+    };
   }, [sessionId]);
 
   useEffect(() => {
