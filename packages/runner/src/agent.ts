@@ -1,4 +1,4 @@
-type MinimalLogger = { info: (...args: unknown[]) => unknown; error: (...args: unknown[]) => unknown };
+type MinimalLogger = { info: Function; error: Function };
 import { publish, createVfs } from './compat';
 import type { Vfs, VfsFileEntry } from '@autonomous/shared/src/vfs';
 import { z } from 'zod';
@@ -39,7 +39,7 @@ export class RunnerAgent {
     const { execId } = input;
     await publish(execId, 'agent', { agent: 'runner', status: 'working' });
 
-    const vfs: Vfs = await createVfs(execId);
+    const vfs = (await createVfs(execId)) as unknown as Vfs;
     // Collect code files from MinIO (current code/ root)
     const files = await vfs.listFiles();
     const codeFiles = files.filter((f: VfsFileEntry) => f.path.startsWith('code/'));
