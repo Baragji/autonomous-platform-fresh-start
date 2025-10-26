@@ -113,7 +113,22 @@ app.post('/validate', async (req: Request, res: Response) => {
   const apiKey = process.env.E2B_API_KEY;
   if (!apiKey) {
     logger.error('E2B_API_KEY is not set');
-    return res.status(500).json({ error: 'E2B_API_KEY is not configured' });
+    // Fallback: structured FAIL without sandbox
+    const prefixNoKey = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/, '');
+    const fallback = {
+      verdict: 'FAIL',
+      reasons: ['Sandbox unavailable (E2B_API_KEY missing)'],
+      issues: buildIssues(0),
+      coverage: { lines: null },
+      testsPassed: false,
+      secretsFound: 0
+    };
+    const buf = Buffer.from(JSON.stringify(fallback, null, 2));
+    const validationReportObjectNoKey = `${prefixNoKey}/validation-report.json`;
+    await vfs.writeFile(validationReportObjectNoKey, buf, { contentType: 'application/json', sha256: sha256(buf) });
+    await publish(execId, 'artifact', { type: 'validation', report: validationReportObjectNoKey });
+    await publish(execId, 'status', { status: 'needs_remediation' });
+    return res.json({ ok: true, verdict: 'FAIL', report: validationReportObjectNoKey });
   }
 
   const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
@@ -261,8 +276,27 @@ app.post('/validate', async (req: Request, res: Response) => {
   } catch (err) {
     const e = err as Error;
     logger.error({ err: e.message }, 'validator failed');
-    await publish(execId, 'agent', { agent: 'validator', status: 'failed', error: e.message });
-    return res.status(500).json({ error: e.message });
+    // Always emit a structured FAIL report rather than HTTP 500 to ensure validator is touched
+    try {
+      const fallbackPrefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/, '');
+      const fallback = {
+        verdict: 'FAIL',
+        reasons: ['Validator error', e: e.message],
+        issues: buildIssues(0),
+        coverage: { lines: null },
+        testsPassed: false,
+        secretsFound: 0
+      } as Record<string, unknown>;
+      const buf = Buffer.from(JSON.stringify(fallback, null, 2));
+      const object = `${fallbackPrefix}/validation-report.json`;
+      await vfs.writeFile(object, buf, { contentType: 'application/json', sha256: sha256(buf) });
+      await publish(execId, 'artifact', { type: 'validation', report: object });
+      await publish(execId, 'status', { status: 'needs_remediation' });
+      return res.json({ ok: true, verdict: 'FAIL', report: object });
+    } catch (nested) {
+      await publish(execId, 'agent', { agent: 'validator', status: 'failed', error: e.message }).catch(() => {});
+      return res.status(500).json({ error: e.message });
+    }
   } finally {
     try { await sandbox.close?.(); } catch {}
   }
