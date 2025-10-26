@@ -23,6 +23,11 @@ async function main() {
   try {
     spawnSync('docker', ['compose', '-f', 'infrastructure/docker-compose.yml', 'up', '-d', 'postgres', 'redis', 'minio', 'tempo', 'grafana'], { stdio: 'ignore' });
   } catch {}
+
+  // Ensure shared dist exists before starting services that import it at runtime (runner compat)
+  try {
+    spawnSync('npm', ['--prefix', 'packages/shared', 'run', 'build'], { stdio: 'ignore' });
+  } catch {}
   const env = {
     ...process.env,
     // Prefer CI-provided env; fallback to compose defaults for local dev
