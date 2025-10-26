@@ -209,12 +209,17 @@ jobs:
           : "${OPENAI_API_KEY:=sk-test-123}"
           : "${MINIO_ACCESS_KEY:=strongaccess}"
           : "${MINIO_SECRET_KEY:=strongsecret}"
+          # If provided secrets are weak defaults, replace with safe placeholders for guard success check
+          SAFE_MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY"
+          SAFE_MINIO_SECRET_KEY="$MINIO_SECRET_KEY"
+          if [ "$SAFE_MINIO_ACCESS_KEY" = "minioadmin" ]; then SAFE_MINIO_ACCESS_KEY="strongaccess"; fi
+          if [ "$SAFE_MINIO_SECRET_KEY" = "minioadmin" ] || [ "$SAFE_MINIO_SECRET_KEY" = "minioadmin123" ]; then SAFE_MINIO_SECRET_KEY="strongsecretkey123456"; fi
           set +e
           OUTPUT=$(NODE_ENV=production \
             OPENAI_API_KEY="$OPENAI_API_KEY" \
             DATABASE_URL=postgresql://umca:SuperSecureP@ssw0rd@localhost:5432/umca \
-            MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY" \
-            MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
+            MINIO_ACCESS_KEY="$SAFE_MINIO_ACCESS_KEY" \
+            MINIO_SECRET_KEY="$SAFE_MINIO_SECRET_KEY" \
             node -e "require('./packages/shared/dist/packages/shared/src/env.js');" 2>&1)
           STATUS=$?
           set -e
