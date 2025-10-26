@@ -25,9 +25,9 @@ async function main() {
   } catch {}
   const env = {
     ...process.env,
-    // Force services to use our compose-backed infra (ports from infrastructure/docker-compose.yml)
-    DATABASE_URL: 'postgresql://umca:umcapassword@localhost:5433/umca',
-    REDIS_URL: 'redis://localhost:6380',
+    // Prefer CI-provided env; fallback to compose defaults for local dev
+    DATABASE_URL: process.env.DATABASE_URL || 'postgresql://umca:umcapassword@localhost:5433/umca',
+    REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6380',
     MINIO_ENDPOINT: process.env.MINIO_ENDPOINT || 'http://localhost:9000',
     MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY || 'minioadmin',
     MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY || 'minioadmin123',
