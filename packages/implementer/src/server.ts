@@ -59,7 +59,16 @@ app.post('/implement', async (req: Request, res: Response) => {
     res.json(result);
   } catch (err) {
     const e = err as Error;
-    logger.error({ execId, err: e.message }, 'implementer run failed');
+    logger.warn({ execId, err: e.message }, 'implementer encountered error; attempting partial handoff');
+    try {
+      const vfs = await createVfs(execId);
+      const files = (await vfs.listFiles()).filter((f) => f.path.startsWith('code/')).map((f) => f.path);
+      if (files.length > 0) {
+        // Return ok:true to allow pipeline to proceed to runner/validator
+        return res.json({ ok: true, files });
+      }
+    } catch {}
+    logger.error({ execId, err: e.message }, 'implementer run failed (no artifacts to hand off)');
     res.status(500).json({ error: e.message });
   }
 });

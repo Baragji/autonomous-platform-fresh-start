@@ -1,6 +1,6 @@
 {
-  "commit": "b5ca6e9a6c6e06fac019a93ac9aadf43549b59ef",
-  "generated_at_utc": "2025-10-25T20:30:53Z",
+  "commit": "ae243a3e752b54a1b9b90e34835d2a2e35ac65da",
+  "generated_at_utc": "2025-10-25T22:13:30Z",
   "files": [
     {
       "path": ".automation/evidence/.gitkeep",
@@ -8,79 +8,14 @@
       "size_bytes": 0
     },
     {
-      "path": ".automation/evidence/ci-tests.json",
-      "sha256": "b8b03c6ec3aee56af17db3df2b4cac2d9555698fbfdd5af03fa8bb7cbeb25c9d",
-      "size_bytes": 81
-    },
-    {
-      "path": ".automation/evidence/ci_guard_failure.txt",
-      "sha256": "a3c2bb869d60b67423803368ec9ac61197a87612382a7db5701dbb73fe6c252e",
-      "size_bytes": 245
-    },
-    {
-      "path": ".automation/evidence/ci_guard_success.txt",
-      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f",
-      "size_bytes": 99
-    },
-    {
-      "path": ".automation/evidence/compliance/facts.json",
-      "sha256": "debed4eb83bda170b810c8f02a0516bfa89df8ed981e8c6125499e3832419b87",
-      "size_bytes": 837
-    },
-    {
-      "path": ".automation/evidence/compliance/gitleaks.sarif",
-      "sha256": "9beb133b304e8b6160b86cf0b7b472ace945740ad11ffdf22538d0e4839ff02f",
-      "size_bytes": 47810
-    },
-    {
-      "path": ".automation/evidence/compliance/report.sarif",
-      "sha256": "f7296ea1e770ef4d195c4c47945774172c1a554c251064d052788bb31eae3e7c",
-      "size_bytes": 86746
-    },
-    {
-      "path": ".automation/evidence/compliance/sbom.json",
-      "sha256": "cf6cc722ad34b7cdeba1239024a6d5450940e1e3513f86d52a244a0397835796",
-      "size_bytes": 1892286
-    },
-    {
-      "path": ".automation/evidence/compliance/semgrep.sarif",
-      "sha256": "ddf9cb96bb6de2f521157a59ffc1a74063746b26c3ce3dccda00ce94de4be01a",
-      "size_bytes": 3109
-    },
-    {
-      "path": ".automation/evidence/compliance/spectral.sarif",
-      "sha256": "93aacb41e9d05d45d1e255277fdb3576852a77105c9e755e15ae5b842f322118",
-      "size_bytes": 24408
-    },
-    {
-      "path": ".automation/evidence/compliance/trivy.sarif",
-      "sha256": "945ab92a9ae3a1c631db3a131cfc05e96e8d483003e1c2bcbfc9bdfeed313370",
-      "size_bytes": 641
-    },
-    {
-      "path": ".automation/evidence/compliance/valid/coverage.json",
-      "sha256": "e3c97e8555c366a380415285d063b586c80fa031a852b7320391dd517a4c7703",
-      "size_bytes": 185
-    },
-    {
       "path": ".automation/evidence/coverage.json",
-      "sha256": "4a496387fee1db430df438de33518974e21cbba2e9d668cfaa1b8b0925caef3a",
-      "size_bytes": 253
-    },
-    {
-      "path": ".automation/evidence/coverage_after.json",
-      "sha256": "62d529bf486738b69fa5b69dacca17740806325b0390109a6cdeb4213cd8988d",
-      "size_bytes": 8178
-    },
-    {
-      "path": ".automation/evidence/coverage_before.json",
-      "sha256": "cc9f9ecba15f487c85cc0294d5277f600f8592e62215657ecfe3df9b9994f9cf",
-      "size_bytes": 8176
+      "sha256": "6a408ce9d709f2b3336afb1e7fe3290dda9a081c0d5154fa732f3aa0c26def8c",
+      "size_bytes": 266
     },
     {
       "path": ".automation/evidence/e2e_request_response.json",
-      "sha256": "6f23aee923b5de00bd14dca046613c54b3c3fe80326d3414d2a2a902eb0a1ce1",
-      "size_bytes": 779
+      "sha256": "b66c3f972f15b07e368dd9bc93ec7af27036b02e566fe635089ced6880bd55f9",
+      "size_bytes": 1376
     },
     {
       "path": ".automation/evidence/healthz_sweep.json",
@@ -94,8 +29,8 @@
     },
     {
       "path": ".automation/evidence/v5-report.json",
-      "sha256": "88c61ce639336a2ae07fb7b2772830458becf32e4acb1c8194a6b464bd3587e9",
-      "size_bytes": 288
+      "sha256": "5a956132d0d817cda80f271bdc2820e1c0170ca993d7a624396e6fe133725df7",
+      "size_bytes": 291
     }
   ]
 }

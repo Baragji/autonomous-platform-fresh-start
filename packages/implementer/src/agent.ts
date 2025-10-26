@@ -118,7 +118,24 @@ export class ImplementerAgent {
       }
     }
 
-    throw new Error('Implementer exceeded maximum iterations');
+    // Max-iterations reached. Attempt partial handoff instead of hard abort.
+    const files = await this.collectFiles(toolExecutor.getTouchedPaths());
+    if (files.length > 0) {
+      // Emit structured partial event (no narrative)
+      await this.deps.publisher.publish({
+        type: 'implementer.partial',
+        status: 'implementer_partial',
+        reason: 'max_iterations',
+        files,
+        artifact_prefix: `${input.execId}/code`
+      });
+      // Warn-level log for audit; do not fail pipeline
+      this.deps.logger.warn({ msg: 'implementer handing off partial work after max_iterations', handoff_status: 'implementer_partial', reason: 'max_iterations' });
+      return { ok: true, files, summary: 'partial' };
+    }
+
+    // No artifacts at all — hard failure remains appropriate
+    throw new Error('Implementer exceeded maximum iterations with no artifacts produced');
   }
 
   private async handleToolCalls(

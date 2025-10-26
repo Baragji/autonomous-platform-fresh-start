@@ -4,17 +4,17 @@
     "ok": true
   },
   "typecheck": {
-    "exitCode": 2,
-    "ok": false
+    "exitCode": 0,
+    "ok": true
   },
   "test": {
-    "exitCode": 1,
-    "ok": false
+    "exitCode": 0,
+    "ok": true
   },
   "coverage": {
-    "metric": "lines",
-    "total": 0,
-    "covered": 0,
-    "pct": 0
+    "metric": "statements",
+    "total": 1562,
+    "covered": 1367,
+    "pct": 87.52
   }
 }

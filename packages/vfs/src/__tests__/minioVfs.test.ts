@@ -118,7 +118,9 @@ describe('MinioVfs', () => {
     const sha = createHash('sha256').update(content).digest('hex');
     await vfs.writeFile('src/app.ts', content, { sha256: sha });
     const stat = await client.statObject(bucket, `${prefix}/code/src/app.ts`);
-    expect((stat.metaData || {})['x-amz-meta-sha256']).toBe(sha);
+    const md = (stat.metaData as Record<string, string>) || {};
+    const got = md['x-amz-meta-sha256'] ?? md['sha256'] ?? md['X-Amz-Meta-Sha256'];
+    expect(got).toBe(sha);
   });
 
   it('creates shadow copies before overwriting', async () => {

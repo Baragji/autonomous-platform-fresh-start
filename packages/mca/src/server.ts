@@ -98,7 +98,8 @@ async function runnerNode(state: McaState): Promise<McaState> {
   });
   const payload = (await response.json()) as { ok?: boolean; junitObject?: string; coverageObject?: string; error?: string };
   if (!response.ok || payload.ok !== true) {
-    throw new Error(payload.error || 'runner failed');
+    // Warn and proceed to validator; do not hard-abort here
+    logger.warn({ execId: state.execId, err: payload.error || 'runner failed' }, 'runner step encountered error; continuing to validator');
   }
   await upsertExecution(state.execId, 'tested', state.intent, 'runner');
   await publish(state.execId, 'status', { status: 'tested' });

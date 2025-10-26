@@ -1,33 +1,51 @@
 {
   "request": {
-    "ts_utc": "2025-10-25T20:14:47Z",
+    "ts_utc": "2025-10-25T22:16:37.203Z",
     "url": "http://localhost:3030/api/executions",
     "body": {
       "intent": "Build a TODO API with tests"
     }
   },
   "response": {
-    "http_status": 0,
+    "http_status": 202,
     "body": {
-      "id": "7fd0997b-2da7-4c30-8c45-54a1271f366b",
+      "id": "501dbedf-0b31-4342-a751-89aff4edb1a8",
       "status": "accepted",
-      "location": "/api/executions/7fd0997b-2da7-4c30-8c45-54a1271f366b",
-      "stream": "/api/executions/7fd0997b-2da7-4c30-8c45-54a1271f366b/stream"
+      "location": "/api/executions/501dbedf-0b31-4342-a751-89aff4edb1a8",
+      "stream": "/api/executions/501dbedf-0b31-4342-a751-89aff4edb1a8/stream"
     }
   },
-  "execId": "7fd0997b-2da7-4c30-8c45-54a1271f366b",
+  "execId": "501dbedf-0b31-4342-a751-89aff4edb1a8",
   "execution_trace": [
     {
-      "ts": "2025-10-25T20:14:47Z",
-      "phase": "planning"
+      "ts": "2025-10-25T22:16:37.267Z",
+      "phase": "planning",
+      "data": {
+        "id": "501dbedf-0b31-4342-a751-89aff4edb1a8",
+        "status": "planning",
+        "current_agent": "mca",
+        "created_at": "2025-10-25T20:16:37.248Z"
+      }
     },
     {
-      "ts": "2025-10-25T20:14:54Z",
-      "phase": "implementing"
+      "ts": "2025-10-25T22:16:45.312Z",
+      "phase": "implementing",
+      "data": {
+        "id": "501dbedf-0b31-4342-a751-89aff4edb1a8",
+        "status": "implementing",
+        "current_agent": "implementer",
+        "created_at": "2025-10-25T20:16:37.248Z"
+      }
     },
     {
-      "ts": "2025-10-25T20:15:10Z",
-      "phase": "failed"
+      "ts": "2025-10-25T22:17:04.434Z",
+      "phase": "failed",
+      "data": {
+        "id": "501dbedf-0b31-4342-a751-89aff4edb1a8",
+        "status": "failed",
+        "current_agent": "mca",
+        "created_at": "2025-10-25T20:16:37.248Z"
+      }
     }
   ]
 }

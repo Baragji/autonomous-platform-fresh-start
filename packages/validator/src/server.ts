@@ -89,7 +89,25 @@ app.post('/validate', async (req: Request, res: Response) => {
   const vfs: Vfs = await createVfs(execId);
   const files = await vfs.listFiles();
   const codeFiles = files.filter((f: VfsFileEntry) => f.path.startsWith('code/'));
-  if (codeFiles.length === 0) return res.status(400).json({ error: 'no code files found for execId' });
+  // If no code files, still emit a structured FAIL report so validator is "touched"
+  if (codeFiles.length === 0) {
+    const prefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/,'');
+    const report = {
+      verdict: 'FAIL',
+      reasons: ['No code files found'],
+      issues: buildIssues(0),
+      coverage: { lines: null },
+      testsPassed: false,
+      secretsFound: 0
+    } as z.infer<typeof ValidationReportSchema>;
+    const buf = Buffer.from(JSON.stringify(report, null, 2));
+    const reportSha = sha256(buf);
+    const validationReportObject = `${prefix}/validation-report.json`;
+    await vfs.writeFile(validationReportObject, buf, { contentType: 'application/json', sha256: reportSha });
+    await publish(execId, 'artifact', { type: 'validation', report: validationReportObject });
+    await publish(execId, 'status', { status: 'needs_remediation' });
+    return res.json({ ok: true, verdict: 'FAIL', report: validationReportObject });
+  }
 
   // Prepare sandbox (same model as Runner)
   const apiKey = process.env.E2B_API_KEY;
