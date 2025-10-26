@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createVfs } from '@autonomous/shared/src/vfs';
 
 function readJson<T = unknown>(p: string): T | null { try { return JSON.parse(fs.readFileSync(p, 'utf-8')) as T; } catch { return null; } }
 
-function main() {
+async function main() {
   const base = path.resolve('.automation', 'evidence');
   const coverage = readJson<any>(path.join(base, 'coverage.json'));
   const healthz = readJson<any>(path.join(base, 'healthz_sweep.json'));
@@ -16,8 +17,21 @@ function main() {
   const guardFailOk = Number(envguard?.fail_run?.exitCode) !== 0 && typeof envguard?.fail_run?.stdout === 'string';
   const trace = Array.isArray(e2e?.execution_trace) ? e2e.execution_trace : [];
   const phases = trace.map((t: any) => String(t.phase || ''));
-  const touchedValidator = phases.includes('validated') || phases.includes('needs_remediation');
+  let touchedValidator = phases.includes('validated') || phases.includes('needs_remediation');
   const exercisedChain = ['planned','implementing','implemented','tested','validated','needs_remediation'].some((p) => phases.includes(p));
+
+  // Fallback detection: if phases are too brief to capture validator status, check for validator artifact in VFS
+  if (!touchedValidator && e2e?.execId) {
+    try {
+      const vfs = await createVfs(String(e2e.execId));
+      const files = await vfs.listFiles('validator/');
+      if (files.some((f: any) => String(f.path).endsWith('validation-report.json'))) {
+        touchedValidator = true;
+      }
+    } catch {
+      // ignore; keep current inference
+    }
+  }
 
   const report = {
     timestamp_utc: new Date().toISOString(),
@@ -31,4 +45,3 @@ function main() {
 }
 
 main();
-

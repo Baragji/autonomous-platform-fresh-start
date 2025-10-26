@@ -281,7 +281,7 @@ app.post('/validate', async (req: Request, res: Response) => {
       const fallbackPrefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/, '');
       const fallback = {
         verdict: 'FAIL',
-        reasons: ['Validator error', e: e.message],
+        reasons: ['Validator error', String(e.message)],
         issues: buildIssues(0),
         coverage: { lines: null },
         testsPassed: false,

@@ -1,13 +1,13 @@
 {
-  "timestamp_utc": "2025-10-25T20:15:57.114Z",
+  "timestamp_utc": "2025-10-26T01:02:11.549Z",
   "fail_run": {
     "exitCode": 1,
-    "stdout": "{\"level\":60,\"time\":1761423357061,\"service\":\"env\",\"name\":\"env\",\"reason\":\"OPENAI_API_KEY missing\",\"msg\":\"production environment validation failed\"}\n",
+    "stdout": "{\"level\":60,\"time\":1761440531508,\"service\":\"env\",\"name\":\"env\",\"reason\":\"OPENAI_API_KEY missing\",\"msg\":\"production environment validation failed\"}\n",
     "stderr": ""
   },
   "pass_run": {
     "exitCode": 0,
-    "stdout": "{\"level\":30,\"time\":1761423357111,\"service\":\"env\",\"name\":\"env\",\"hasOpenAiKey\":true,\"minioAccessKeyLength\":21,\"minioSecretKeyLength\":25,\"hasLangfusePublicKey\":true,\"hasLangfuseSecretKey\":true,\"msg\":\"env-loaded\"}\n",
+    "stdout": "{\"level\":30,\"time\":1761440531546,\"service\":\"env\",\"name\":\"env\",\"hasOpenAiKey\":true,\"minioAccessKeyLength\":21,\"minioSecretKeyLength\":25,\"hasLangfusePublicKey\":true,\"hasLangfuseSecretKey\":true,\"msg\":\"env-loaded\"}\n",
     "stderr": ""
   }
 }

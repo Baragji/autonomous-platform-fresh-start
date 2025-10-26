@@ -1,4 +1,4 @@
-import type { Logger } from '@autonomous/shared/src/logger';
+type MinimalLogger = { info: (...args: unknown[]) => unknown; error: (...args: unknown[]) => unknown };
 import { publish, createVfs } from './compat';
 import type { Vfs, VfsFileEntry } from '@autonomous/shared/src/vfs';
 import { z } from 'zod';
@@ -33,7 +33,7 @@ type VitestTestCase = { name?: string; testFilePath?: string; status?: string; d
 type VitestJson = { numTotalTests?: number; numPassedTests?: number; duration?: number; testResults?: VitestTestCase[] };
 
 export class RunnerAgent {
-  constructor(private readonly logger: Logger) {}
+  constructor(private readonly logger: MinimalLogger) {}
 
   async run(input: RunRequest): Promise<RunResult> {
     const { execId } = input;

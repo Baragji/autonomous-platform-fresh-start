@@ -7,7 +7,7 @@ function sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)); }
 async function main() {
   const outDir = path.resolve('.automation', 'evidence');
   ensureDir(outDir);
-  const intent = process.env.EVIDENCE_INTENT || 'Build a TODO API with tests';
+  const intent = process.env.EVIDENCE_INTENT || 'Build a task API with tests';
   const request_ts = new Date().toISOString();
   const reqBody = { intent };
   const initial = await fetch('http://localhost:3030/api/executions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reqBody) });
@@ -27,4 +27,3 @@ async function main() {
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
-

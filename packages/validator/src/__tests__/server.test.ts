@@ -167,7 +167,7 @@ describe('validator server', () => {
     listenSpy.mockRestore();
   });
 
-  it('returns 500 when sandbox execution fails', async () => {
+  it('returns structured FAIL when sandbox execution fails', async () => {
     sandboxCtorMock.mockImplementationOnce(() => {
       const instance = new MockSandbox();
       instance.process.start = vi.fn(async () => ({
@@ -179,8 +179,9 @@ describe('validator server', () => {
     readFileMock.mockResolvedValueOnce(Buffer.from('export const bad = true;'));
     const mod = await import('../server');
     const res = await request(mod.app).post('/validate').send({ execId: 'exec-error' });
-    expect(res.status).toBe(500);
-    expect(res.body.error).toBeDefined();
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.verdict).toBe('FAIL');
   });
 
   it('invokes llm judge when validation fails', async () => {

@@ -1,7 +1,7 @@
 {
-  "timestamp_utc": "2025-10-25T22:17:07.182Z",
+  "timestamp_utc": "2025-10-26T01:06:37.180Z",
   "coverage": {
-    "pct": 87.52
+    "pct": 84.01
   },
   "healthz": {
     "all_ok": true
@@ -12,7 +12,7 @@
   },
   "e2e": {
     "exercised_chain": true,
-    "touched_validator": false
+    "touched_validator": true
   },
-  "verdict": "NOT_READY"
+  "verdict": "POTENTIAL_READY"
 }
