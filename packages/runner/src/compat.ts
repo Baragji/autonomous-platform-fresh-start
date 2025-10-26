@@ -5,14 +5,24 @@
 */
 import { createRequire } from 'module';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
 const IS_TEST = !!process.env.VITEST_WORKER_ID;
 
-// Resolve monorepo root from this file location (works from src and dist)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, '../../..');
+// Resolve monorepo root without relying on ESM import.meta (keeps TS typecheck happy under CJS)
+function resolveRepoRoot(): string {
+  const cwdCandidate = path.resolve(process.cwd(), '..', '..');
+  try {
+    // if 'packages/shared' exists from this candidate, accept it
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('fs') as typeof import('fs');
+    if (fs.existsSync(path.join(cwdCandidate, 'packages', 'shared'))) return cwdCandidate;
+  } catch {}
+  // fallback to path relative to this compiled file location (CommonJS __dirname)
+  // __dirname is defined when compiled to CJS (our tsconfig)
+  // @ts-ignore - __dirname exists at runtime in CJS output
+  const here = typeof __dirname === 'string' ? __dirname : process.cwd();
+  return path.resolve(here, '../../..');
+}
+const repoRoot = resolveRepoRoot();
 
 // create a require() scoped to the repo root
 const req = createRequire(path.join(repoRoot, 'package.json'));
