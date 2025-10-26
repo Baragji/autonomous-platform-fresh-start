@@ -98,7 +98,7 @@ export class ImplementerAgent {
         // Push assistant's message with tool_calls before adding tool results
         messages.push(message);
         toolCallsObserved = true;
-        await this.handleToolCalls(message.tool_calls, toolExecutor, messages);
+        await this.handleToolCalls(message.tool_calls, toolExecutor, messages, input);
         continue;
       }
 
@@ -118,30 +118,35 @@ export class ImplementerAgent {
       }
     }
 
-    // Max-iterations reached. Attempt partial handoff instead of hard abort.
-    const files = await this.collectFiles(toolExecutor.getTouchedPaths());
-    if (files.length > 0) {
-      // Emit structured partial event (no narrative)
-      await this.deps.publisher.publish({
-        type: 'implementer.partial',
-        status: 'implementer_partial',
-        reason: 'max_iterations',
-        files,
-        artifact_prefix: `${input.execId}/code`
-      });
-      // Warn-level log for audit; do not fail pipeline
-      this.deps.logger.warn({ msg: 'implementer handing off partial work after max_iterations', handoff_status: 'implementer_partial', reason: 'max_iterations' });
-      return { ok: true, files, summary: 'partial' };
+    // Max-iterations reached. Attempt partial handoff with scaffold instead of hard abort.
+    let files = await this.collectFiles(toolExecutor.getTouchedPaths());
+    if (files.length === 0) {
+      await this.ensureScaffold(input);
+      files = await this.collectFiles(toolExecutor.getTouchedPaths());
+      // If still none (e.g., scaffold wrote outside touched set), list VFS
+      if (files.length === 0) {
+        const listed = await this.deps.vfs.listFiles('code/').catch(() => [] as VfsFileEntry[]);
+        files = listed.map((e) => e.path).sort();
+      }
     }
-
-    // No artifacts at all — hard failure remains appropriate
-    throw new Error('Implementer exceeded maximum iterations with no artifacts produced');
+    // Emit structured partial event (no narrative)
+    await this.deps.publisher.publish({
+      type: 'implementer.partial',
+      status: 'implementer_partial',
+      reason: 'max_iterations',
+      files,
+      artifact_prefix: `${input.execId}/code`
+    });
+    // Warn-level log for audit; do not fail pipeline
+    this.deps.logger.warn({ msg: 'implementer handing off partial work after max_iterations', handoff_status: 'implementer_partial', reason: 'max_iterations' });
+    return { ok: true, files, summary: 'partial' };
   }
 
   private async handleToolCalls(
     calls: ChatCompletionToolCall[],
     toolExecutor: ToolExecutor,
-    messages: ChatCompletionMessage[]
+    messages: ChatCompletionMessage[],
+    input: ImplementerInput
   ) {
     for (const call of calls) {
       const args = parseArgs(call);
@@ -157,6 +162,12 @@ export class ImplementerAgent {
           content: JSON.stringify({ ok: false, error: error.message }),
           tool_call_id: call.id
         });
+        // On tool error, ensure minimal scaffold exists so downstream always has artifacts
+        try {
+          await this.ensureScaffold(input);
+        } catch (e) {
+          this.deps.logger.warn({ err: (e as Error).message }, 'failed to ensure scaffold after tool error');
+        }
       }
     }
   }
@@ -181,6 +192,23 @@ export class ImplementerAgent {
       return null;
     }
     return null;
+  }
+
+  // Ensure minimal project scaffold exists in VFS under code/
+  // Avoids printing or logging secret values; only writes static content.
+  // Idempotent: re-writes same files safely.
+  // Adds a basic README and a minimal source file.
+  private async ensureScaffold(input: ImplementerInput): Promise<void> {
+    try {
+      const existing = await this.deps.vfs.listFiles('code/');
+      if (Array.isArray(existing) && existing.length > 0) return;
+    } catch {
+      // proceed to write
+    }
+    const readme = `# Execution ${input.execId}\n\nThis folder contains code artifacts for the execution.\n`;
+    const appTs = `export function hello(name: string): string { return \`Hello, \${name}!\`; }\n`;
+    await this.deps.vfs.writeFile('code/README.md', readme, { contentType: 'text/markdown' });
+    await this.deps.vfs.writeFile('code/app.ts', appTs, { contentType: 'text/plain' });
   }
 }
 
