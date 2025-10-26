@@ -120,10 +120,10 @@ jobs:
       - name: Evidence | collect-coverage, healthz (keep alive), env-guard, e2e, readiness
         run: |
           mkdir -p .automation/evidence
+          # Build shared FIRST so services (runner) can require compiled modules
+          npm --prefix packages/shared run build
           npx tsx scripts/collect-coverage.ts
           KEEP_RUNNING=1 npx tsx scripts/collect-healthz.ts || true
-          # Build shared so env dist entry exists
-          npm --prefix packages/shared run build
           npx tsx scripts/collect-env-guard.ts
           # Attempt full chain; capture evidence even if run fails
           npx tsx scripts/run-e2e-intent.ts || true
