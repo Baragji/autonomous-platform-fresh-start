@@ -31,7 +31,11 @@
     "compliance:vuln": "(command -v trivy >/dev/null 2>&1 && trivy fs --format sarif --output .automation/evidence/compliance/trivy.sarif --severity HIGH,CRITICAL --exit-code 1 .) || (command -v docker >/dev/null 2>&1 && docker run --rm -v \"$(pwd)\":/project -w /project aquasec/trivy:latest fs --format sarif --output .automation/evidence/compliance/trivy.sarif --severity HIGH,CRITICAL --exit-code 1 .) || (echo 'Trivy not found. Install trivy or Docker.' && exit 1)",
     "compliance:secrets": "(command -v gitleaks >/dev/null 2>&1 && gitleaks detect --no-git --source . --report-format sarif --report-path .automation/evidence/compliance/gitleaks.sarif --config gitleaks.toml) || (command -v docker >/dev/null 2>&1 && docker run --rm -v \"$(pwd)\":/path zricethezav/gitleaks:latest detect --no-git --source /path --report-format sarif --report-path /path/.automation/evidence/compliance/gitleaks.sarif --config /path/gitleaks.toml) || (echo 'Gitleaks not found. Install gitleaks or Docker.' && exit 1)",
     "compliance:aggregate": "tsx scripts/aggregate-sarif.ts",
-    "compliance": "npm run lint && npm run typecheck && npm test && npm run test:validator && npm run compliance:coverage && npm run compliance:validator-coverage && npm run compliance:patterns && npm run compliance:sbom && npm run compliance:facts && npm run compliance:meta && npm run compliance:opa && npm run compliance:contracts && npm run compliance:vuln && npm run compliance:secrets && npm run compliance:aggregate"
+    "compliance": "npm run lint && npm run typecheck && npm test && npm run test:validator && npm run compliance:coverage && npm run compliance:validator-coverage && npm run compliance:patterns && npm run compliance:sbom && npm run compliance:facts && npm run compliance:meta && npm run compliance:opa && npm run compliance:contracts && npm run compliance:vuln && npm run compliance:secrets && npm run compliance:aggregate",
+    "dev:up": "bash scripts/dev-up.sh",
+    "dev:down": "bash scripts/dev-down.sh",
+    "dev:health": "tsx scripts/dev-health.ts",
+    "pipeline:e2e": "sh -c 'npm --prefix packages/vfs run build && npm --prefix packages/shared run build && KEEP_RUNNING=1 tsx scripts/collect-healthz.ts || true && tsx scripts/run-e2e-intent.ts || true && tsx scripts/collect-env-guard.ts && tsx scripts/generate-readiness-report.ts && bash scripts/attest-evidence.sh'"
   },
   "devDependencies": {
     "@cyclonedx/cyclonedx-npm": "^4.0.3",
