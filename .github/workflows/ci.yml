@@ -120,6 +120,8 @@ jobs:
       - name: Evidence | collect-coverage, healthz (keep alive), env-guard, e2e, readiness
         run: |
           mkdir -p .automation/evidence
+          # Build VFS then shared so runtime '@autonomous/vfs' dist is present for shared vfs.js
+          npm --prefix packages/vfs run build
           # Build shared FIRST so services (runner) can require compiled modules
           npm --prefix packages/shared run build
           npx tsx scripts/collect-coverage.ts

@@ -26,6 +26,8 @@ async function main() {
 
   // Ensure shared dist exists before starting services that import it at runtime (runner compat)
   try {
+    // Build VFS first since shared runtime vfs.js requires '@autonomous/vfs/dist/index.js'
+    spawnSync('npm', ['--prefix', 'packages/vfs', 'run', 'build'], { stdio: 'ignore' });
     spawnSync('npm', ['--prefix', 'packages/shared', 'run', 'build'], { stdio: 'ignore' });
   } catch {}
   const env = {
