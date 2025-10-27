@@ -1,6 +1,16 @@
-import fetch from 'node-fetch';
-
 type Entry = { name: string; url: string };
+
+async function timeoutFetch(url: string, ms = 2000) {
+  const ctrl = new AbortController();
+  // @ts-ignore
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    // @ts-ignore
+    return await fetch(url, { signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 async function check(url: string) {
   try { const r = await fetch(url); return { status: r.status }; }
@@ -19,7 +29,7 @@ async function main() {
   ];
   const results: Record<string, unknown> = {};
   for (const t of targets) {
-    const res = await check(t.url);
+    let res; try { const r = await timeoutFetch(t.url); res = { status: r.status }; } catch (e) { res = { error: (e as Error).message }; }
     results[t.name] = res;
   }
   const allOk = Object.entries(results).every(([k, v]) => k === 'ui' ? (v as any).status === 200 : ((v as any).status === 200 || (v as any).status === 503));
@@ -28,4 +38,3 @@ async function main() {
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
-

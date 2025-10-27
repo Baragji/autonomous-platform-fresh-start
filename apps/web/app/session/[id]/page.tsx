@@ -18,6 +18,7 @@ export default function SessionPage() {
   const [active, setActive] = useState<string>('');
   const [loadingFile, setLoadingFile] = useState<boolean>(false);
   const logRef = useRef<HTMLDivElement>(null);
+  const terminalRef = useRef<boolean>(false);
 
   useEffect(() => {
     const src = new EventSource(`/api/stream?sessionId=${encodeURIComponent(sessionId)}`);
@@ -25,14 +26,20 @@ export default function SessionPage() {
       try {
         const payload = JSON.parse(ev.data);
         setEvents((prev) => [...prev, { type: 'message', data: payload }]);
-        if (payload?.status) setPhase(payload.status);
+        if (payload?.status) {
+          setPhase(payload.status);
+          if (['validated','needs_remediation','failed'].includes(String(payload.status))) terminalRef.current = true;
+        }
       } catch {}
     };
     const handleStatus = (ev: MessageEvent) => {
       try {
         const payload = JSON.parse(ev.data);
         setEvents((prev) => [...prev, { type: 'status', data: payload }]);
-        if (payload?.status) setPhase(payload.status);
+        if (payload?.status) {
+          setPhase(payload.status);
+          if (['validated','needs_remediation','failed'].includes(String(payload.status))) terminalRef.current = true;
+        }
       } catch {}
     };
     const handleAgent = (ev: MessageEvent) => {
@@ -54,7 +61,11 @@ export default function SessionPage() {
       } catch {}
     };
     const handleError = () => {
-      setEvents((prev) => [...prev, { type: 'error', data: 'stream error' }]);
+      if (!terminalRef.current) {
+        setEvents((prev) => [...prev, { type: 'error', data: 'stream error' }]);
+      } else {
+        setEvents((prev) => [...prev, { type: 'message', data: { status: 'complete' } }]);
+      }
       src.close();
     };
 
