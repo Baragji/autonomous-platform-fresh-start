@@ -3,10 +3,23 @@ import { z } from 'zod';
 import { startOtel, createLogger, createVfs } from './compat';
 import { RunnerAgent, RunRequestSchema } from './agent';
 
-startOtel('runner');
+// Initialize async services on startup
+let logger: { info: Function; error: Function } = { info: () => {}, error: () => {} };
+(async () => {
+  try {
+    await startOtel('runner');
+  } catch (e) {
+    console.error('Failed to start OTel:', e);
+  }
+  try {
+    logger = await createLogger('runner');
+  } catch (e) {
+    console.error('Failed to create logger:', e);
+  }
+})();
+
 export const app = express();
 app.use(express.json({ limit: '2mb' }));
-const logger = createLogger('runner');
 
 app.get('/healthz', async (_req, res) => {
   const checks: Record<string, boolean> = {
