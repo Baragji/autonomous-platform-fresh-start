@@ -43,7 +43,7 @@ jobs:
 
   # Full enforcement for hardening and release branches
   enforce:
-    if: startsWith(github.ref, 'refs/heads/secure_hardening_') || startsWith(github.ref, 'refs/heads/release/secure-')
+    if: startsWith(github.ref, 'refs/heads/secure_hardening_') || startsWith(github.ref, 'refs/heads/release/secure-') || (github.event_name == 'pull_request' && (startsWith(github.base_ref, 'secure_hardening_') || startsWith(github.base_ref, 'release/secure-')))
     runs-on: ubuntu-latest
     timeout-minutes: 45
     services:
@@ -115,6 +115,22 @@ jobs:
             echo "Waiting for Postgres... ($i/60)"; sleep 1;
           done
           npx tsx scripts/init-db.ts
+      - name: Start services (gateway, planner, mca, implementer, runner, validator)
+        run: |
+          nohup npm --prefix packages/gateway run dev >/tmp/gw.log 2>&1 &
+          nohup npm --prefix packages/planner run dev >/tmp/planner.log 2>&1 &
+          nohup npm --prefix packages/mca run dev >/tmp/mca.log 2>&1 &
+          nohup npm --prefix packages/implementer run dev >/tmp/impl.log 2>&1 &
+          nohup npm --prefix packages/runner run dev >/tmp/runner.log 2>&1 &
+          nohup npm --prefix packages/validator run dev >/tmp/validator.log 2>&1 &
+      - name: Wait for services
+        run: |
+          for p in 3030 7010 7020 7030 7040 7050; do
+            for i in {1..90}; do
+              (echo > /dev/tcp/127.0.0.1/$p) >/dev/null 2>&1 && break
+              echo "Waiting for port $p ($i/90)"; sleep 1
+            done
+          done
       - name: Lint
         run: npm run lint
       - name: Typecheck
@@ -150,6 +166,19 @@ jobs:
         run: |
           bash scripts/attest-evidence.sh
           cp .automation/evidence/ATTACHMENT_MANIFEST.json .automation/evidence/ATTACHMENT_MANIFEST.ci.json
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+      - name: Cosign attest (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          tar -czf evidence.tar.gz .automation/evidence
+          cosign attest --predicate .automation/evidence/sbom.json --predicate-type cyclonedx --yes evidence.tar.gz
+      - name: Cosign verify (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          cosign verify-blob --certificate-identity-regexp 'https://github.com/.+actions' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' evidence.tar.gz
       - name: Secrets | Gitleaks scan
         uses: gitleaks/gitleaks-action@v2
         with:

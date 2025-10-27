@@ -1,7 +1,7 @@
 {
   "lint": {
-    "exitCode": 0,
-    "ok": true
+    "exitCode": 1,
+    "ok": false
   },
   "typecheck": {
     "exitCode": 0,
@@ -13,8 +13,8 @@
   },
   "coverage": {
     "metric": "statements",
-    "total": 1670,
-    "covered": 1403,
-    "pct": 84.01
+    "total": 1735,
+    "covered": 1416,
+    "pct": 81.61
   }
 }

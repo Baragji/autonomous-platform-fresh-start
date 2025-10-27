@@ -106,7 +106,7 @@ app.post('/validate', async (req: Request, res: Response) => {
     await vfs.writeFile(validationReportObject, buf, { contentType: 'application/json', sha256: reportSha });
     await publish(execId, 'artifact', { type: 'validation', report: validationReportObject });
     await publish(execId, 'status', { status: 'needs_remediation' });
-    return res.json({ ok: true, verdict: 'FAIL', report: validationReportObject });
+    return res.json({ ok: true, verdict: 'FAIL', report: validationReportObject, touched_validator: true });
   }
 
   // Prepare sandbox (same model as Runner)
@@ -272,7 +272,7 @@ app.post('/validate', async (req: Request, res: Response) => {
     await publish(execId, 'artifact', { type: 'validation', report: validationReportObject, junit: junitObject, coverage: coverageObject });
     await publish(execId, 'status', { status: report.verdict === 'PASS' ? 'validated' : 'needs_remediation' });
 
-    return res.json({ ok: true, verdict: report.verdict, report: validationReportObject, junitObject, coverageObject });
+    return res.json({ ok: true, verdict: report.verdict, report: validationReportObject, junitObject, coverageObject, touched_validator: true });
   } catch (err) {
     const e = err as Error;
     logger.error({ err: e.message }, 'validator failed');
@@ -292,7 +292,7 @@ app.post('/validate', async (req: Request, res: Response) => {
       await vfs.writeFile(object, buf, { contentType: 'application/json', sha256: sha256(buf) });
       await publish(execId, 'artifact', { type: 'validation', report: object });
       await publish(execId, 'status', { status: 'needs_remediation' });
-      return res.json({ ok: true, verdict: 'FAIL', report: object });
+      return res.json({ ok: true, verdict: 'FAIL', report: object, touched_validator: true });
     } catch (nested) {
       await publish(execId, 'agent', { agent: 'validator', status: 'failed', error: e.message }).catch(() => {});
       return res.status(500).json({ error: e.message });
