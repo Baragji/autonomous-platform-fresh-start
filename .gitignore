@@ -62,3 +62,4 @@ checkpoints.db
 tmp/
 temp/
 *.tmp
+scratch_local/

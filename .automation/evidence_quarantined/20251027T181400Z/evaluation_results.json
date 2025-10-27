@@ -1,0 +1,42 @@
+{
+  "generated_at_utc": "2025-10-27T16:04:10.640Z",
+  "totalScenarios": 5,
+  "passed": 0,
+  "results": [
+    {
+      "name": "TODO API",
+      "id": "2110f4a2-c916-4d0c-ad3d-be31827a87c0",
+      "status": "failed",
+      "touchedValidator": false,
+      "executionTimeMs": 5110
+    },
+    {
+      "name": "Calculator Module",
+      "id": "afb70cc4-d359-409a-9435-15d39aeac346",
+      "status": "failed",
+      "touchedValidator": false,
+      "executionTimeMs": 4056
+    },
+    {
+      "name": "Auth Module",
+      "id": "cffdc423-4653-4060-8d28-71e30fda7cc6",
+      "status": "failed",
+      "touchedValidator": false,
+      "executionTimeMs": 4042
+    },
+    {
+      "name": "Data Pipeline",
+      "id": "926cb25b-03fd-4256-aeda-b1eaea9048f0",
+      "status": "failed",
+      "touchedValidator": false,
+      "executionTimeMs": 5049
+    },
+    {
+      "name": "Web Scraper",
+      "id": "e0c82f7b-1a9e-44bf-b382-c515b39cd627",
+      "status": "failed",
+      "touchedValidator": false,
+      "executionTimeMs": 5045
+    }
+  ]
+}
