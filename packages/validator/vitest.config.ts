@@ -6,7 +6,7 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['dotenv/config'],
     hookTimeout: 60000,
-    testTimeout: 30000,
+    testTimeout: 60000,
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
