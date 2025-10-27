@@ -6,20 +6,27 @@ node_modules/
 # Testing
 coverage/
 .vitest/
+**/test-results/
+**/playwright-report/
 
 # Production
 dist/
 build/
+.turbo/
 
 # Environment
 .env
 .env.local
 .env.*.local
+.envrc
 
 # Logs
 *.log
 npm-debug.log*
 pnpm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+*.pid
 
 # Editors
 .vscode/
@@ -44,9 +51,6 @@ Thumbs.db
 !.automation/evidence/prod_env_guard.json
 !.automation/evidence/e2e_request_response.json
 !.automation/evidence/v5-report.json
-!.automation/evidence/week2/
-!.automation/evidence/week2/collect_evidence.sh
-!.automation/evidence/week3/collect_evidence.sh
 !.automation/evidence/.gitkeep
 .automation/checkpoints/*
 !.automation/checkpoints/.gitkeep
@@ -63,3 +67,9 @@ tmp/
 temp/
 *.tmp
 scratch_local/
+
+# Caches
+.cache/
+*.tsbuildinfo
+.eslintcache
+.pnpm-store/
