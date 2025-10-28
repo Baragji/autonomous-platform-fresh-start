@@ -269,7 +269,7 @@ jobs:
           SAFE_MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY"
           SAFE_MINIO_SECRET_KEY="$MINIO_SECRET_KEY"
           if [ "$SAFE_MINIO_ACCESS_KEY" = "minioadmin" ]; then SAFE_MINIO_ACCESS_KEY="strongaccess"; fi
-          if [ "$SAFE_MINIO_SECRET_KEY" = "minioadmin" ] || [ "$SAFE_MINIO_SECRET_KEY" = "minioadmin123" ]; then SAFE_MINIO_SECRET_KEY="strongsecretkey123456"; fi
+          if [ "$SAFE_MINIO_SECRET_KEY" = "minioadmin" ] || [ "$SAFE_MINIO_SECRET_KEY" = "minioadmin123" ]; then SAFE_MINIO_SECRET_KEY="strongsecret"; fi
           set +e
           OUTPUT=$(NODE_ENV=production \
             OPENAI_API_KEY="$OPENAI_API_KEY" \
