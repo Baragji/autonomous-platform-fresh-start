@@ -195,9 +195,8 @@ jobs:
         run: |
           cosign verify-blob --certificate-identity-regexp 'https://github.com/.+actions' --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' evidence.tar.gz
       - name: Secrets | Gitleaks scan
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          args: detect --verbose --redact --source=.
+        run: |
+          docker run --rm -v "$(pwd)":/path zricethezav/gitleaks:latest detect --no-git --source /path --redact --config /path/gitleaks.toml
       - name: Supply Chain | Generate SBOM (CycloneDX)
         run: |
           mkdir -p .automation/supply_chain
