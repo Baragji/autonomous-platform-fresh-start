@@ -167,14 +167,17 @@ jobs:
           bash scripts/attest-evidence.sh
           cp .automation/evidence/ATTACHMENT_MANIFEST.json .automation/evidence/ATTACHMENT_MANIFEST.ci.json
       - name: Install cosign
+        if: startsWith(github.ref, 'refs/heads/release/secure-') || (github.event_name == 'pull_request' && startsWith(github.base_ref, 'release/secure-'))
         uses: sigstore/cosign-installer@v3
       - name: Cosign attest (keyless)
+        if: startsWith(github.ref, 'refs/heads/release/secure-') || (github.event_name == 'pull_request' && startsWith(github.base_ref, 'release/secure-'))
         env:
           COSIGN_EXPERIMENTAL: "1"
         run: |
           tar -czf evidence.tar.gz .automation/evidence
-          cosign attest --predicate .automation/evidence/sbom.json --predicate-type cyclonedx --yes evidence.tar.gz
+          cosign attest --predicate .automation/supply_chain/sbom.json --predicate-type cyclonedx --yes evidence.tar.gz
       - name: Cosign verify (keyless)
+        if: startsWith(github.ref, 'refs/heads/release/secure-') || (github.event_name == 'pull_request' && startsWith(github.base_ref, 'release/secure-'))
         env:
           COSIGN_EXPERIMENTAL: "1"
         run: |
@@ -185,8 +188,8 @@ jobs:
           args: detect --verbose --redact --source=.
       - name: Supply Chain | Generate SBOM (CycloneDX)
         run: |
-          mkdir -p .automation/evidence
-          npx -y @cyclonedx/cyclonedx-npm --output-file .automation/evidence/sbom.json --omit dev
+          mkdir -p .automation/supply_chain
+          npx -y @cyclonedx/cyclonedx-npm --output-file .automation/supply_chain/sbom.json --omit dev
       - name: Evidence | Ban narrative prose
         run: |
           set -e

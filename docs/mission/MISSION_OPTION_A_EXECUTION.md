@@ -20,7 +20,8 @@ Deliver a production-ready, autonomous pipeline implementing Smart MCA → Smart
   - Regenerates evidence and attestation.
   - Enforces validator touched, coverage gates, narrative ban, and manifest match.
   - Runs secret scan (Gitleaks or equivalent).
-  - Generates SBOM; signs/attests evidence bundle via Cosign keyless + verifies.
+  - Generates SBOM to `.automation/supply_chain/sbom.json` (not under `.automation/evidence/`).
+  - On release branches, signs/attests evidence bundle via Cosign keyless (OIDC) + verifies.
   - Runs OpenSSF Scorecard and enforces policy threshold.
 - Protected `release/secure-<UTC>` branch created only after all gates green; CI checks set as required; force-push disabled; review required.
 
@@ -633,4 +634,3 @@ References
 - Cosign keyless signing via OIDC and attestations: docs.gitlab.com
 - Secret scanning in CI (Gitleaks): InfraCloud
 - OpenSSF Scorecard policy enforcement: Microsoft for Developers
-
