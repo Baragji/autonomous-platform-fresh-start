@@ -37,11 +37,8 @@ jobs:
       - name: Test
         run: npm test -- --run
       - name: Secrets | Gitleaks scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: detect --no-git --source . --redact --config gitleaks.toml
+        run: |
+          docker run --rm -v "$(pwd)":/path zricethezav/gitleaks:latest detect --no-git --source /path --redact --config /path/gitleaks.toml
 
   # Full enforcement for hardening and release branches
   enforce:
