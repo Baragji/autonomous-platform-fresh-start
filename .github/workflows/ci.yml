@@ -90,6 +90,10 @@ jobs:
           cache: npm
       - name: Install deps
         run: npm ci --no-audit --fund=false
+      - name: Pre-clean infra (idempotent)
+        run: |
+          docker rm -f umca-minio >/dev/null 2>&1 || true
+          docker compose -f infrastructure/docker-compose.yml down --remove-orphans -v || true
       - name: Start MinIO
         run: |
           docker run -d --name umca-minio \
@@ -153,19 +157,24 @@ jobs:
       - name: No skipped tests
         run: VITEST_JSON_PATH=.automation/evidence/ci-tests.json npm run ci:no-skips
       - name: Evidence | collect-coverage, healthz (keep alive), env-guard, e2e, readiness
+        env:
+          CI_INFRA_MANAGED: "1"
+          CI_TIMEOUT_SECONDS: "180"
         run: |
           mkdir -p .automation/evidence
           npm --prefix packages/vfs run build
           npm --prefix packages/shared run build
           npx tsx scripts/collect-coverage.ts
-          KEEP_RUNNING=1 npx tsx scripts/collect-healthz.ts || true
-          npx tsx scripts/collect-env-guard.ts
-          npx tsx scripts/run-e2e-intent.ts || true
-          npx tsx scripts/generate-readiness-report.ts
-      - name: Stop spawned services
+          timeout 180s KEEP_RUNNING=1 CI_INFRA_MANAGED=1 npx tsx scripts/collect-healthz.ts || true
+          timeout 60s  npx tsx scripts/collect-env-guard.ts
+          timeout 180s npx tsx scripts/run-e2e-intent.ts
+          timeout 60s  npx tsx scripts/generate-readiness-report.ts
+      - name: Infra teardown
         if: always()
         run: |
           npx tsx scripts/stop-services.ts || true
+          docker rm -f umca-minio >/dev/null 2>&1 || true
+          docker compose -f infrastructure/docker-compose.yml down --remove-orphans -v || true
       - name: Evidence | Attest (CI)
         run: |
           bash scripts/attest-evidence.sh
