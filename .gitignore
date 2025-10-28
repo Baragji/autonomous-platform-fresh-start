@@ -8,6 +8,7 @@ coverage/
 .vitest/
 **/test-results/
 **/playwright-report/
+apps/web/.next/
 
 # Production
 dist/

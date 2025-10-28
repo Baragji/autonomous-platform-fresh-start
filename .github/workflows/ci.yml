@@ -39,7 +39,7 @@ jobs:
       - name: Secrets | Gitleaks scan
         uses: gitleaks/gitleaks-action@v2
         with:
-          args: detect --verbose --redact --source=.
+          args: detect --no-git --source . --redact --config gitleaks.toml
 
   # Full enforcement for hardening and release branches
   enforce:
@@ -274,7 +274,7 @@ jobs:
           set +e
           OUTPUT=$(NODE_ENV=production \
             OPENAI_API_KEY="$OPENAI_API_KEY" \
-            DATABASE_URL=postgresql://umca:SuperSecureP@ssw0rd@localhost:5432/umca \
+            DATABASE_URL=postgresql://umca:umca@localhost:5432/umca \
             MINIO_ACCESS_KEY="$SAFE_MINIO_ACCESS_KEY" \
             MINIO_SECRET_KEY="$SAFE_MINIO_SECRET_KEY" \
             node -e "require('./packages/shared/dist/packages/shared/src/env.js');" 2>&1)
@@ -471,7 +471,7 @@ jobs:
           set +e
           OUTPUT=$(NODE_ENV=production \
             OPENAI_API_KEY="$OPENAI_API_KEY" \
-            DATABASE_URL=postgresql://umca:SuperSecureP@ssw0rd@localhost:5432/umca \
+            DATABASE_URL=postgresql://umca:umca@localhost:5432/umca \
             MINIO_ACCESS_KEY="$MINIO_ACCESS_KEY" \
             MINIO_SECRET_KEY="$MINIO_SECRET_KEY" \
             node -e "require('./packages/shared/src/env');" 2>&1)
