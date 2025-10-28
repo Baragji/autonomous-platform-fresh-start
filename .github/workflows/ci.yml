@@ -38,6 +38,8 @@ jobs:
         run: npm test -- --run
       - name: Secrets | Gitleaks scan
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: detect --no-git --source . --redact --config gitleaks.toml
 
