@@ -1,0 +1,17 @@
+{"time":"2025-10-27T04:58:31.644Z","level":"INFO","msg":"infra: docker compose up (postgres, redis, minio, tempo, grafana)"}
+{"time":"2025-10-27T04:58:41.195Z","level":"INFO","msg":"build: vfs + shared"}
+{"time":"2025-10-27T04:58:53.218Z","level":"INFO","msg":"spawn npx -y tsx packages/gateway/src/server.ts"}
+{"time":"2025-10-27T04:58:53.223Z","level":"INFO","msg":"spawn npx -y tsx packages/mca/src/server.ts"}
+{"time":"2025-10-27T04:58:53.225Z","level":"INFO","msg":"spawn npx -y tsx packages/planner/src/server.ts"}
+{"time":"2025-10-27T04:58:53.228Z","level":"INFO","msg":"spawn npx -y tsx packages/implementer/src/server.ts"}
+{"time":"2025-10-27T04:58:53.230Z","level":"INFO","msg":"spawn npx -y tsx packages/runner/src/server.ts"}
+{"time":"2025-10-27T04:58:53.234Z","level":"INFO","msg":"spawn npx -y tsx packages/validator/src/server.ts"}
+{"time":"2025-10-27T04:58:53.244Z","level":"INFO","msg":"services: pids recorded","file":"/tmp/umca-pids.json"}
+{"time":"2025-10-27T04:58:53.247Z","level":"INFO","msg":"health: waiting for services"}
+{"time":"2025-10-27T04:59:00.843Z","level":"INFO","msg":"health: snapshot saved","file":"/Users/Yousef_1/Downloads/autonomous-platform-fresh-start/.automation/evidence/dev_run_2025-10-27T04-58-31-518Z/health.json"}
+{"time":"2025-10-27T04:59:00.844Z","level":"INFO","msg":"ui: ensure deps"}
+{"time":"2025-10-27T04:59:00.846Z","level":"INFO","msg":"ui: starting dev server on :4000"}
+{"time":"2025-10-27T04:59:00.846Z","level":"INFO","msg":"spawn npx -y npm -w apps/web run dev"}
+{"time":"2025-10-27T04:59:09.770Z","level":"INFO","msg":"ui: capture evidence (html + optional screenshot)"}
+{"time":"2025-10-27T04:59:09.798Z","level":"WARN","msg":"ui: screenshot skipped (playwright not available)","err":"Error: Cannot find package 'playwright' imported from /Users/Yousef_1/Downloads/autonomous-platform-fresh-start/scripts/dev-orchestrator.ts"}
+{"time":"2025-10-27T04:59:09.799Z","level":"INFO","msg":"UP COMPLETE","run_dir":"/Users/Yousef_1/Downloads/autonomous-platform-fresh-start/.automation/evidence/dev_run_2025-10-27T04-58-31-518Z"}

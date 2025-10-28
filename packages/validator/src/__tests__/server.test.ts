@@ -184,6 +184,37 @@ describe('validator server', () => {
     expect(res.body.verdict).toBe('FAIL');
   });
 
+  it('returns structured FAIL when no code files are present (touched flag set)', async () => {
+    listFilesMock.mockResolvedValueOnce([]);
+    const mod = await import('../server');
+    const res = await request(mod.app).post('/validate').send({ execId: 'exec-empty' });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.verdict).toBe('FAIL');
+    expect(res.body.touched_validator).toBe(true);
+    expect(publishMock).toHaveBeenCalled();
+  });
+
+  it('returns 500 when fallback write fails in nested catch', async () => {
+    // Force sandbox to fail to enter catch path
+    sandboxCtorMock.mockImplementationOnce(() => {
+      const instance = new MockSandbox();
+      instance.process.start = vi.fn(async () => ({
+        wait: vi.fn(async () => ({ exitCode: 1, stdout: 'x', stderr: 'y' }))
+      }));
+      return instance;
+    });
+    // Ensure there is at least one code file so outer path goes through sandbox section first
+    listFilesMock.mockResolvedValueOnce([{ path: 'code/src/app.ts', size: 1, lastModified: new Date() }]);
+    readFileMock.mockResolvedValueOnce(Buffer.from('export const bad = true;'));
+    // Make fallback write fail to trigger nested catch
+    writeFileMock.mockRejectedValueOnce(new Error('write failed'));
+    const mod = await import('../server');
+    const res = await request(mod.app).post('/validate').send({ execId: 'exec-nested' });
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('error');
+  });
+
   it('invokes llm judge when validation fails', async () => {
     coveragePct = 70;
     process.env.VALIDATOR_LLM_JUDGE = '1';

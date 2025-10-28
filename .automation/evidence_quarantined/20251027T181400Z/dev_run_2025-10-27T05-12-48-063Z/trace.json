@@ -1,0 +1,12 @@
+[
+  {
+    "time": "2025-10-27T05:12:48.067Z",
+    "phase": "start"
+  },
+  {
+    "time": "2025-10-27T05:13:04.137Z",
+    "phase": "ready",
+    "pids_file": "/tmp/umca-pids.json",
+    "run_dir": "/Users/Yousef_1/Downloads/autonomous-platform-fresh-start/.automation/evidence/dev_run_2025-10-27T05-12-48-063Z"
+  }
+]

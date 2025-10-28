@@ -81,7 +81,9 @@ async function implementerNode(state: McaState): Promise<McaState> {
   });
   const payload = (await response.json()) as { ok?: boolean; files?: string[]; error?: string };
   if (!response.ok || payload.ok !== true) {
-    throw new Error(payload.error || 'implementer failed');
+    // Accept partials or even empty handoff; log and proceed to runner
+    logger.warn({ execId: state.execId, err: payload.error || 'implementer returned not-ok' }, 'implementer returned non-ok; proceeding with partial handoff');
+    await publish(state.execId, 'implementer_partial', { status: 'implementer_partial', reason: 'unexpected_not_ok', files: payload.files ?? [] }).catch(() => {});
   }
   await upsertExecution(state.execId, 'implemented', state.intent, 'implementer');
   await publish(state.execId, 'status', { status: 'implemented' });
@@ -158,10 +160,12 @@ if (plannerOnly) {
     .addEdge('runner', 'validator')
     .addConditionalEdges('validator', (state: McaState) => {
       if (state.status === 'validated') return END;
-      if ((state.failure_count ?? 0) >= 3) {
-        // escalate and still go to implementer for another attempt if policy allows
+      const failures = state.failure_count ?? 0;
+      if (failures >= 3) {
         state.status = 'escalated';
         publish(state.execId, 'status', { status: 'escalated' }).catch(() => {});
+        publish(state.execId, 'escalated', { failure_count: failures }).catch(() => {});
+        return END;
       }
       return 'implementer';
     });

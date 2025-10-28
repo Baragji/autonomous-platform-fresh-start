@@ -1,0 +1,17 @@
+{"time":"2025-10-27T10:26:11.349Z","level":"INFO","msg":"infra: docker compose up (postgres, redis, minio, tempo, grafana)"}
+{"time":"2025-10-27T10:26:11.790Z","level":"INFO","msg":"build: vfs + shared"}
+{"time":"2025-10-27T10:26:14.615Z","level":"INFO","msg":"spawn npx -y tsx packages/gateway/src/server.ts"}
+{"time":"2025-10-27T10:26:14.616Z","level":"INFO","msg":"spawn npx -y tsx packages/mca/src/server.ts"}
+{"time":"2025-10-27T10:26:14.617Z","level":"INFO","msg":"spawn npx -y tsx packages/planner/src/server.ts"}
+{"time":"2025-10-27T10:26:14.618Z","level":"INFO","msg":"spawn npx -y tsx packages/implementer/src/server.ts"}
+{"time":"2025-10-27T10:26:14.619Z","level":"INFO","msg":"spawn npx -y tsx packages/runner/src/server.ts"}
+{"time":"2025-10-27T10:26:14.620Z","level":"INFO","msg":"spawn npx -y tsx packages/validator/src/server.ts"}
+{"time":"2025-10-27T10:26:14.626Z","level":"INFO","msg":"services: pids recorded","file":"/tmp/umca-pids.json"}
+{"time":"2025-10-27T10:26:14.626Z","level":"INFO","msg":"health: waiting for services"}
+{"time":"2025-10-27T10:26:17.744Z","level":"INFO","msg":"health: snapshot saved","file":"/Users/Yousef_1/Downloads/autonomous-platform-fresh-start/.automation/evidence/dev_run_2025-10-27T10-26-11-346Z/health.json"}
+{"time":"2025-10-27T10:26:17.744Z","level":"INFO","msg":"ui: ensure deps"}
+{"time":"2025-10-27T10:26:17.744Z","level":"INFO","msg":"ui: starting dev server on :4000"}
+{"time":"2025-10-27T10:26:17.744Z","level":"INFO","msg":"spawn npm -w apps/web run dev"}
+{"time":"2025-10-27T10:26:23.790Z","level":"INFO","msg":"ui: capture evidence (html + optional screenshot)"}
+{"time":"2025-10-27T10:26:23.816Z","level":"WARN","msg":"ui: screenshot skipped (playwright not available)","err":"Error: Cannot find package 'playwright' imported from /Users/Yousef_1/Downloads/autonomous-platform-fresh-start/scripts/dev-orchestrator.ts"}
+{"time":"2025-10-27T10:26:23.817Z","level":"INFO","msg":"UP COMPLETE","run_dir":"/Users/Yousef_1/Downloads/autonomous-platform-fresh-start/.automation/evidence/dev_run_2025-10-27T10-26-11-346Z"}

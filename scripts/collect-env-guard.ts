@@ -15,10 +15,9 @@ function main() {
   ensureDir(outDir);
 
   const bad = runGuard({ NODE_ENV: 'production', OPENAI_API_KEY: '', DATABASE_URL: 'postgresql://umca:umcapassword@localhost:5433/umca', MINIO_ACCESS_KEY: 'minioadmin', MINIO_SECRET_KEY: 'minioadmin' });
-  const good = runGuard({ NODE_ENV: 'production', OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'sk-secure-1234567890', DATABASE_URL: 'postgresql://umca:StrongPass123!@localhost:5433/umca', MINIO_ACCESS_KEY: 'strongaccesskey123456', MINIO_SECRET_KEY: 'strongsecretkey1234567890', LANGFUSE_PUBLIC_KEY: 'pk', LANGFUSE_SECRET_KEY: 'sk' });
+  const good = runGuard({ NODE_ENV: 'production', OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'sk-dummy', DATABASE_URL: 'postgresql://umca:umca@localhost:5433/umca', MINIO_ACCESS_KEY: 'strongaccess', MINIO_SECRET_KEY: 'strongsecret', LANGFUSE_PUBLIC_KEY: 'pk', LANGFUSE_SECRET_KEY: 'sk' });
   const payload = { timestamp_utc: new Date().toISOString(), fail_run: { exitCode: bad.exitCode, stdout: bad.stdout, stderr: bad.stderr }, pass_run: { exitCode: good.exitCode, stdout: good.stdout, stderr: good.stderr } };
   fs.writeFileSync(path.join(outDir, 'prod_env_guard.json'), JSON.stringify(payload, null, 2));
 }
 
 main();
-

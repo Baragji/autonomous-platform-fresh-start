@@ -18,26 +18,35 @@ async function waitForHttp(url: string, timeoutMs = 60000) {
 async function main() {
   const outDir = path.resolve('.automation', 'evidence');
   ensureDir(outDir);
-  spawnSync('docker', ['compose', '-f', 'infrastructure/docker-compose.yml', 'up', '-d', 'postgres', 'redis', 'minio', 'tempo', 'grafana'], { stdio: 'inherit' });
+  const managed = String(process.env.CI_INFRA_MANAGED || '') === '1';
+  const timeoutMs = Number(process.env.CI_TIMEOUT_SECONDS || '120') * 1000;
+  // Only bring up infra if not managed by CI job
+  if (!managed) {
+    spawnSync('docker', ['compose', '-f', 'infrastructure/docker-compose.yml', 'up', '-d', 'postgres', 'redis', 'minio', 'tempo', 'grafana'], { stdio: 'inherit' });
+  }
   const env = { ...process.env, OPENAI_API_KEY: process.env.OPENAI_API_KEY || 'sk-local-dummy', E2B_API_KEY: process.env.E2B_API_KEY || 'e2b_local_dummy' };
-  const procs: Proc[] = [
-    { name: 'gateway', proc: spawn('npm', ['--prefix', 'packages/gateway', 'run', 'dev'], { env, stdio: 'ignore' }) },
-    { name: 'mca', proc: spawn('npm', ['--prefix', 'packages/mca', 'run', 'dev'], { env, stdio: 'ignore' }) },
-    { name: 'planner', proc: spawn('npm', ['--prefix', 'packages/planner', 'run', 'dev'], { env, stdio: 'ignore' }) },
-    { name: 'implementer', proc: spawn('npm', ['--prefix', 'packages/implementer', 'run', 'dev'], { env, stdio: 'ignore' }) },
-    { name: 'runner', proc: spawn('npm', ['--prefix', 'packages/runner', 'run', 'dev'], { env, stdio: 'ignore' }) },
-    { name: 'validator', proc: spawn('npm', ['--prefix', 'packages/validator', 'run', 'dev'], { env, stdio: 'ignore' }) }
-  ];
+  const procs: Proc[] = [];
+  // Only spawn local dev servers if not managed externally
+  if (!managed) {
+    procs.push(
+      { name: 'gateway', proc: spawn('npm', ['--prefix', 'packages/gateway', 'run', 'dev'], { env, stdio: 'ignore' }) },
+      { name: 'mca', proc: spawn('npm', ['--prefix', 'packages/mca', 'run', 'dev'], { env, stdio: 'ignore' }) },
+      { name: 'planner', proc: spawn('npm', ['--prefix', 'packages/planner', 'run', 'dev'], { env, stdio: 'ignore' }) },
+      { name: 'implementer', proc: spawn('npm', ['--prefix', 'packages/implementer', 'run', 'dev'], { env, stdio: 'ignore' }) },
+      { name: 'runner', proc: spawn('npm', ['--prefix', 'packages/runner', 'run', 'dev'], { env, stdio: 'ignore' }) },
+      { name: 'validator', proc: spawn('npm', ['--prefix', 'packages/validator', 'run', 'dev'], { env, stdio: 'ignore' }) }
+    );
+  }
   try {
     const targets = [
-      { service: 'gateway', url: 'http://localhost:3030/healthz' },
-      { service: 'mca', url: 'http://localhost:7010/healthz' },
-      { service: 'planner', url: 'http://localhost:7020/healthz' },
-      { service: 'implementer', url: 'http://localhost:7030/healthz' },
-      { service: 'runner', url: 'http://localhost:7040/healthz' },
-      { service: 'validator', url: 'http://localhost:7050/healthz' }
+      { service: 'gateway', url: 'http://127.0.0.1:3030/healthz' },
+      { service: 'mca', url: 'http://127.0.0.1:7010/healthz' },
+      { service: 'planner', url: 'http://127.0.0.1:7020/healthz' },
+      { service: 'implementer', url: 'http://127.0.0.1:7030/healthz' },
+      { service: 'runner', url: 'http://127.0.0.1:7040/healthz' },
+      { service: 'validator', url: 'http://127.0.0.1:7050/healthz' }
     ];
-    for (const t of targets) await waitForHttp(t.url, 120000);
+    for (const t of targets) await waitForHttp(t.url, timeoutMs);
     const results: any[] = []; const ts = new Date().toISOString();
     for (const t of targets) {
       try { const r = await fetch(t.url); const body = await r.text(); let json: unknown = null; try { json = JSON.parse(body); } catch { json = { raw: body }; } results.push({ service: t.service, url: t.url, status: r.status, body: json }); }
@@ -46,8 +55,11 @@ async function main() {
     fs.writeFileSync(path.join(outDir, 'healthz_sweep.json'), JSON.stringify({ timestamp_utc: ts, services: results }, null, 2));
   } finally {
     for (const p of procs) { try { p.proc.kill('SIGINT'); } catch {} }
+    // If script brought infra up, it should be responsible for teardown; under managed CI, rely on workflow teardown
+    if (!managed) {
+      spawnSync('docker', ['compose', '-f', 'infrastructure/docker-compose.yml', 'down', '--remove-orphans'], { stdio: 'ignore' });
+    }
   }
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
-

@@ -97,7 +97,7 @@ export class ImplementerAgent {
         const listed = await this.deps.vfs.listFiles('code/').catch(() => [] as VfsFileEntry[]);
         const files = listed.map((e) => e.path).sort();
         await this.deps.publisher.publish({
-          type: 'implementer.partial',
+          type: 'implementer_partial',
           status: 'implementer_partial',
           reason: 'tool_error',
           files,
@@ -148,7 +148,7 @@ export class ImplementerAgent {
     }
     // Emit structured partial event (no narrative)
     await this.deps.publisher.publish({
-      type: 'implementer.partial',
+      type: 'implementer_partial',
       status: 'implementer_partial',
       reason: 'max_iterations',
       files,

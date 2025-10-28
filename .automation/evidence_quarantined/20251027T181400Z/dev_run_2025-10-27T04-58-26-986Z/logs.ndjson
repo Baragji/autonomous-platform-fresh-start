@@ -1,0 +1,8 @@
+{"time":"2025-10-27T04:58:26.988Z","level":"INFO","msg":"shutdown: stopping services"}
+{"time":"2025-10-27T04:58:26.989Z","level":"INFO","msg":"killed","name":"gateway","pid":56458}
+{"time":"2025-10-27T04:58:26.989Z","level":"INFO","msg":"killed","name":"mca","pid":56473}
+{"time":"2025-10-27T04:58:26.989Z","level":"INFO","msg":"killed","name":"planner","pid":56488}
+{"time":"2025-10-27T04:58:26.989Z","level":"INFO","msg":"killed","name":"implementer","pid":56503}
+{"time":"2025-10-27T04:58:26.989Z","level":"INFO","msg":"killed","name":"runner","pid":56518}
+{"time":"2025-10-27T04:58:26.989Z","level":"INFO","msg":"killed","name":"validator","pid":56533}
+{"time":"2025-10-27T04:58:29.933Z","level":"INFO","msg":"DOWN COMPLETE"}

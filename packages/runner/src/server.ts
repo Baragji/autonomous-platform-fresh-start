@@ -39,11 +39,23 @@ app.post('/run', async (req: Request, res: Response) => {
   if (!parse.success) return res.status(400).json({ error: 'invalid request', details: parse.error.issues });
   const agent = new RunnerAgent(logger);
   const result = await agent.run(parse.data);
-  if (!result.ok) return res.status(500).json(result);
-  res.json(result);
+  // Functional failures (tests failed, no code, etc.) return HTTP 200 with ok:false
+  if (!result.ok) {
+    const { ok: _ignored, ...rest } = result as { ok: boolean; [k: string]: unknown };
+    return res.status(200).json({ ok: false, execId: parse.data.execId, reason: inferReason(result), ...rest });
+  }
+  res.status(200).json(result);
 });
 
 const port = Number(process.env.RUNNER_PORT || 7040);
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => logger.info({ port }, 'runner listening'));
+}
+
+function inferReason(r: { error?: string }): string {
+  const msg = String(r.error || '').toLowerCase();
+  if (msg.includes('no code')) return 'no_code_files';
+  if (msg.includes('coverage')) return 'coverage_missing';
+  if (msg.includes('command failed')) return 'tests_failed';
+  return 'unknown';
 }

@@ -1,0 +1,35 @@
+{
+  "timestamp_utc": "2025-10-27T11:46:47.648Z",
+  "services": [
+    {
+      "service": "gateway",
+      "url": "http://localhost:3030/healthz",
+      "ok": true
+    },
+    {
+      "service": "mca",
+      "url": "http://localhost:7010/healthz",
+      "ok": true
+    },
+    {
+      "service": "planner",
+      "url": "http://localhost:7020/healthz",
+      "ok": true
+    },
+    {
+      "service": "implementer",
+      "url": "http://localhost:7030/healthz",
+      "ok": true
+    },
+    {
+      "service": "runner",
+      "url": "http://localhost:7040/healthz",
+      "ok": true
+    },
+    {
+      "service": "validator",
+      "url": "http://localhost:7050/healthz",
+      "ok": true
+    }
+  ]
+}

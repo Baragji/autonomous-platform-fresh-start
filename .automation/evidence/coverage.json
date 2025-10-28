@@ -13,8 +13,8 @@
   },
   "coverage": {
     "metric": "statements",
-    "total": 1670,
-    "covered": 1403,
-    "pct": 84.01
+    "total": 1735,
+    "covered": 1436,
+    "pct": 82.77
   }
 }

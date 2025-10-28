@@ -1,0 +1,51 @@
+{
+  "has_packages_dir": true,
+  "services": [
+    "gateway",
+    "implementer",
+    "mca",
+    "planner",
+    "reviewer",
+    "runner",
+    "shared",
+    "validator",
+    "vfs"
+  ],
+  "evidence": {
+    "coverage_final_json": true,
+    "sbom_json": true
+  },
+  "dependencies": {
+    "gateway": {
+      "hasAnthropic": false
+    },
+    "implementer": {
+      "hasAnthropic": false
+    },
+    "mca": {
+      "hasAnthropic": false
+    },
+    "planner": {
+      "hasAnthropic": false
+    },
+    "reviewer": {
+      "hasAnthropic": false
+    },
+    "runner": {
+      "hasAnthropic": false
+    },
+    "shared": {
+      "hasAnthropic": false
+    },
+    "validator": {
+      "hasAnthropic": false
+    },
+    "vfs": {
+      "hasAnthropic": false
+    }
+  },
+  "openapi_specs": [
+    "/Users/Yousef_1/Downloads/autonomous-platform-fresh-start/contracts/gateway.openapi.yaml"
+  ],
+  "require_openapi_contracts": false
+}
