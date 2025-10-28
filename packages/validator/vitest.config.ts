@@ -2,7 +2,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['test/**/*.spec.ts'],
+    // Include both integration specs and unit tests colocated under src
+    include: ['test/**/*.spec.ts', 'src/**/*.test.ts'],
     environment: 'node',
     setupFiles: ['dotenv/config'],
     hookTimeout: 60000,
