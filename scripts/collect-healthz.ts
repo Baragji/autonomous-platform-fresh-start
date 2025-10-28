@@ -39,12 +39,12 @@ async function main() {
   }
   try {
     const targets = [
-      { service: 'gateway', url: 'http://localhost:3030/healthz' },
-      { service: 'mca', url: 'http://localhost:7010/healthz' },
-      { service: 'planner', url: 'http://localhost:7020/healthz' },
-      { service: 'implementer', url: 'http://localhost:7030/healthz' },
-      { service: 'runner', url: 'http://localhost:7040/healthz' },
-      { service: 'validator', url: 'http://localhost:7050/healthz' }
+      { service: 'gateway', url: 'http://127.0.0.1:3030/healthz' },
+      { service: 'mca', url: 'http://127.0.0.1:7010/healthz' },
+      { service: 'planner', url: 'http://127.0.0.1:7020/healthz' },
+      { service: 'implementer', url: 'http://127.0.0.1:7030/healthz' },
+      { service: 'runner', url: 'http://127.0.0.1:7040/healthz' },
+      { service: 'validator', url: 'http://127.0.0.1:7050/healthz' }
     ];
     for (const t of targets) await waitForHttp(t.url, timeoutMs);
     const results: any[] = []; const ts = new Date().toISOString();

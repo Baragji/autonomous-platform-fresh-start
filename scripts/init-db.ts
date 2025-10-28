@@ -18,7 +18,13 @@ async function main() {
       process.stderr.write(`init-db warn: ${(e as Error).message}\n`);
     }
   }
+
+  // Idempotent bootstrap for LangGraph/Postgres checkpointer migrations table
+  try {
+    await pool.query('CREATE TABLE IF NOT EXISTS public.checkpoint_migrations (v INTEGER PRIMARY KEY)');
+  } catch (e) {
+    process.stderr.write(`init-db warn: ${(e as Error).message}\n`);
+  }
 }
 
 main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1); });
-

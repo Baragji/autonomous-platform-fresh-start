@@ -1,41 +1,11 @@
 {
-  "commit": "d58374138cd1ffe0b6f3b84b0827980f0eff74e2",
-  "generated_at_utc": "2025-10-28T05:54:27Z",
+  "commit": "cffa47fcb681b4ada10b10603f2aa1581f408be7",
+  "generated_at_utc": "2025-10-28T09:45:51Z",
   "files": [
     {
       "path": ".automation/evidence/.gitkeep",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "size_bytes": 0
-    },
-    {
-      "path": ".automation/evidence/compliance/facts.json",
-      "sha256": "fd22ef0a15593279af1488271761541341e32c0cd405fdd76ce7041ea85eab50",
-      "size_bytes": 906
-    },
-    {
-      "path": ".automation/evidence/compliance/sbom.json",
-      "sha256": "221808884e37dd3683e48856af4eaffa2898187e9169501e140eb30530248247",
-      "size_bytes": 2107727
-    },
-    {
-      "path": ".automation/evidence/compliance/semgrep.sarif",
-      "sha256": "84e75dd4290211d3136a3b7fa5208f2ea98125096ba18664222bbd42f3dd0914",
-      "size_bytes": 3579
-    },
-    {
-      "path": ".automation/evidence/compliance/spectral.sarif",
-      "sha256": "93aacb41e9d05d45d1e255277fdb3576852a77105c9e755e15ae5b842f322118",
-      "size_bytes": 24408
-    },
-    {
-      "path": ".automation/evidence/compliance/trivy.sarif",
-      "sha256": "bc5aee6eddda8f2cbf1ed46e1ecf81ca0cec7cc6012efa6cc3b51bf8249329ac",
-      "size_bytes": 592
-    },
-    {
-      "path": ".automation/evidence/compliance/valid/coverage.json",
-      "sha256": "944dceb057b32de08ef85fd0a5bff9b4439083355a1a654de46460ec11e76279",
-      "size_bytes": 185
     },
     {
       "path": ".automation/evidence/coverage.json",
@@ -49,7 +19,7 @@
     },
     {
       "path": ".automation/evidence/healthz_sweep.json",
-      "sha256": "bbda9deb5079052eef671dcc9fb7f7c11d51c33f8134ae5517ac0c08239edf9f",
+      "sha256": "b9699c51185dee018da1acd62bd155a3957188fb97a763e5e34b472bf1509dea",
       "size_bytes": 1543
     },
     {

@@ -1,0 +1,9 @@
+{
+  "threshold": 80,
+  "metric": "statements",
+  "total": 1735,
+  "covered": 1416,
+  "pct": 81.61,
+  "pass": true,
+  "note": "lines metric missing; using statements coverage as proxy"
+}
