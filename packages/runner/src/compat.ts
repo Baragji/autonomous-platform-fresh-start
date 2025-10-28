@@ -15,8 +15,9 @@ export function createLogger(service: string) {
 }
 export function startOtel(service: string) {
   // Fire-and-forget; tracing is best-effort in runner
-  import('@autonomous/shared/src/otel').then((m: any) => {
-    const fn = m?.startOtel || m?.default?.startOtel;
+  import('@autonomous/shared/src/otel').then((m: Record<string, unknown>) => {
+    const fn = (m as { startOtel?: (s: string) => unknown; default?: { startOtel?: (s: string) => unknown } }).startOtel
+      || (m as { default?: { startOtel?: (s: string) => unknown } }).default?.startOtel;
     if (typeof fn === 'function') fn(service);
   }).catch(() => {});
 }
