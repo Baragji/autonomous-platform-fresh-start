@@ -165,9 +165,9 @@ jobs:
           npm --prefix packages/vfs run build
           npm --prefix packages/shared run build
           npx tsx scripts/collect-coverage.ts
-          timeout 180s KEEP_RUNNING=1 CI_INFRA_MANAGED=1 npx tsx scripts/collect-healthz.ts || true
+          KEEP_RUNNING=1 CI_INFRA_MANAGED=1 timeout 180s npx tsx scripts/collect-healthz.ts || true
           timeout 60s  npx tsx scripts/collect-env-guard.ts
-          timeout 180s npx tsx scripts/run-e2e-intent.ts
+          timeout 180s npx tsx scripts/run-e2e-intent.ts || (echo "e2e timed out" && exit 1)
           timeout 60s  npx tsx scripts/generate-readiness-report.ts
       - name: Infra teardown
         if: always()
