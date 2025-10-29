@@ -26,7 +26,7 @@ type SandboxApi = {
     read: (path: string, opts?: { format?: 'text' | 'bytes' }) => Promise<string | Uint8Array>;
   };
   commands: {
-    run: (cmd: string, opts?: { cwd?: string; env?: Record<string, string> }) => Promise<CommandResult>;
+    run: (cmd: string, opts?: { args?: string[]; cwd?: string; env?: Record<string, string> }) => Promise<CommandResult>;
   };
   kill?: () => Promise<void>;
 };
@@ -148,7 +148,11 @@ export class RunnerAgent {
   }
 
   private async runCommand(sandbox: SandboxApi, cwd: string, cmd: string): Promise<CommandResult> {
-    const result = await sandbox.commands.run(cmd, { cwd, env: {} });
+    // E2B 2.x SDK expects: sandbox.commands.run(command, { args, cwd, env })
+    const parts = cmd.split(' ');
+    const command = parts[0];
+    const args = parts.slice(1);
+    const result = await sandbox.commands.run(command, { args, cwd, env: {} });
     if (result.exitCode !== 0) {
       const tail = (result.stdout || '') + '\n' + (result.stderr || '');
       throw new Error(`command failed: ${cmd}\n${tail}`);
