@@ -143,7 +143,8 @@ const graphBuilder = new StateGraph<McaState>({
     status: { value: (_prev: string | undefined, curr: string | undefined) => curr as string },
     current_agent: { value: (_prev: string | undefined, curr: string | undefined) => curr as string },
     // Persist the validated plan between nodes so implementer can consume it
-    plan: { value: (_prev: Plan | undefined, curr: Plan | undefined) => curr as Plan }
+    // Preserve previous plan if current node doesn't explicitly set it
+    plan: { value: (prev: Plan | undefined, curr: Plan | undefined) => curr ?? prev }
   }
 })
   .addNode('planner', plannerNode)
