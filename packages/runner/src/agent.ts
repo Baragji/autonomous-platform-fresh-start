@@ -149,15 +149,22 @@ export class RunnerAgent {
 
   private async runCommand(sandbox: SandboxApi, cwd: string, cmd: string): Promise<CommandResult> {
     // E2B 2.x SDK expects: sandbox.commands.run(command, { args, cwd, env })
-    const parts = cmd.split(' ');
-    const command = parts[0];
-    const args = parts.slice(1);
-    const result = await sandbox.commands.run(command, { args, cwd, env: {} });
-    if (result.exitCode !== 0) {
-      const tail = (result.stdout || '') + '\n' + (result.stderr || '');
-      throw new Error(`command failed: ${cmd}\n${tail}`);
+    try {
+      const parts = cmd.split(' ');
+      const command = parts[0];
+      const args = parts.slice(1);
+      this.logger.info(`runCommand: "${command}" args=[${args.join(', ')}] cwd=${cwd}`);
+      const result = await sandbox.commands.run(command, { args, cwd, env: {} });
+      if (result.exitCode !== 0) {
+        const tail = (result.stdout || '') + '\n' + (result.stderr || '');
+        throw new Error(`command failed: ${cmd}\n${tail}`);
+      }
+      return result;
+    } catch (err) {
+      const e = err as Error;
+      this.logger.error(`runCommand failed: ${e.message}`);
+      throw e;
     }
-    return result;
   }
 
   private vitestJsonToJUnit(stdout: string): string {
