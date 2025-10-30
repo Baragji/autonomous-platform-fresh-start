@@ -178,19 +178,40 @@ export class RunnerAgent {
       const command = parts[0] ?? String(cmd);
       const args = parts.slice(1);
       // Log the runtime types to help diagnose SDK mismatches
-      this.logger.info({ command, args, cmdType: typeof cmd, argsTypes: args.map((a) => typeof a) }, `runCommand`);
+      this.logger.info({ command, args, cwd }, `runCommand starting`);
       try {
         const result = await sandbox.commands.run(command, { args, cwd, env: {} });
         if (result.exitCode !== 0) {
-          const tail = (result.stdout || '') + '\n' + (result.stderr || '');
-          throw new Error(`command failed: ${cmd}\n${tail}`);
+          // Command returned non-zero exit code
+          const output = `stdout:\n${result.stdout}\n\nstderr:\n${result.stderr}`;
+          this.logger.error({
+            command,
+            args,
+            exitCode: result.exitCode,
+            stdout: result.stdout,
+            stderr: result.stderr
+          }, `command exited with code ${result.exitCode}`);
+          throw new Error(`command failed with exit code ${result.exitCode}: ${cmd}\n${output}`);
         }
+        this.logger.info({ command, args, exitCode: 0 }, `command succeeded`);
         return result;
       } catch (innerErr) {
-        // Capture additional diagnostic context before rethrowing
-        const ie = innerErr as Error;
-        this.logger.error({ err: ie.message, stack: ie.stack, command, args }, 'sandbox.commands.run failed');
-        throw innerErr;
+        // The SDK may throw CommandExitError or similar
+        const ie = innerErr as any;
+        // Try to extract output from the error object
+        const errorMsg = ie.message || String(ie);
+        const stdout = ie.stdout || '';
+        const stderr = ie.stderr || '';
+        this.logger.error({
+          err: errorMsg,
+          stack: ie.stack,
+          command,
+          args,
+          cwd,
+          stdout,
+          stderr
+        }, `sandbox.commands.run threw error`);
+        throw new Error(`${cmd} failed: ${errorMsg}\nstdout: ${stdout}\nstderr: ${stderr}`);
       }
     } catch (err) {
       const e = err as Error;
