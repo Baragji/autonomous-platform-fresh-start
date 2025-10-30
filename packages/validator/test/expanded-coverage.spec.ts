@@ -1,8 +1,26 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
-import { app, parseVitestPassed, vitestJsonToJUnit, sha256, exec, scanForSecrets } from '../src/server';
+
+// Defer importing server until after mocks are applied in each test
+let app: import('express').Express;
+let parseVitestPassed: any, vitestJsonToJUnit: any, sha256: any, exec: any, scanForSecrets: any;
+
+async function importServer() {
+  const mod = await import('../src/server');
+  app = mod.app;
+  parseVitestPassed = mod.parseVitestPassed;
+  vitestJsonToJUnit = mod.vitestJsonToJUnit;
+  sha256 = mod.sha256;
+  exec = mod.exec;
+  scanForSecrets = mod.scanForSecrets;
+}
 
 describe('unit helpers', () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    await importServer();
+  });
+
   it('parseVitestPassed returns false on invalid json', () => {
     expect(parseVitestPassed('{')).toBe(false);
   });
@@ -56,11 +74,12 @@ describe('unit helpers', () => {
 });
 
 describe('integration /validate edge cases', () => {
-  beforeEach(() => {
-    vi.resetModules();
-    process.env.VALIDATOR_ARTIFACT_PREFIX = 'validator';
-    process.env.VALIDATOR_COVERAGE_THRESHOLD_GLOBAL = '80';
-    process.env.E2B_API_KEY = 'dummy';
+  // Avoid real Redis in integration flows
+  vi.mock('@autonomous/shared/src/events', () => {
+    return {
+      publish: async () => {},
+      subscribe: async () => ({ unsubscribe: async () => {} })
+    } as any;
   });
   afterEach(() => {
     delete process.env.VALIDATOR_ARTIFACT_PREFIX;
@@ -71,7 +90,11 @@ describe('integration /validate edge cases', () => {
   });
 
   it('handles FAIL verdict and judge enabled without crashing', async () => {
+    vi.resetModules();
+    process.env.VALIDATOR_ARTIFACT_PREFIX = 'validator';
+    process.env.VALIDATOR_COVERAGE_THRESHOLD_GLOBAL = '80';
     process.env.VALIDATOR_LLM_JUDGE = '1';
+    process.env.E2B_API_KEY = 'dummy';
 
     vi.mock('@autonomous/shared/src/vfs', async () => {
       const mem = new Map<string, Buffer>();
@@ -126,6 +149,7 @@ describe('integration /validate edge cases', () => {
       } as any;
     });
 
+    await importServer();
     const res = await request(app).post('/validate').send({ execId: 'exec-fail' });
     expect(res.status).toBe(200);
     expect(res.body.ok).toBe(true);
@@ -133,6 +157,11 @@ describe('integration /validate edge cases', () => {
   });
 
   it('handles missing coverage summary gracefully', async () => {
+    vi.resetModules();
+    process.env.VALIDATOR_ARTIFACT_PREFIX = 'validator';
+    process.env.VALIDATOR_COVERAGE_THRESHOLD_GLOBAL = '80';
+    process.env.E2B_API_KEY = 'dummy';
+
     vi.mock('@autonomous/shared/src/vfs', async () => {
       const mem = new Map<string, Buffer>();
       return {
@@ -162,6 +191,7 @@ describe('integration /validate edge cases', () => {
       } as any;
     });
 
+    await importServer();
     const res = await request(app).post('/validate').send({ execId: 'exec-nocov' });
     expect(res.status).toBe(200);
     expect(res.body.ok).toBe(true);

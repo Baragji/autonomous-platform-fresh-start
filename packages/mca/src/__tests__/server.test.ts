@@ -5,9 +5,11 @@ import type { MockedFunction } from 'vitest';
 type DbModule = typeof import('@autonomous/shared/src/db');
 type EventsModule = typeof import('@autonomous/shared/src/events');
 type MinioModule = typeof import('@autonomous/shared/src/minioClient');
+type HttpModule = typeof import('@autonomous/shared/src/http');
 
 const invokeMock = vi.fn();
-const fetchStub = vi.fn().mockImplementation(async (url: string, init?: Record<string, unknown>) => {
+// Mock the shared http helper so we can assert calls directly
+const fetchStub: ReturnType<typeof vi.fn> = vi.fn().mockImplementation(async (url: string, init?: Record<string, unknown>) => {
   const body = typeof init?.body === 'string' ? JSON.parse(init.body) : { execId: 'exec-1' };
   if (url.includes('/plan')) {
     return {
@@ -112,25 +114,31 @@ let publish: MockedFunction<EventsModule['publish']>;
 let minioGetObject: MockedFunction<MinioModule['minio']['getObject']>;
 let ensureBucket: MockedFunction<MinioModule['ensureBucket']>;
 let bucketExists: MockedFunction<MinioModule['minio']['bucketExists']>;
+let fetchWithTimeoutMock: MockedFunction<HttpModule['fetchWithTimeout']>;
+
+vi.mock('@autonomous/shared/src/http', () => ({
+  fetchWithTimeout: fetchStub
+}));
 
 beforeAll(async () => {
-  // Use global fetch stub since server uses global fetch
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (globalThis as any).fetch = fetchStub;
   ({ app } = await import('../server'));
   const dbModule = await import('@autonomous/shared/src/db');
   const eventsModule = await import('@autonomous/shared/src/events');
   const minioModule = await import('@autonomous/shared/src/minioClient');
+  const httpModule = await import('@autonomous/shared/src/http');
   upsertExecution = vi.mocked(dbModule.upsertExecution);
   publish = vi.mocked(eventsModule.publish);
   minioGetObject = vi.mocked(minioModule.minio.getObject);
   ensureBucket = vi.mocked(minioModule.ensureBucket);
   bucketExists = vi.mocked(minioModule.minio.bucketExists);
+  fetchWithTimeoutMock = vi.mocked(httpModule.fetchWithTimeout);
 });
 
 beforeEach(() => {
   invokeMock.mockClear();
   fetchStub.mockClear();
+  // also clear the typed mock reference for expectations
+  fetchWithTimeoutMock.mockClear();
   upsertExecution.mockReset();
   upsertExecution.mockResolvedValue(undefined as unknown as void);
   publish.mockReset();
@@ -162,8 +170,8 @@ describe('mca server', () => {
     expect(upsertExecution).toHaveBeenCalledWith('exec-1', 'planning', 'Build', 'mca');
     expect(publish).toHaveBeenCalledWith('exec-1', 'status', { status: 'planning' });
     expect(publish).toHaveBeenCalledWith('exec-1', 'agent', { agent: 'planner', status: 'working' });
-    expect(fetchStub).toHaveBeenCalledWith(expect.stringContaining('/plan'), expect.objectContaining({ method: 'POST' }));
-    expect(fetchStub).toHaveBeenCalledWith(expect.stringContaining('/implement'), expect.objectContaining({ method: 'POST' }));
+    expect(fetchWithTimeoutMock).toHaveBeenCalledWith(expect.stringContaining('/plan'), expect.objectContaining({ method: 'POST' }), expect.any(Object));
+    expect(fetchWithTimeoutMock).toHaveBeenCalledWith(expect.stringContaining('/implement'), expect.objectContaining({ method: 'POST' }), expect.any(Object));
     expect(publish).toHaveBeenCalledWith('exec-1', 'status', { status: 'implementing' });
     expect(publish).toHaveBeenCalledWith('exec-1', 'status', { status: 'implemented' });
     expect(invokeMock).toHaveBeenCalledWith(

@@ -19,8 +19,9 @@ function resolveRepoRoot(): string {
 
 const repoRoot = resolveRepoRoot();
 
-async function loadSrc(modulePath: string) {
-  return (await import(modulePath)) as any;
+// Typed dynamic import helper to avoid any casts
+async function loadSrc<T>(modulePath: string): Promise<T> {
+  return import(modulePath) as Promise<T>;
 }
 
 async function importShared(relBasename: string) {
@@ -37,7 +38,7 @@ async function importShared(relBasename: string) {
 
 export async function createVfs(execId: string, opts?: { prefixSuffix?: string }) {
   if (IS_TEST) {
-    const m = await loadSrc('@autonomous/shared/src/vfs');
+    const m = await loadSrc<typeof import('@autonomous/shared/src/vfs')>('@autonomous/shared/src/vfs');
     return m.createVfs(execId, opts);
   }
   const m = await importShared('vfs.js');
@@ -46,7 +47,7 @@ export async function createVfs(execId: string, opts?: { prefixSuffix?: string }
 
 export async function publish(execId: string, event: string, data: unknown) {
   if (IS_TEST) {
-    const m = await loadSrc('@autonomous/shared/src/events');
+    const m = await loadSrc<typeof import('@autonomous/shared/src/events')>('@autonomous/shared/src/events');
     return m.publish(execId, event, data);
   }
   const m = await importShared('events.js');

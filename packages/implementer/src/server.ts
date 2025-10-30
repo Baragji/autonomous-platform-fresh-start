@@ -9,6 +9,7 @@ import { startOtel } from '@autonomous/shared/src/otel';
 import { getLangfuse } from '@autonomous/shared/src/langfuse';
 import { RedisEventPublisher } from './publisher';
 import { ImplementerAgent } from './agent';
+import { registerShutdown } from '@autonomous/shared/src/shutdown';
 
 startOtel('implementer');
 
@@ -101,5 +102,6 @@ app.get('/healthz', async (_req, res) => {
 
 const port = Number(process.env.IMPLEMENTER_PORT || 7030);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => logger.info({ port }, 'implementer listening'));
+  const server = app.listen(port, () => logger.info({ port }, 'implementer listening'));
+  registerShutdown({ server, logger });
 }

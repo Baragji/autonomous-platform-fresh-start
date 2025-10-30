@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
-import { app, sha256 } from '../src/server';
 
+// Apply mocks BEFORE importing the server to ensure handler uses them
 vi.mock('@autonomous/shared/src/vfs', async () => {
   const mem = new Map<string, Buffer>();
   return {
@@ -41,12 +41,25 @@ vi.mock('@e2b/sdk', () => {
   } as any;
 });
 
+// Stub Redis events to avoid real network calls
+vi.mock('@autonomous/shared/src/events', () => {
+  return {
+    publish: async () => {},
+    subscribe: async () => ({ unsubscribe: async () => {} })
+  } as any;
+});
+
 describe('POST /validate integration', () => {
-  beforeEach(() => {
+  let app: import('express').Express;
+
+  beforeEach(async () => {
     process.env.VALIDATOR_ARTIFACT_PREFIX = 'validator';
     process.env.VALIDATOR_COVERAGE_THRESHOLD_GLOBAL = '80';
     process.env.VALIDATOR_LLM_JUDGE = '0';
     process.env.E2B_API_KEY = 'dummy';
+    // Import after mocks and env are set
+    const mod = await import('../src/server');
+    app = mod.app;
   });
   afterEach(() => {
     delete process.env.VALIDATOR_ARTIFACT_PREFIX;

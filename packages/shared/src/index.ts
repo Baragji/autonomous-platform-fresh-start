@@ -7,3 +7,4 @@ export * from './minioClient';
 export * from './otel';
 export * from './plan';
 export * from './vfs';
+export * from './http';

@@ -2,6 +2,12 @@ import express, { type Request, type Response } from 'express';
 import { z } from 'zod';
 import { startOtel, createLogger, createVfs } from './compat';
 import { RunnerAgent, RunRequestSchema } from './agent';
+import { registerShutdown } from '@autonomous/shared/src/shutdown';
+
+function logStartupError(message: string, e: unknown) {
+  const errMsg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+  process.stderr.write(`${message} ${errMsg}\n`);
+}
 
 // Initialize async services on startup
 let logger: { info: Function; error: Function } = { info: () => {}, error: () => {} };
@@ -9,12 +15,12 @@ let logger: { info: Function; error: Function } = { info: () => {}, error: () =>
   try {
     await startOtel('runner');
   } catch (e) {
-    console.error('Failed to start OTel:', e);
+    logStartupError('Failed to start OTel:', e);
   }
   try {
     logger = await createLogger('runner');
   } catch (e) {
-    console.error('Failed to create logger:', e);
+    logStartupError('Failed to create logger:', e);
   }
 })();
 
@@ -58,5 +64,7 @@ app.post('/run', async (req: Request, res: Response) => {
 
 const port = Number(process.env.RUNNER_PORT || 7040);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => logger.info({ port }, 'runner listening'));
+  const server = app.listen(port, () => logger.info({ port }, 'runner listening'));
+
+  registerShutdown({ server, logger });
 }

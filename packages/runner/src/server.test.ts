@@ -17,22 +17,24 @@ class MemVfs implements vfsMod.Vfs {
   async listVersions(): Promise<vfsMod.VfsVersionEntry[]> { return []; }
 }
 
-// Fake sandbox API
+// Fake sandbox API updated to match agent.ts API shape
 class FakeSandbox {
-  filesystem = {
-    makeDir: async () => {},
+  files = {
+    makeDir: async () => true,
     write: async () => {},
     read: async (p: string) => {
-      if (p.endsWith('coverage-summary.json')) return JSON.stringify({ total: { lines: { pct: 100 } } });
+      if (p.endsWith('coverage/coverage-summary.json')) return JSON.stringify({ total: { lines: { pct: 100 } } });
       throw new Error('nf');
     }
   };
-  process = {
-    start: async () => ({
-      wait: async () => ({ exitCode: 0, stdout: JSON.stringify({ numTotalTests: 1, numPassedTests: 1, duration: 10, testResults: [{ name: 'ok', status: 'pass', duration: 10 }] }), stderr: '' })
+  commands = {
+    run: async (_cmd: string, _opts?: { args?: string[]; cwd?: string; env?: Record<string, string> }) => ({
+      exitCode: 0,
+      stdout: JSON.stringify({ numTotalTests: 1, numPassedTests: 1, duration: 10, testResults: [{ name: 'ok', status: 'pass', duration: 10 }] }),
+      stderr: ''
     })
   };
-  async close() {}
+  async kill() {}
 }
 
 vi.mock('@e2b/sdk', () => ({ Sandbox: FakeSandbox }));
@@ -50,7 +52,7 @@ describe('runner server', () => {
 
   it('runs tests and uploads artifacts', async () => {
     // Import server after mocks are in place
-    ({ app } = await import('../server'));
+    ({ app } = await import('./server'));
     const vfs = await vfsMod.createVfs('x');
     await vfs.writeFile('code/src/app.ts', 'export const x=1;');
     await vfs.writeFile('code/src/app.test.ts', 'import {x} from "./app"; if(x!==1) throw new Error("bad");');
@@ -60,7 +62,7 @@ describe('runner server', () => {
   });
 
   it('returns healthy status when dependencies succeed', async () => {
-    ({ app } = await import('../server'));
+    ({ app } = await import('./server'));
     const res = await request(app).get('/healthz');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true, checks: { vfs: true, e2bKey: true } });
@@ -69,7 +71,7 @@ describe('runner server', () => {
 
   it('returns 503 when E2B key is missing', async () => {
     process.env.E2B_API_KEY = '';
-    ({ app } = await import('../server'));
+    ({ app } = await import('./server'));
     const res = await request(app).get('/healthz');
     expect(res.status).toBe(503);
     expect(res.body).toEqual({ ok: false, checks: { vfs: true, e2bKey: false } });

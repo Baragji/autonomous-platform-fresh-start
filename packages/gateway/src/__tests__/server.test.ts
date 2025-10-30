@@ -5,6 +5,7 @@ import type { Express, Request, Response } from 'express';
 import type { MockedFunction } from 'vitest';
 type DbModule = typeof import('@autonomous/shared/src/db');
 type EventsModule = typeof import('@autonomous/shared/src/events');
+type HttpModule = typeof import('@autonomous/shared/src/http');
 
 vi.mock('@autonomous/shared/src/db', () => ({
   upsertExecution: vi.fn(),
@@ -21,6 +22,10 @@ vi.mock('@autonomous/shared/src/events', () => ({
   redisSub: { ping: vi.fn().mockResolvedValue('PONG') }
 }));
 
+vi.mock('@autonomous/shared/src/http', () => ({
+  fetchWithTimeout: vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) })
+}));
+
 let app: Express;
 let upsertExecution: MockedFunction<DbModule['upsertExecution']>;
 let getExecution: MockedFunction<DbModule['getExecution']>;
@@ -29,12 +34,14 @@ let subscribe: MockedFunction<EventsModule['subscribe']>;
 let poolQuery: MockedFunction<DbModule['pool']['query']>;
 let redisPubPing: MockedFunction<EventsModule['redisPub']['ping']>;
 let redisSubPing: MockedFunction<EventsModule['redisSub']['ping']>;
+let fetchWithTimeoutMock: MockedFunction<HttpModule['fetchWithTimeout']>;
 const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
 
 beforeAll(async () => {
   ({ app } = await import('../server'));
   const dbModule = await import('@autonomous/shared/src/db');
   const eventsModule = await import('@autonomous/shared/src/events');
+  const httpModule = await import('@autonomous/shared/src/http');
   upsertExecution = vi.mocked(dbModule.upsertExecution);
   getExecution = vi.mocked(dbModule.getExecution);
   poolQuery = vi.mocked(dbModule.pool.query);
@@ -42,11 +49,13 @@ beforeAll(async () => {
   subscribe = vi.mocked(eventsModule.subscribe);
   redisPubPing = vi.mocked(eventsModule.redisPub.ping);
   redisSubPing = vi.mocked(eventsModule.redisSub.ping);
+  fetchWithTimeoutMock = vi.mocked(httpModule.fetchWithTimeout);
 });
 
 beforeEach(() => {
   fetchMock.mockClear();
   vi.stubGlobal('fetch', fetchMock);
+  fetchWithTimeoutMock.mockClear();
   upsertExecution.mockResolvedValue(undefined as unknown as void);
   getExecution.mockResolvedValue({ id: 'abc', status: 'planned' } as unknown as Record<string, unknown>);
   publish.mockResolvedValue(undefined as unknown as void);
@@ -85,7 +94,7 @@ describe('gateway server', () => {
     expect(res.body.location).toBe(res.headers.location);
 
     await new Promise((resolve) => setImmediate(resolve));
-    expect(fetchMock).toHaveBeenCalled();
+    expect(fetchWithTimeoutMock).toHaveBeenCalled();
     expect(publish).toHaveBeenCalledWith(expect.any(String), 'status', { status: 'accepted' });
   });
 

@@ -30,6 +30,16 @@ vi.mock('ioredis', () => ({
   }
 }));
 
+// Mock logger used by events module for deterministic assertions
+const loggerMock = {
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn()
+};
+vi.mock('../logger', () => ({
+  createLogger: () => loggerMock
+}));
+
 let events: typeof import('../events');
 
 beforeEach(async () => {
@@ -40,11 +50,49 @@ beforeEach(async () => {
 
 afterEach(() => {
   redisInstances.length = 0;
+  loggerMock.error.mockReset();
+  loggerMock.warn.mockReset();
+  loggerMock.debug.mockReset();
 });
 
 describe('events helpers', () => {
   it('builds execution channel', () => {
     expect(events.execChannel('abc')).toBe('exec:abc');
+  });
+
+  it('attaches error listeners to pub and sub clients', () => {
+    const [pubInstance, subInstance] = redisInstances;
+    expect(pubInstance.on).toHaveBeenCalledWith('error', expect.any(Function));
+    expect(subInstance.on).toHaveBeenCalledWith('error', expect.any(Function));
+  });
+
+  it('throttles error logs within backoff window', () => {
+    const [pubInstance] = redisInstances;
+    // Find the attached error handler
+    const errorCall = pubInstance.on.mock.calls.find(([evt]) => evt === 'error') as [string, (err: unknown) => void] | undefined;
+    expect(errorCall).toBeTruthy();
+    const errorHandler = errorCall![1];
+
+    // Spy on Date.now to control time progression
+    const nowSpy = vi.spyOn(Date, 'now');
+    // Start at 1000ms so first error passes (1000 - 0 >= 1000)
+    nowSpy.mockReturnValue(1000);
+
+    // First error should log
+    errorHandler(new Error('ECONNRESET'));
+    expect(loggerMock.error).toHaveBeenCalledTimes(1);
+
+    // Within initial backoff (1s), next error should NOT log
+    nowSpy.mockReturnValue(1500);
+    errorHandler(new Error('ECONNRESET'));
+    expect(loggerMock.error).toHaveBeenCalledTimes(1);
+
+    // Advance beyond backoff window → should log again
+    nowSpy.mockReturnValue(2100);
+    errorHandler(new Error('ECONNRESET'));
+    expect(loggerMock.error).toHaveBeenCalledTimes(2);
+
+    nowSpy.mockRestore();
   });
 
   it('publishes messages via redis', async () => {
@@ -60,7 +108,9 @@ describe('events helpers', () => {
     expect(subInstance.subscribe).toHaveBeenCalledWith('exec:abc');
     expect(subInstance.on).toHaveBeenCalledWith('message', expect.any(Function));
 
-    const handler = subInstance.on.mock.calls[0][1] as (channel: string, payload: string) => void;
+    const messageCall = subInstance.on.mock.calls.find(([event]) => event === 'message') as [string, (channel: string, payload: string) => void] | undefined;
+    expect(messageCall).toBeTruthy();
+    const handler = messageCall![1];
     handler('exec:abc', JSON.stringify({ event: 'test', data: { foo: 'bar' }, ts: 1 }));
     expect(messages).toEqual([{ event: 'test', data: { foo: 'bar' }, ts: 1 }]);
 

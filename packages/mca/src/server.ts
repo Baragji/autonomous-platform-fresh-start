@@ -11,6 +11,7 @@ import { minio, ARTIFACT_BUCKET, ensureBucket } from '@autonomous/shared/src/min
 import { StateGraph, START, END } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { Pool } from 'pg';
+import { registerShutdown } from '@autonomous/shared/src/shutdown';
 
 startOtel('mca');
 export const app = express();
@@ -54,10 +55,11 @@ async function supervisor(state: McaState): Promise<McaState> {
 async function plannerNode(state: McaState): Promise<McaState> {
   const plannerUrl = process.env.PLANNER_URL || 'http://localhost:7020/plan';
   await publish(state.execId, 'agent', { agent: 'planner', status: 'working' });
-  const r = await fetch(plannerUrl, {
+  const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
+  const r = await fetchWithTimeout(plannerUrl, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ execId: state.execId, intent: state.intent })
-  });
+  }, { timeoutMs: 5000, retries: 2 });
   const j = (await r.json()) as { object?: string; error?: string };
   if (!r.ok) throw new Error(j.error || 'planner failed');
   if (!j.object) throw new Error('planner did not return plan object');
@@ -74,11 +76,12 @@ async function implementerNode(state: McaState): Promise<McaState> {
   await publish(state.execId, 'agent', { agent: 'implementer', status: 'working' });
   await upsertExecution(state.execId, 'implementing', state.intent, 'implementer');
   await publish(state.execId, 'status', { status: 'implementing' });
-  const response = await fetch(implementerUrl, {
+  const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
+  const response = await fetchWithTimeout(implementerUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ execId: state.execId, plan: state.plan })
-  });
+  }, { timeoutMs: 5000, retries: 2 });
   const payload = (await response.json()) as { ok?: boolean; files?: string[]; error?: string };
   if (!response.ok || payload.ok !== true) {
     throw new Error(payload.error || 'implementer failed');
@@ -94,10 +97,11 @@ async function runnerNode(state: McaState): Promise<McaState> {
   await publish(state.execId, 'agent', { agent: 'runner', status: 'working' });
   let payload: { ok?: boolean; junitObject?: string; coverageObject?: string; error?: string } = {};
   try {
-    const response = await fetch(runnerUrl, {
+    const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
+    const response = await fetchWithTimeout(runnerUrl, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ execId: state.execId })
-    });
+    }, { timeoutMs: 5000, retries: 2 });
     payload = (await response.json()) as { ok?: boolean; junitObject?: string; coverageObject?: string; error?: string };
     if (!response.ok || payload.ok !== true) {
       // Warn and proceed to validator; do not hard-abort here
@@ -116,10 +120,11 @@ async function runnerNode(state: McaState): Promise<McaState> {
 async function validatorNode(state: McaState): Promise<McaState> {
   const validatorUrl = process.env.VALIDATOR_URL || 'http://localhost:7050/validate';
   await publish(state.execId, 'agent', { agent: 'validator', status: 'working' });
-  const response = await fetch(validatorUrl, {
+  const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
+  const response = await fetchWithTimeout(validatorUrl, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ execId: state.execId })
-  });
+  }, { timeoutMs: 5000, retries: 2 });
   const payload = (await response.json()) as { ok?: boolean; verdict?: 'PASS'|'FAIL'; report?: string; junitObject?: string; coverageObject?: string; error?: string };
   if (!response.ok || payload.ok !== true || !payload.verdict) {
     throw new Error(payload.error || 'validator failed');
@@ -245,7 +250,9 @@ app.get('/healthz', async (_req, res) => {
 
 const port = Number(process.env.MCA_PORT || 7010);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => logger.info({ port }, 'mca listening'));
+  const server = app.listen(port, () => logger.info({ port }, 'mca listening'));
+
+  registerShutdown({ server, redisClients: [redisPub, redisSub], db: pool, logger });
 }
 
 async function readPlanFromMinio(objectName: string): Promise<Plan> {

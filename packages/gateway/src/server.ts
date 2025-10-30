@@ -4,6 +4,7 @@ import { pool, upsertExecution, getExecution } from '@autonomous/shared/src/db';
 import { publish, subscribe, redisPub, redisSub } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
 import { createLogger } from '@autonomous/shared/src/logger';
+import { registerShutdown } from '@autonomous/shared/src/shutdown';
 
 startOtel('gateway');
 export const app = express();
@@ -19,10 +20,13 @@ app.post('/api/executions', async (req: Request, res: Response) => {
     .set('Location', `/api/executions/${id}`)
     .json({ id, status: 'accepted', location: `/api/executions/${id}`, stream: `/api/executions/${id}/stream` });
 
-  // Fire-and-forget call to MCA
-  fetch(process.env.MCA_URL || 'http://localhost:7010/start', {
+  // Fire-and-forget call to MCA with timeout + retries to avoid hanging
+  const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
+  fetchWithTimeout(process.env.MCA_URL || 'http://localhost:7010/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ execId: id, intent })
-  }).catch(() => {});
+  }, { timeoutMs: 5000, retries: 2 }).catch((err: unknown) => {
+    logger.warn({ err: (err as Error).message }, 'failed to notify MCA start');
+  });
   await publish(id, 'status', { status: 'accepted' });
 });
 
@@ -99,5 +103,7 @@ app.get('/healthz', async (_req, res) => {
 
 const port = Number(process.env.GATEWAY_PORT || 3030);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => logger.info({ port }, 'gateway listening'));
+  const server = app.listen(port, () => logger.info({ port }, 'gateway listening'));
+
+  registerShutdown({ server, redisClients: [redisPub, redisSub], db: pool, logger });
 }

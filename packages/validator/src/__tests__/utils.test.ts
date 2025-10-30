@@ -4,19 +4,19 @@ import { buildIssues, buildReasons, exec, parseVitestPassed, sha256, vitestJsonT
 
 describe('validator helpers', () => {
   it('throws when exec command fails', async () => {
-    const wait = vi.fn(async () => ({ exitCode: 1, stdout: 'out', stderr: 'err' }));
+    const run = vi.fn(async () => ({ exitCode: 1, stdout: 'out', stderr: 'err' }));
     const sandbox: SandboxApi = {
-      filesystem: {
-        makeDir: async () => {},
+      files: {
+        makeDir: async () => true,
         write: async () => {},
         read: async () => ''
       },
-      process: {
-        start: vi.fn(async () => ({ wait }))
+      commands: {
+        run
       }
-    };
+    } as unknown as SandboxApi;
     await expect(exec(sandbox, '/tmp', 'npm', ['test'])).rejects.toThrow(/command failed/);
-    expect(wait).toHaveBeenCalled();
+    expect(run).toHaveBeenCalled();
   });
 
   it('parses vitest pass/fail state', () => {

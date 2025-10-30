@@ -9,7 +9,7 @@
     "dev": "tsx src/server.ts",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run -c vitest.config.ts"
   },
   "dependencies": {
     "express": "^4.19.2",

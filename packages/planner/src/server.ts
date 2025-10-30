@@ -5,6 +5,7 @@ import { env } from '@autonomous/shared/src/env';
 import { ensureBucket, minio, ARTIFACT_BUCKET } from '@autonomous/shared/src/minioClient';
 import { startOtel } from '@autonomous/shared/src/otel';
 import { getLangfuse } from '@autonomous/shared/src/langfuse';
+import { registerShutdown } from '@autonomous/shared/src/shutdown';
 import { createLogger } from '@autonomous/shared/src/logger';
 
 startOtel('planner');
@@ -155,7 +156,9 @@ app.get('/healthz', async (_req, res) => {
 
 const port = Number(process.env.PLANNER_PORT || 7020);
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     logger.info({ port }, 'planner listening');
   });
+
+  registerShutdown({ server, logger });
 }

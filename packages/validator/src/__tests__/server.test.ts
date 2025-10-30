@@ -53,39 +53,36 @@ const sandboxInstances: MockSandbox[] = [];
 let coveragePct = 95;
 
 class MockSandbox {
-  filesystem = {
-    makeDir: vi.fn(async () => {}),
+  files = {
+    makeDir: vi.fn(async () => true),
     write: vi.fn(async () => {}),
-    read: vi.fn(async (path: string) => {
+    read: vi.fn(async (path: string, opts?: { format?: 'text' | 'bytes' }) => {
       if (path.endsWith('coverage/coverage-summary.json')) {
-        return JSON.stringify({ total: { lines: { pct: coveragePct } } });
+        return opts?.format === 'bytes'
+          ? new TextEncoder().encode(JSON.stringify({ total: { lines: { pct: coveragePct } } }))
+          : JSON.stringify({ total: { lines: { pct: coveragePct } } });
       }
       if (path.endsWith('/index.ts') || path.endsWith('/app.ts') || path.endsWith('/main.ts')) {
-        return 'export const ok = true;';
+        return opts?.format === 'bytes' ? new TextEncoder().encode('export const ok = true;') : 'export const ok = true;';
       }
-      return '';
+      return opts?.format === 'bytes' ? new Uint8Array() : '';
     })
   };
-  process = {
-    start: vi.fn(async () => {
-      return {
-        wait: vi.fn(async () => {
-          const outcome: SandboxProcessOutcome = {
-            exitCode: 0,
-            stdout: JSON.stringify({
-              numTotalTests: 1,
-              numPassedTests: 1,
-              duration: 100,
-              testResults: [{ name: 'passes', status: 'pass', duration: 100 }]
-            }),
-            stderr: ''
-          };
-          return outcome;
-        })
-      };
+  commands = {
+    run: vi.fn(async (cmd: string, _opts?: { args?: string[]; cwd?: string; env?: Record<string,string> }) => {
+      // Simulate vitest JSON output on test run
+      if (cmd === 'npm') {
+        return { exitCode: 0, stdout: JSON.stringify({
+          numTotalTests: 1,
+          numPassedTests: 1,
+          duration: 100,
+          testResults: [{ name: 'passes', status: 'pass', duration: 100 }]
+        }), stderr: '' };
+      }
+      return { exitCode: 0, stdout: '', stderr: '' };
     })
   };
-  close = vi.fn(async () => {});
+  kill = vi.fn(async () => {});
   constructor() {
     sandboxInstances.push(this);
   }
@@ -170,9 +167,7 @@ describe('validator server', () => {
   it('returns structured FAIL when sandbox execution fails', async () => {
     sandboxCtorMock.mockImplementationOnce(() => {
       const instance = new MockSandbox();
-      instance.process.start = vi.fn(async () => ({
-        wait: vi.fn(async () => ({ exitCode: 1, stdout: 'fail', stderr: 'boom' }))
-      }));
+      instance.commands.run = vi.fn(async () => ({ exitCode: 1, stdout: 'fail', stderr: 'boom' }));
       return instance;
     });
     listFilesMock.mockResolvedValueOnce([{ path: 'code/src/app.ts', size: 1, lastModified: new Date() }]);

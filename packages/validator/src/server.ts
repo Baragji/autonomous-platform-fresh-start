@@ -7,6 +7,7 @@ import { createLogger } from '@autonomous/shared/src/logger';
 import { getLangfuse } from '@autonomous/shared/src/langfuse';
 import { publish } from '@autonomous/shared/src/events';
 import { createVfs, type Vfs, type VfsFileEntry } from '@autonomous/shared/src/vfs';
+import { registerShutdown } from '@autonomous/shared/src/shutdown';
 
 startOtel('validator');
 export const app = express();
@@ -25,18 +26,18 @@ const secretRegexes: Array<{ name: string; re: RegExp }> = [
   { name: 'JWT', re: /eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/ }
 ];
 
-// E2B sandbox API (subset)
-type SandboxProcessOutcome = { exitCode: number; stdout: string; stderr: string };
-type SandboxProcess = { wait: (opts?: { timeout?: number }) => Promise<SandboxProcessOutcome> };
+// E2B sandbox API v2 (aligned with Runner)
+type CommandResult = { exitCode: number; stdout: string; stderr: string };
 export type SandboxApi = {
-  filesystem: {
-    makeDir: (path: string, opts?: { recursive?: boolean }) => Promise<void>;
+  files: {
+    makeDir: (path: string, opts?: { recursive?: boolean }) => Promise<boolean>;
     write: (path: string, content: string | Uint8Array) => Promise<void>;
-    read: (path: string) => Promise<string>;
-    listDir?: (path: string) => Promise<{ path: string; isDir: boolean }[]>;
+    read: (path: string, opts?: { format?: 'text' | 'bytes' }) => Promise<string | Uint8Array>;
   };
-  process: { start: (opts: { cmd: string; args?: string[]; cwd?: string; env?: Record<string, string> }) => Promise<SandboxProcess> };
-  close?: () => Promise<void>;
+  commands: {
+    run: (cmd: string, opts?: { args?: string[]; cwd?: string; env?: Record<string, string> }) => Promise<CommandResult>;
+  };
+  kill?: () => Promise<void>;
 };
 
 const ValidationReportSchema = z.object({
@@ -132,9 +133,9 @@ app.post('/validate', async (req: Request, res: Response) => {
   }
 
   const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
-  // Relax types to align with runner usage and avoid SDK constructor typing drift
-  const SandboxCtor = Sandbox as unknown as { new (opts: { apiKey: string }): SandboxApi };
-  const sandbox: SandboxApi = new SandboxCtor({ apiKey });
+  // Bypass constructor type mismatch by deferring type checking to runtime and casting to SandboxApi
+  const SandboxCtor: new (...args: unknown[]) => unknown = Sandbox as unknown as new (...args: unknown[]) => unknown;
+  const sandbox: SandboxApi = new SandboxCtor({ apiKey }) as unknown as SandboxApi;
 
   const prefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/,'');
   const threshold = Number(process.env.VALIDATOR_COVERAGE_THRESHOLD_GLOBAL || 80);
@@ -146,8 +147,8 @@ app.post('/validate', async (req: Request, res: Response) => {
 
   try {
     const projectRoot = '/project';
-    await sandbox.filesystem.makeDir(projectRoot);
-    await sandbox.filesystem.makeDir(`${projectRoot}/src`);
+    await sandbox.files.makeDir(projectRoot);
+    await sandbox.files.makeDir(`${projectRoot}/src`);
 
     // Minimal package.json and tsconfig mirroring Runner expectations
     const pkg = {
@@ -165,14 +166,14 @@ app.post('/validate', async (req: Request, res: Response) => {
       },
       dependencies: { express: '^4.19.2' }
     };
-    await sandbox.filesystem.write(`${projectRoot}/package.json`, JSON.stringify(pkg, null, 2));
+    await sandbox.files.write(`${projectRoot}/package.json`, JSON.stringify(pkg, null, 2));
     const tsconfig = {
       compilerOptions: {
         target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', esModuleInterop: true, strict: true, skipLibCheck: true,
         rootDir: './src', outDir: './dist'
       }, include: ['src']
     };
-    await sandbox.filesystem.write(`${projectRoot}/tsconfig.json`, JSON.stringify(tsconfig, null, 2));
+    await sandbox.files.write(`${projectRoot}/tsconfig.json`, JSON.stringify(tsconfig, null, 2));
 
     // Write code files into sandbox
     for (const f of codeFiles) {
@@ -180,8 +181,8 @@ app.post('/validate', async (req: Request, res: Response) => {
       const rel = f.path.replace(/^code\//, '');
       const dest = `${projectRoot}/src/${rel}`;
       const parent = dest.substring(0, dest.lastIndexOf('/'));
-      if (parent) await sandbox.filesystem.makeDir(parent, { recursive: true });
-      await sandbox.filesystem.write(dest, data.toString('utf8'));
+      if (parent) await sandbox.files.makeDir(parent, { recursive: true });
+      await sandbox.files.write(dest, data.toString('utf8'));
     }
 
     // Install and run tests
@@ -198,11 +199,11 @@ app.post('/validate', async (req: Request, res: Response) => {
 
     // Coverage summary
     const coverageSummaryPath = `${projectRoot}/coverage/coverage-summary.json`;
-    const coverageJson = await sandbox.filesystem.read(coverageSummaryPath).catch(() => null);
+    const coverageJson = await sandbox.files.read(coverageSummaryPath, { format: 'text' }).catch(() => null);
     let coverageSha: string | undefined;
     if (coverageJson) {
       coverageObject = `${prefix}/validator-coverage.json`;
-      const coverageBuffer = Buffer.from(coverageJson, 'utf8');
+      const coverageBuffer = Buffer.from(String(coverageJson), 'utf8');
       coverageSha = sha256(coverageBuffer);
       await vfs.writeFile(coverageObject, coverageBuffer, { contentType: 'application/json', sha256: coverageSha });
     }
@@ -298,7 +299,7 @@ app.post('/validate', async (req: Request, res: Response) => {
       return res.status(500).json({ error: e.message });
     }
   } finally {
-    try { await sandbox.close?.(); } catch {}
+    try { await sandbox.kill?.(); } catch {}
   }
 });
 
@@ -320,14 +321,12 @@ export function buildIssues(secretsCount: number) {
 }
 
 export async function scanForSecrets(sandbox: SandboxApi, root: string): Promise<number> {
-  // If listDir not available, do simple heuristic: scan the files we wrote (src tree) by reading them back is non-trivial without listing.
-  // For now, rely on patterns likely present in code files written. This can be extended when Sandbox supports listing.
+  // If listDir not available, check a few common entry files under src
   let count = 0;
-  // Try some common paths
   const guesses = ['index.ts', 'app.ts', 'main.ts'];
   for (const g of guesses) {
     try {
-      const content = await sandbox.filesystem.read(`${root}/${g}`);
+      const content = await sandbox.files.read(`${root}/${g}`, { format: 'text' }) as string;
       for (const { re } of secretRegexes) {
         if (re.test(content)) count += 1;
       }
@@ -347,14 +346,13 @@ export function parseVitestPassed(stdout: string): boolean {
   }
 }
 
-export async function exec(sandbox: SandboxApi, cwd: string, cmd: string, args: string[]): Promise<SandboxProcessOutcome> {
-  const p: SandboxProcess = await sandbox.process.start({ cmd, args, cwd, env: {} });
-  const outcome: SandboxProcessOutcome = await p.wait({ timeout: 1000 * 60 * 3 });
-  if (outcome.exitCode !== 0) {
-    const tail = (outcome.stdout || '') + '\n' + (outcome.stderr || '');
+export async function exec(sandbox: SandboxApi, cwd: string, cmd: string, args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  const result = await sandbox.commands.run(cmd, { args, cwd, env: {} });
+  if (result.exitCode !== 0) {
+    const tail = (result.stdout || '') + '\n' + (result.stderr || '');
     throw new Error(`command failed: ${cmd} ${args.join(' ')}\n${tail}`);
   }
-  return outcome;
+  return result;
 }
 
 export function sha256(buf: Buffer | string): string {
@@ -386,7 +384,11 @@ export function vitestJsonToJUnit(stdout: string): string {
 const port = Number(process.env.VALIDATOR_PORT || 7050);
 
 export function startServer() {
-  return app.listen(port, () => logger.info({ port }, 'validator listening'));
+  const server = app.listen(port, () => logger.info({ port }, 'validator listening'));
+
+  registerShutdown({ server, logger });
+
+  return server;
 }
 
 if (process.env.NODE_ENV !== 'test') {
