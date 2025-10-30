@@ -56,33 +56,19 @@ export class RunnerAgent {
       return { ok: false, error: 'E2B_API_KEY is not configured' };
     }
   const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
-  // Create a debug sandbox without apiKey to avoid remote API initialization
-  // The debug sandbox has filesystem and commands APIs but doesn't require E2B infrastructure
-  const sandboxObj = await (Sandbox as any).create({ debug: true });
-
-  // CRITICAL FIX: The E2B SDK's Filesystem.makeDir calls authenticationHeader(envdApi.version, ...)
-  // If envdApi.version is undefined, compareVersions throws "Invalid argument expected string".
-  // We manually set a fallback version so downstream SDK methods don't fail.
-  const sandboxMutable = sandboxObj as any;
-  // Always patch envdVersion if missing - this prevents the compareVersions error
-  if (!sandboxMutable.envdVersion) {
-    sandboxMutable.envdVersion = '0.13.0'; // Fallback version for debug sandbox
-    this.logger.info({ envdVersion: sandboxMutable.envdVersion, hadEnvdApi: Boolean(sandboxMutable.envdApi) }, 'PATCHED envdVersion (was undefined)');
-  } else {
-    this.logger.info({ envdVersion: sandboxMutable.envdVersion }, 'envdVersion already set');
-  }
-
+  // Create real E2B sandbox using the API key
+  // The SDK handles full RPC communication for filesystem and command execution
+  const sandboxObj = await (Sandbox as any).create({ apiKey });
   const sandbox: SandboxApi = sandboxObj as unknown as SandboxApi;
 
   // Log sandbox metadata for observability
   try {
     const meta: any = sandboxObj;
     this.logger.info({
-      hasEnvdApi: Boolean(meta.envdApi),
-      envdVersion: meta.envdVersion,
       sandboxId: meta.sandboxId,
-      debugMode: Boolean(meta.debug)
-    }, 'sandbox created and ready');
+      envdVersion: meta.envdVersion,
+      hasEnvdApi: Boolean(meta.envdApi)
+    }, 'E2B sandbox created successfully');
   } catch (e) {
     this.logger.error({ err: (e as Error).message }, 'failed to read sandbox metadata');
   }
