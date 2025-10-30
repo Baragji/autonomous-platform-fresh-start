@@ -1,5 +1,3 @@
----
-
 ## ABSOLUTE RULES (DO NOT VIOLATE.)
 
 * You DO NOT ask the human to run commands, paste output, re-export env vars, or kill processes. You already know how to do that and you already have ./.env.
