@@ -6,6 +6,7 @@
   - Produces human-readable logs while retaining machine-parseable traces (.ndjson)
 */
 import { spawn, spawnSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
@@ -127,6 +128,25 @@ async function uiUp() {
     }
   } catch {}
   log('INFO', 'ui: starting dev server on :4000');
+  // If another process is already listening on :4000, attempt a graceful shutdown
+  try {
+    const pid = findPidListeningOnPort(4000);
+    if (pid && pid !== process.pid) {
+      log('WARN', 'ui: port 4000 is already in use; attempting to stop existing process', { pid });
+      try {
+        process.kill(pid, 'SIGINT');
+        // give it a moment to exit
+        await new Promise((r) => setTimeout(r, 800));
+        const still = findPidListeningOnPort(4000);
+        if (still) log('WARN', 'ui: existing process did not exit', { pid: still });
+        else log('INFO', 'ui: previous process stopped', { pid });
+      } catch (e) {
+        log('WARN', 'ui: failed to stop existing process', { pid, err: String(e) });
+      }
+    }
+  } catch (e) {
+    log('WARN', 'ui: could not check existing process on port 4000', { err: String(e) });
+  }
   const uiEnv = { ...process.env, UI_BACKEND_MODE: 'live', UI_GATEWAY_BASE: process.env.UI_GATEWAY_BASE || 'http://localhost:3030', UI_EVIDENCE_DIR: '../../.automation/evidence' };
   run('npm', ['-w', 'apps/web', 'run', 'dev'], { env: uiEnv });
   // Wait up to 30s
@@ -137,6 +157,19 @@ async function uiUp() {
     await sleep(1000);
   }
   throw new Error('UI did not become ready on :4000');
+}
+
+function findPidListeningOnPort(port: number): number | null {
+  try {
+    // Use lsof to find the listener PID; compatible with macOS/Linux
+    const out = execSync(`lsof -nP -iTCP:${port} -sTCP:LISTEN -Fp`, { encoding: 'utf8' }).trim();
+    // lsof with -Fp prints lines like 'p12345' for PID entries
+    const m = out.match(/p(\d+)/);
+    if (m) return parseInt(m[1], 10);
+    return null;
+  } catch (err) {
+    return null;
+  }
 }
 
 async function captureUiEvidence() {

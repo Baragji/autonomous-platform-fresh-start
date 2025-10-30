@@ -189,8 +189,11 @@ app.post('/start', async (req: Request, res: Response) => {
   await upsertExecution(execId, 'planning', intent, 'mca');
   await publish(execId, 'status', { status: 'planning' });
   try {
-    const opts: Record<string, unknown> = { configurable: { thread_id: execId } } as unknown as Record<string, unknown>;
-    logger.info({ execId, intent }, 'invoking graph');
+    const opts: Record<string, unknown> = {
+      configurable: { thread_id: execId },
+      recursionLimit: 100  // Allow up to 100 iterations before hitting limit (was 25)
+    } as unknown as Record<string, unknown>;
+    logger.info({ execId, intent, recursionLimit: 100 }, 'invoking graph');
     await (graph as unknown as { invoke: (st: McaState, o?: Record<string, unknown>) => Promise<unknown> }).invoke({ execId, intent }, opts);
     logger.info({ execId }, 'graph invoke completed');
   } catch (e) {

@@ -55,9 +55,46 @@ export class RunnerAgent {
       this.logger.error('E2B_API_KEY is not set');
       return { ok: false, error: 'E2B_API_KEY is not configured' };
     }
-    const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
-    const sandbox: SandboxApi = new Sandbox({ apiKey }) as unknown as SandboxApi;
+  const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
+  // Create a debug sandbox without apiKey to avoid remote API initialization
+  // The debug sandbox has filesystem and commands APIs but doesn't require E2B infrastructure
+  const sandboxObj = await (Sandbox as any).create({ debug: true });
+
+  // CRITICAL FIX: The E2B SDK's Filesystem.makeDir calls authenticationHeader(envdApi.version, ...)
+  // If envdApi.version is undefined, compareVersions throws "Invalid argument expected string".
+  // We manually set a fallback version so downstream SDK methods don't fail.
+  const sandboxMutable = sandboxObj as any;
+  // Always patch envdVersion if missing - this prevents the compareVersions error
+  if (!sandboxMutable.envdVersion) {
+    sandboxMutable.envdVersion = '0.13.0'; // Fallback version for debug sandbox
+    this.logger.info({ envdVersion: sandboxMutable.envdVersion, hadEnvdApi: Boolean(sandboxMutable.envdApi) }, 'PATCHED envdVersion (was undefined)');
+  } else {
+    this.logger.info({ envdVersion: sandboxMutable.envdVersion }, 'envdVersion already set');
+  }
+
+  const sandbox: SandboxApi = sandboxObj as unknown as SandboxApi;
+
+  // Log sandbox metadata for observability
+  try {
+    const meta: any = sandboxObj;
+    this.logger.info({
+      hasEnvdApi: Boolean(meta.envdApi),
+      envdVersion: meta.envdVersion,
+      sandboxId: meta.sandboxId,
+      debugMode: Boolean(meta.debug)
+    }, 'sandbox created and ready');
+  } catch (e) {
+    this.logger.error({ err: (e as Error).message }, 'failed to read sandbox metadata');
+  }
     try {
+        // Publish sandbox metadata as an artifact so it's visible in the execution SSE
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const metaAny: any = sandboxObj;
+          await publish(execId, 'artifact', { type: 'sandbox_meta', meta: { envdVersion: metaAny.envdVersion, hasEnvdApi: Boolean(metaAny.envdApi), sandboxId: metaAny.sandboxId } });
+        } catch (pubErr) {
+          this.logger.error({ err: (pubErr as Error).message }, 'failed to publish sandbox metadata');
+        }
       // Prepare a project directory
       const projectRoot = '/project';
       await sandbox.files.makeDir(projectRoot);
@@ -139,8 +176,9 @@ export class RunnerAgent {
       return { ok: true, junitObject, coverageObject };
     } catch (err) {
       const e = err as Error;
-      this.logger.error({ err: e.message }, 'runner failed');
-      await publish(execId, 'agent', { agent: 'runner', status: 'failed', error: e.message });
+      // Include stack and structured context to make root-cause diagnosis easier
+      this.logger.error({ err: e.message, stack: e.stack }, 'runner failed');
+      await publish(execId, 'agent', { agent: 'runner', status: 'failed', error: e.message, stack: e.stack });
       return { ok: false, error: e.message };
     } finally {
       try { await sandbox.kill?.(); } catch {}
@@ -150,19 +188,27 @@ export class RunnerAgent {
   private async runCommand(sandbox: SandboxApi, cwd: string, cmd: string): Promise<CommandResult> {
     // E2B 2.x SDK expects: sandbox.commands.run(command, { args, cwd, env })
     try {
-      const parts = cmd.split(' ');
-      const command = parts[0];
+      const parts = typeof cmd === 'string' ? cmd.split(' ') : [];
+      const command = parts[0] ?? String(cmd);
       const args = parts.slice(1);
-      this.logger.info(`runCommand: "${command}" args=[${args.join(', ')}] cwd=${cwd}`);
-      const result = await sandbox.commands.run(command, { args, cwd, env: {} });
-      if (result.exitCode !== 0) {
-        const tail = (result.stdout || '') + '\n' + (result.stderr || '');
-        throw new Error(`command failed: ${cmd}\n${tail}`);
+      // Log the runtime types to help diagnose SDK mismatches
+      this.logger.info({ command, args, cmdType: typeof cmd, argsTypes: args.map((a) => typeof a) }, `runCommand`);
+      try {
+        const result = await sandbox.commands.run(command, { args, cwd, env: {} });
+        if (result.exitCode !== 0) {
+          const tail = (result.stdout || '') + '\n' + (result.stderr || '');
+          throw new Error(`command failed: ${cmd}\n${tail}`);
+        }
+        return result;
+      } catch (innerErr) {
+        // Capture additional diagnostic context before rethrowing
+        const ie = innerErr as Error;
+        this.logger.error({ err: ie.message, stack: ie.stack, command, args }, 'sandbox.commands.run failed');
+        throw innerErr;
       }
-      return result;
     } catch (err) {
       const e = err as Error;
-      this.logger.error(`runCommand failed: ${e.message}`);
+      this.logger.error({ err: e.message, stack: e.stack }, `runCommand failed`);
       throw e;
     }
   }

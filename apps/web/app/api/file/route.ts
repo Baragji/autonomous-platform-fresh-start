@@ -16,7 +16,11 @@ async function loadSharedVfs() {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const mod = require(p) as { createVfs: (execId: string, opts?: { prefixSuffix?: string }) => Promise<{ readFile: (p: string) => Promise<Buffer> }> };
       return mod;
-    } catch {}
+    } catch (err) {
+      const e = err as Error;
+      // Log candidate-specific diagnostic so callers can surface why VFS load failed
+      console.debug({ candidate: p, err: e.message }, 'shared vfs candidate not accessible');
+    }
   }
   throw new Error('shared dist not found; build shared first');
 }
@@ -57,7 +61,7 @@ export async function GET(req: NextRequest) {
     const root = path.resolve(process.cwd(), evRoot);
 
     // Basic traversal rejection on user input
-    const normalized = path.posix.normalize(filePath.replaceAll('\\', '/'));
+  const normalized = path.posix.normalize(filePath.replace(/\\\\/g, '/'));
     if (normalized.includes('..')) {
       return Response.json({ error: 'invalid path' }, { status: 400 });
     }

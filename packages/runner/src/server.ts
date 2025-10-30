@@ -10,7 +10,7 @@ function logStartupError(message: string, e: unknown) {
 }
 
 // Initialize async services on startup
-let logger: { info: Function; error: Function } = { info: () => {}, error: () => {} };
+let logger: { info: (...args: unknown[]) => unknown; error: (...args: unknown[]) => unknown } = { info: () => {}, error: () => {} };
 (async () => {
   try {
     await startOtel('runner');
@@ -18,7 +18,8 @@ let logger: { info: Function; error: Function } = { info: () => {}, error: () =>
     logStartupError('Failed to start OTel:', e);
   }
   try {
-    logger = await createLogger('runner');
+    // createLogger may return a logger shaped with generic Function types; cast to the explicit signature
+    logger = (await createLogger('runner')) as unknown as { info: (...args: unknown[]) => unknown; error: (...args: unknown[]) => unknown };
   } catch (e) {
     logStartupError('Failed to create logger:', e);
   }

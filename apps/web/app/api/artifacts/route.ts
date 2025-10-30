@@ -22,7 +22,12 @@ export async function GET() {
       const st = await fs.stat(full);
       if (st.isFile()) entries.push({ path: f, size: st.size });
     }
-  } catch {}
+  } catch (err) {
+    const e = err as Error;
+    // Surface directory listing errors to the caller and log for diagnostics
+    console.error({ err: e.message, dir }, 'failed to list evidence directory');
+    return Response.json({ error: e.message }, { status: 502 });
+  }
   return Response.json({ entries });
 }
 
@@ -38,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   for (const p of paths) {
     try {
-      const normalized = path.posix.normalize(String(p).replaceAll('\\', '/'));
+  const normalized = path.posix.normalize(String(p).replace(/\\\\/g, '/'));
       if (normalized.includes('..')) {
         continue; // skip unsafe
       }
@@ -48,7 +53,13 @@ export async function POST(req: NextRequest) {
       }
       const buf = await fs.readFile(full);
       zip.file(normalized, buf);
-    } catch {}
+    } catch (err) {
+      const e = err as Error;
+      // Log read failure and collect details so we can return an error instead of silently succeeding
+      console.error({ err: e.message, path: p }, 'failed to read artifact file');
+      // Return an error to the caller rather than producing a partial archive
+      return Response.json({ error: `failed to read ${String(p)}: ${e.message}` }, { status: 502 });
+    }
   }
   const buf = await zip.generateAsync({ type: 'nodebuffer' });
   const stream = new ReadableStream<Uint8Array>({

@@ -7,21 +7,37 @@ export async function GET(req: NextRequest) {
   const sessionId = searchParams.get('sessionId') || '';
   const mode = process.env.UI_BACKEND_MODE || 'evidence';
 
+  // Basic validation: sessionId is required for live proxying
+  if (!sessionId) {
+    return Response.json({ error: 'sessionId is required' }, { status: 400 });
+  }
+
   if (mode === 'live') {
     const base = process.env.UI_GATEWAY_BASE || 'http://localhost:3030';
     const url = `${base}/api/executions/${encodeURIComponent(sessionId)}/stream`;
     const upstream = await fetch(url, { headers: { Accept: 'text/event-stream' } });
+    if (!upstream.ok) {
+      console.error({ status: upstream.status, url }, 'upstream returned non-ok status');
+      return Response.json({ error: `upstream responded ${upstream.status}` }, { status: 502 });
+    }
+    if (!upstream.body) {
+      console.error({ url }, 'upstream response has no body');
+      return Response.json({ error: 'upstream response missing body' }, { status: 502 });
+    }
     const transform = new ReadableStream({
       start(controller) {
         (async () => {
-          const reader = upstream.body!.getReader();
+          const reader = upstream.body.getReader();
           for (;;) {
             const { value, done } = await reader.read();
             if (done) break;
             controller.enqueue(value!);
           }
           controller.close();
-        })().catch(() => controller.close());
+        })().catch((err) => {
+          console.error({ err }, 'error proxying upstream stream');
+          controller.close();
+        });
       }
     });
     return new Response(transform, {

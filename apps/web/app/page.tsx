@@ -1,13 +1,13 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 
 export default function Page() {
   const r = useRouter();
   const [intent, setIntent] = useState('Build a TODO API with CRUD and tests');
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
