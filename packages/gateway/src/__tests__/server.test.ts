@@ -136,6 +136,35 @@ describe('gateway server', () => {
     expect(res.end).toHaveBeenCalled();
   });
 
+  it('reports SSE error and closes when subscription fails', async () => {
+    const writes: string[] = [];
+    subscribe.mockRejectedValueOnce(new Error('subscribe failed'));
+
+    const stack = (app as unknown as { _router: { stack: Array<{ route?: { path: string; stack: Array<{ handle: unknown }> } }> } })._router.stack;
+    const layer = stack.find((l) => l.route?.path === '/api/executions/:id/stream');
+    expect(layer).toBeDefined();
+    const handler = layer!.route!.stack[0].handle as (req: Request, res: Response) => Promise<void>;
+
+    const req = new EventEmitter() as Request & { params: Record<string, string> };
+    req.params = { id: 'exec-err' };
+
+    const res = {
+      setHeader: vi.fn(),
+      flushHeaders: vi.fn(),
+      write: vi.fn((chunk: string) => {
+        writes.push(chunk);
+      }),
+      end: vi.fn()
+    } as unknown as Response;
+
+    await handler(req, res);
+
+    const output = writes.join('');
+    expect(output).toContain('event: error');
+    expect(output).toContain('data: {"reason":"subscribe_failed"}');
+    expect(res.end).toHaveBeenCalled();
+  });
+
   it('exposes healthz endpoint', async () => {
     const res = await request(app).get('/healthz');
     expect(res.status).toBe(200);

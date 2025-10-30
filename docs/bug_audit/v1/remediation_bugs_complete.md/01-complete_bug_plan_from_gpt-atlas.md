@@ -53,7 +53,9 @@ Awesome—let’s lock this down like we actually own the repo and need it produ
 
 ---
 
-## BUG 1 — Redis error handling missing
+## FIXED 
+## FIXED ## BUG 1 — Redis error handling missing
+
 
 ```
 # TASK TITLE: Add Redis error handling + graceful backoff
@@ -91,6 +93,7 @@ Awesome—let’s lock this down like we actually own the repo and need it produ
 
 ---
 
+## FIXED 
 ## BUG 2 — Typecheck fails (missing `playwright`)
 
 ```
@@ -127,6 +130,7 @@ Awesome—let’s lock this down like we actually own the repo and need it produ
 
 ---
 
+## FIXED 
 ## BUG 3 — Runner ESLint violations (`any`, `console.log`)
 
 ```
@@ -161,6 +165,7 @@ Awesome—let’s lock this down like we actually own the repo and need it produ
 
 ---
 
+## FIXED 
 ## BUG 4 — EADDRINUSE on rapid restarts
 
 ```
@@ -194,6 +199,7 @@ Awesome—let’s lock this down like we actually own the repo and need it produ
 
 ---
 
+## FIXED 
 ## BUG 5 — Runner test fails (E2B API shape mismatch)
 
 ```
@@ -230,6 +236,7 @@ Awesome—let’s lock this down like we actually own the repo and need it produ
 
 ---
 
+## FIXED 
 ## BUG 6 — ESLint v9: `.eslintignore` deprecation
 
 ```
@@ -265,6 +272,7 @@ Awesome—let’s lock this down like we actually own the repo and need it produ
 
 ---
 
+## FIXED 
 ## BUG 7 — Validator uses E2B v1 shape
 
 ```
@@ -300,6 +308,7 @@ Awesome—let’s lock this down like we actually own the repo and need it produ
 
 ---
 
+## FIXED 
 ## BUG 8 — Inter-service calls have no timeouts
 
 ```
@@ -336,6 +345,7 @@ Awesome—let’s lock this down like we actually own the repo and need it produ
 
 ---
 
+## FIXED 
 ## BUG 9 — Missing graceful shutdown across services
 
 ```
@@ -367,6 +377,7 @@ Awesome—let’s lock this down like we actually own the repo and need it produ
 
 ---
 
+## FIXED 
 ## BUG 10 — SSE subscribes without error handling
 
 ```

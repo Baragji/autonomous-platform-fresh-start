@@ -55,15 +55,35 @@ export async function publish(execId: string, event: string, data: unknown) {
   }
 }
 
-export async function subscribe(execId: string, onMessage: (msg: SSEMessage) => void) {
+export async function subscribe(
+  execId: string,
+  onMessage: (msg: SSEMessage) => void,
+  onError?: (err: unknown) => void
+) {
   const ch = execChannel(execId);
+  // Attach an error forwarder specific to this subscription lifecycle
+  const errorHandler = (err: unknown) => {
+    if (onError) {
+      try {
+        onError(err);
+      } catch (e) {
+        // Avoid throwing from event handlers; just log
+        log.debug({ err: e }, 'onError handler threw');
+      }
+    }
+  };
+  redisSub.on('error', errorHandler);
+
   try {
     await redisSub.subscribe(ch);
   } catch (err) {
     log.warn({ err, execId, channel: ch }, 'Failed to subscribe to channel');
-    throw err; // do not silently swallow subscribe errors
+    // Remove error handler since subscribe failed and we won't keep the sub
+    redisSub.removeListener('error', errorHandler);
+    throw err; // propagate to caller
   }
-  const handler = (channel: string, message: string) => {
+
+  const messageHandler = (channel: string, message: string) => {
     if (channel === ch) {
       try {
         onMessage(JSON.parse(message) as SSEMessage);
@@ -73,9 +93,11 @@ export async function subscribe(execId: string, onMessage: (msg: SSEMessage) => 
       }
     }
   };
-  redisSub.on('message', handler);
+  redisSub.on('message', messageHandler);
+
   return () => {
-    redisSub.removeListener('message', handler);
+    redisSub.removeListener('message', messageHandler);
+    redisSub.removeListener('error', errorHandler);
     // best-effort; caller does not await
     void redisSub.unsubscribe(ch);
   };

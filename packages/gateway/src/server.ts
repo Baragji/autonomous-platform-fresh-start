@@ -51,10 +51,29 @@ app.get('/api/executions/:id/stream', async (req: Request, res: Response) => {
     res.write(`: keep-alive ${Date.now()}\n\n`);
   }, 15000);
 
-  const unsub = await subscribe(id, (msg) => {
-    res.write(`event: ${msg.event}\n`);
-    res.write(`data: ${JSON.stringify(msg.data)}\n\n`);
-  });
+  let unsub: () => void = () => {};
+  try {
+    unsub = await subscribe(
+      id,
+      (msg) => {
+        res.write(`event: ${msg.event}\n`);
+        res.write(`data: ${JSON.stringify(msg.data)}\n\n`);
+      },
+      (_err) => {
+        // If the subscriber emits an error after initial connection, report and close
+        res.write('event: error\n');
+        res.write('data: {"reason":"subscribe_failed"}\n\n');
+        res.end();
+      }
+    );
+  } catch (_err) {
+    // Initial subscribe failed; inform client and close
+    res.write('event: error\n');
+    res.write('data: {"reason":"subscribe_failed"}\n\n');
+    clearInterval(heartbeat);
+    res.end();
+    return; // do not attach close handler
+  }
 
   req.on('close', () => {
     unsub();
