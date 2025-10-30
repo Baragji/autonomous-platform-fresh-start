@@ -141,6 +141,29 @@ jobs:
           bash scripts/attest-evidence.sh
           cp .automation/evidence/ATTACHMENT_MANIFEST.json .automation/evidence/ATTACHMENT_MANIFEST.ci.json
 
+      - name: Secrets | Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --verbose --redact --source=.
+
+      - name: Web | Start (dev)
+        run: |
+          nohup npm --prefix apps/web run dev >/tmp/web.log 2>&1 &
+          for i in {1..60}; do
+            (echo > /dev/tcp/127.0.0.1/4000) >/dev/null 2>&1 && break
+            echo "Waiting for web on 4000... ($i/60)"; sleep 1
+          done
+
+      - name: UI | Playwright (headless)
+        run: |
+          npx playwright install --with-deps chromium
+          npm --prefix apps/web run test:e2e
+
+      - name: Supply Chain | Generate SBOM (CycloneDX)
+        run: |
+          mkdir -p .automation/evidence
+          npx -y @cyclonedx/cyclonedx-npm --output-file .automation/evidence/sbom.json --omit dev
+
       - name: Evidence | Ban narrative prose
         run: |
           set -e

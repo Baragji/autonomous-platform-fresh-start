@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    // Keep UI builds focused; lint in CI at root
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     serverActions: { bodySizeLimit: '4mb' }
   },
@@ -11,4 +15,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-

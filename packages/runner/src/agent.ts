@@ -17,16 +17,18 @@ export type RunResult = {
   error?: string;
 };
 
-type SandboxProcessOutcome = { exitCode: number; stdout: string; stderr: string };
-type SandboxProcess = { wait: (opts?: { timeout?: number }) => Promise<SandboxProcessOutcome> };
+// E2B SDK types (simplified for our usage)
+type CommandResult = { exitCode: number; stdout: string; stderr: string };
 type SandboxApi = {
-  filesystem: {
-    makeDir: (path: string, opts?: { recursive?: boolean }) => Promise<void>;
+  files: {
+    makeDir: (path: string, opts?: { recursive?: boolean }) => Promise<boolean>;
     write: (path: string, content: string | Uint8Array) => Promise<void>;
-    read: (path: string) => Promise<string>;
+    read: (path: string, opts?: { format?: 'text' | 'bytes' }) => Promise<string | Uint8Array>;
   };
-  process: { start: (opts: { cmd: string; args?: string[]; cwd?: string; env?: Record<string, string> }) => Promise<SandboxProcess> };
-  close?: () => Promise<void>;
+  commands: {
+    run: (cmd: string, opts?: { args?: string[]; cwd?: string; env?: Record<string, string> }) => Promise<CommandResult>;
+  };
+  kill?: () => Promise<void>;
 };
 
 type VitestTestCase = { name?: string; testFilePath?: string; status?: string; duration?: number; error?: { message?: string } };
@@ -58,8 +60,8 @@ export class RunnerAgent {
     try {
       // Prepare a project directory
       const projectRoot = '/project';
-      await sandbox.filesystem.makeDir(projectRoot);
-      await sandbox.filesystem.makeDir(`${projectRoot}/src`);
+      await sandbox.files.makeDir(projectRoot);
+      await sandbox.files.makeDir(`${projectRoot}/src`);
 
       // Write minimal project files
       const pkg = {
@@ -81,7 +83,7 @@ export class RunnerAgent {
           express: '^4.19.2'
         }
       };
-      await sandbox.filesystem.write(`${projectRoot}/package.json`, JSON.stringify(pkg, null, 2));
+      await sandbox.files.write(`${projectRoot}/package.json`, JSON.stringify(pkg, null, 2));
       const tsconfig = {
         compilerOptions: {
           target: 'ES2022',
@@ -95,7 +97,7 @@ export class RunnerAgent {
         },
         include: ['src']
       };
-      await sandbox.filesystem.write(`${projectRoot}/tsconfig.json`, JSON.stringify(tsconfig, null, 2));
+      await sandbox.files.write(`${projectRoot}/tsconfig.json`, JSON.stringify(tsconfig, null, 2));
 
       // Write code files (strip leading 'code/' prefix)
       for (const f of codeFiles) {
@@ -103,28 +105,30 @@ export class RunnerAgent {
         const rel = f.path.replace(/^code\//, '');
         const dest = `${projectRoot}/src/${rel}`;
         const parent = dest.substring(0, dest.lastIndexOf('/'));
-        if (parent) await sandbox.filesystem.makeDir(parent, { recursive: true });
-        await sandbox.filesystem.write(dest, data.toString('utf8'));
+        if (parent) await sandbox.files.makeDir(parent, { recursive: true });
+        await sandbox.files.write(dest, data.toString('utf8'));
       }
 
       // Install deps
-      await this.exec(sandbox, projectRoot, 'npm', ['install', '--silent']);
+      await this.runCommand(sandbox, projectRoot, 'npm install --silent');
       // Run tests and capture JSON reporter output
-      const { stdout } = await this.exec(sandbox, projectRoot, 'npm', ['run', 'test', '--silent']);
+      const testResult = await this.runCommand(sandbox, projectRoot, 'npm run test --silent');
 
       // Save raw JSON reporter to MinIO for audit
       const vitestJsonObject = `runner/vitest-results.json`;
-      await vfs.writeFile(vitestJsonObject, stdout);
+      await vfs.writeFile(vitestJsonObject, testResult.stdout);
 
       // Convert to JUnit XML (simple adapter: one testsuite)
-      const junitXml = this.vitestJsonToJUnit(stdout);
+      const junitXml = this.vitestJsonToJUnit(testResult.stdout);
       const junitObject = `runner/junit.xml`;
       await vfs.writeFile(junitObject, junitXml, { contentType: 'application/xml' });
 
       // Read coverage summary from sandbox
       const coverageSummaryPath = `${projectRoot}/coverage/coverage-summary.json`;
-      const coverageJson = await sandbox.filesystem.read(coverageSummaryPath).catch(() => null);
-      if (!coverageJson) {
+      let coverageJson: string;
+      try {
+        coverageJson = await sandbox.files.read(coverageSummaryPath, { format: 'text' }) as string;
+      } catch (e) {
         return { ok: false, error: 'coverage summary not found' };
       }
       const coverageObject = `runner/coverage-summary.json`;
@@ -139,18 +143,28 @@ export class RunnerAgent {
       await publish(execId, 'agent', { agent: 'runner', status: 'failed', error: e.message });
       return { ok: false, error: e.message };
     } finally {
-      try { await sandbox.close?.(); } catch {}
+      try { await sandbox.kill?.(); } catch {}
     }
   }
 
-  private async exec(sandbox: SandboxApi, cwd: string, cmd: string, args: string[]): Promise<SandboxProcessOutcome> {
-    const p: SandboxProcess = await sandbox.process.start({ cmd, args, cwd, env: {} });
-    const outcome: SandboxProcessOutcome = await p.wait({ timeout: 1000 * 60 * 3 });
-    if (outcome.exitCode !== 0) {
-      const tail = (outcome.stdout || '') + '\n' + (outcome.stderr || '');
-      throw new Error(`command failed: ${cmd} ${args.join(' ')}\n${tail}`);
+  private async runCommand(sandbox: SandboxApi, cwd: string, cmd: string): Promise<CommandResult> {
+    // E2B 2.x SDK expects: sandbox.commands.run(command, { args, cwd, env })
+    try {
+      const parts = cmd.split(' ');
+      const command = parts[0];
+      const args = parts.slice(1);
+      this.logger.info(`runCommand: "${command}" args=[${args.join(', ')}] cwd=${cwd}`);
+      const result = await sandbox.commands.run(command, { args, cwd, env: {} });
+      if (result.exitCode !== 0) {
+        const tail = (result.stdout || '') + '\n' + (result.stderr || '');
+        throw new Error(`command failed: ${cmd}\n${tail}`);
+      }
+      return result;
+    } catch (err) {
+      const e = err as Error;
+      this.logger.error(`runCommand failed: ${e.message}`);
+      throw e;
     }
-    return outcome;
   }
 
   private vitestJsonToJUnit(stdout: string): string {

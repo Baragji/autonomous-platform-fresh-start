@@ -10,6 +10,8 @@ coverage/
 # Production
 dist/
 build/
+.next/
+apps/web/.next/
 
 # Environment
 .env

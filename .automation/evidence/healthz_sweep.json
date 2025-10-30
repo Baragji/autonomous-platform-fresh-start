@@ -4,77 +4,32 @@
     {
       "service": "gateway",
       "url": "http://localhost:3030/healthz",
-      "status": 200,
-      "body": {
-        "ok": true,
-        "checks": {
-          "db": true,
-          "redisPub": true,
-          "redisSub": true
-        }
-      }
+      "error": "fetch failed"
     },
     {
       "service": "mca",
       "url": "http://localhost:7010/healthz",
-      "status": 200,
-      "body": {
-        "ok": true,
-        "checks": {
-          "db": true,
-          "redisPub": true,
-          "redisSub": true,
-          "minio": true
-        }
-      }
+      "error": "fetch failed"
     },
     {
       "service": "planner",
       "url": "http://localhost:7020/healthz",
-      "status": 200,
-      "body": {
-        "ok": true,
-        "checks": {
-          "minio": true,
-          "openaiKey": true
-        }
-      }
+      "error": "fetch failed"
     },
     {
       "service": "implementer",
       "url": "http://localhost:7030/healthz",
-      "status": 200,
-      "body": {
-        "ok": true,
-        "checks": {
-          "minio": true,
-          "openaiKey": true
-        }
-      }
+      "error": "fetch failed"
     },
     {
       "service": "runner",
       "url": "http://localhost:7040/healthz",
-      "status": 200,
-      "body": {
-        "ok": true,
-        "checks": {
-          "vfs": true,
-          "e2bKey": true
-        }
-      }
+      "error": "fetch failed"
     },
     {
       "service": "validator",
       "url": "http://localhost:7050/healthz",
-      "status": 200,
-      "body": {
-        "ok": true,
-        "checks": {
-          "vfs": true,
-          "e2bKey": true
-        }
-      }
+      "error": "fetch failed"
     }
   ]
 }

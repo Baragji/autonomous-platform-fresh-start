@@ -16,30 +16,71 @@ export default function SessionPage() {
   const [phase, setPhase] = useState<string>('starting');
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [active, setActive] = useState<string>('');
+  const [loadingFile, setLoadingFile] = useState<boolean>(false);
   const logRef = useRef<HTMLDivElement>(null);
+  const terminalRef = useRef<boolean>(false);
 
   useEffect(() => {
     const src = new EventSource(`/api/stream?sessionId=${encodeURIComponent(sessionId)}`);
-    src.onmessage = (ev) => {
+    const handleMessage = (ev: MessageEvent) => {
       try {
         const payload = JSON.parse(ev.data);
         setEvents((prev) => [...prev, { type: 'message', data: payload }]);
-        if (payload?.status) setPhase(payload.status);
-        if (payload?.file) {
-          // Simplified: push file with content if provided
+        if (payload?.status) {
+          setPhase(payload.status);
+          if (['validated','needs_remediation','failed'].includes(String(payload.status))) terminalRef.current = true;
+        }
+      } catch {}
+    };
+    const handleStatus = (ev: MessageEvent) => {
+      try {
+        const payload = JSON.parse(ev.data);
+        setEvents((prev) => [...prev, { type: 'status', data: payload }]);
+        if (payload?.status) {
+          setPhase(payload.status);
+          if (['validated','needs_remediation','failed'].includes(String(payload.status))) terminalRef.current = true;
+        }
+      } catch {}
+    };
+    const handleAgent = (ev: MessageEvent) => {
+      try { setEvents((prev) => [...prev, { type: 'agent', data: JSON.parse(ev.data) }]); } catch {}
+    };
+    const handleArtifact = (ev: MessageEvent) => {
+      try {
+        const payload = JSON.parse(ev.data);
+        setEvents((prev) => [...prev, { type: 'artifact', data: payload }]);
+        if (payload?.type === 'code' && Array.isArray(payload.files)) {
           setFiles((prev) => {
-            const existing = prev.find((f) => f.path === payload.file.path);
-            if (existing) return prev.map((f) => (f.path === payload.file.path ? { ...f, ...payload.file } : f));
-            return [...prev, payload.file as FileEntry];
+            const set = new Map(prev.map((f) => [f.path, f] as const));
+            for (const p of payload.files as string[]) {
+              if (!set.has(p)) set.set(p, { path: p });
+            }
+            return Array.from(set.values());
           });
         }
       } catch {}
     };
-    src.onerror = () => {
-      setEvents((prev) => [...prev, { type: 'error', data: 'stream error' }]);
+    const handleError = () => {
+      if (!terminalRef.current) {
+        setEvents((prev) => [...prev, { type: 'error', data: 'stream error' }]);
+      } else {
+        setEvents((prev) => [...prev, { type: 'message', data: { status: 'complete' } }]);
+      }
       src.close();
     };
-    return () => src.close();
+
+    src.onmessage = handleMessage;
+    src.addEventListener('status', handleStatus);
+    src.addEventListener('agent', handleAgent);
+    src.addEventListener('artifact', handleArtifact);
+    src.onerror = handleError;
+
+    return () => {
+      src.removeEventListener('status', handleStatus);
+      src.removeEventListener('agent', handleAgent);
+      src.removeEventListener('artifact', handleArtifact);
+      src.close();
+    };
   }, [sessionId]);
 
   useEffect(() => {
@@ -48,6 +89,27 @@ export default function SessionPage() {
   }, [events.length]);
 
   const activeContent = useMemo(() => files.find((f) => f.path === active)?.content || '', [files, active]);
+
+  // Fetch file content when active changes (live or evidence via /api/file)
+  useEffect(() => {
+    const fetchContent = async () => {
+      if (!active) return;
+      setLoadingFile(true);
+      try {
+        const res = await fetch(`/api/file?sessionId=${encodeURIComponent(sessionId)}&path=${encodeURIComponent(active)}`);
+        if (res.ok) {
+          const text = await res.text();
+          setFiles((prev) => prev.map((f) => (f.path === active ? { ...f, content: text } : f)));
+        }
+      } catch {
+        // swallow
+      } finally {
+        setLoadingFile(false);
+      }
+    };
+    fetchContent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, sessionId]);
 
   return (
     <main className="grid grid-cols-12 gap-4">
@@ -82,7 +144,10 @@ export default function SessionPage() {
         <div className="card min-h-[420px]">
           <div className="card-header">Editor {active ? `— ${active}` : ''}</div>
           <div className="card-body">
-            <div className="h-[360px] border border-neutral-800 rounded">
+            <div className="h-[360px] border border-neutral-800 rounded relative">
+              {loadingFile && (
+                <div className="absolute inset-0 flex items-center justify-center text-sm opacity-70">Loading…</div>
+              )}
               <Monaco height="100%" language={getLanguage(active)} theme="vs-dark" value={activeContent} options={{ readOnly: true, wordWrap: 'on' }} />
             </div>
           </div>
@@ -108,4 +173,3 @@ function getLanguage(path: string) {
   if (path.endsWith('.yml') || path.endsWith('.yaml')) return 'yaml';
   return 'plaintext';
 }
-

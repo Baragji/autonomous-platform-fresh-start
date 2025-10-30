@@ -18,13 +18,8 @@
       "@autonomous/vfs/*": ["./packages/vfs/src/*"]
     }
   },
-  "include": [
-    "packages/*/src/**/*.ts",
-    "scripts/**/*.ts",
-    "scripts/**/*.mts",
-    "scripts/**/*.cts"
-  ],
   "exclude": [
-    "apps/**"
+    "apps/**",
+    "node_modules"
   ]
 }

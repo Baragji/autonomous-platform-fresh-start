@@ -3,6 +3,11 @@ import JSZip from 'jszip';
 
 export const runtime = 'nodejs';
 
+function isInside(root: string, target: string, pathMod: typeof import('node:path')): boolean {
+  const rel = pathMod.relative(root, target);
+  return !!rel && !rel.startsWith('..') && !pathMod.isAbsolute(rel);
+}
+
 export async function GET() {
   // Evidence-mode artifact listing: list evidence files as a placeholder
   const evRoot = process.env.UI_EVIDENCE_DIR || '../../.automation/evidence';
@@ -29,19 +34,32 @@ export async function POST(req: NextRequest) {
   const fs = await import('node:fs/promises');
   const path = await import('node:path');
   const evRoot = process.env.UI_EVIDENCE_DIR || '../../.automation/evidence';
+  const root = path.resolve(process.cwd(), evRoot);
+
   for (const p of paths) {
     try {
-      const full = path.resolve(process.cwd(), evRoot, p);
+      const normalized = path.posix.normalize(String(p).replaceAll('\\', '/'));
+      if (normalized.includes('..')) {
+        continue; // skip unsafe
+      }
+      const full = path.resolve(root, normalized);
+      if (!isInside(root, full, path)) {
+        continue; // skip outside
+      }
       const buf = await fs.readFile(full);
-      zip.file(p, buf);
+      zip.file(normalized, buf);
     } catch {}
   }
   const buf = await zip.generateAsync({ type: 'nodebuffer' });
-  return new Response(buf, {
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new Uint8Array(buf));
+      controller.close();
+    }
+  });
+  return new Response(stream, {
     headers: {
-      'Content-Type': 'application/zip',
       'Content-Disposition': 'attachment; filename="artifacts.zip"'
     }
   });
 }
-

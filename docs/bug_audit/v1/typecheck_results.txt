@@ -1,0 +1,11 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> typecheck
+> tsc -p tsconfig.base.json --noEmit && npm --prefix packages/gateway run typecheck && npm --prefix packages/mca run typecheck && npm --prefix packages/planner run typecheck && npm --prefix packages/runner run typecheck && npm --prefix packages/validator run typecheck
+
+error TS2688: Cannot find type definition file for 'node'.
+  The file is in the program because:
+    Entry point of type library 'node' specified in compilerOptions
+error TS2688: Cannot find type definition file for 'vitest'.
+  The file is in the program because:
+    Entry point of type library 'vitest' specified in compilerOptions

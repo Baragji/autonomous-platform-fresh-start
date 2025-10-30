@@ -80,19 +80,54 @@ export class ImplementerAgent {
     const maxIterations = this.deps.maxIterations ?? 8;
     let toolCallsObserved = false;
     for (let i = 0; i < maxIterations; i += 1) {
-      let response: ChatCompletionResult;
       try {
-        response = await this.deps.client.chat.completions.create({
-          model: this.deps.model,
-          messages,
-          tools: toolExecutor.tools,
-          // Encourage the model to actually call tools at least once to generate artifacts
-          // Then relax to auto after we observe a tool call.
-          tool_choice: toolCallsObserved ? 'auto' : 'required'
-        });
-      } catch (e) {
-        // Model/API error: ensure scaffold and gracefully hand off partial
-        this.deps.logger.warn({ err: (e as Error).message }, 'openai call failed; ensuring scaffold and handing off partial');
+        let response: ChatCompletionResult;
+        try {
+          response = await this.deps.client.chat.completions.create({
+            model: this.deps.model,
+            messages,
+            tools: toolExecutor.tools,
+            // Encourage the model to actually call tools at least once to generate artifacts
+            // Then relax to auto after we observe a tool call.
+            tool_choice: toolCallsObserved ? 'auto' : 'required'
+          });
+        } catch (apiErr) {
+          // Model/API error: log and break to partial handoff
+          this.deps.logger.error({ err: (apiErr as Error).message }, 'openai api call failed');
+          throw apiErr;
+        }
+        const choice = response.choices[0];
+        const message = choice?.message;
+        if (!choice || !message) {
+          throw new Error('Implementer received empty response from OpenAI');
+        }
+
+        if (choice.finish_reason === 'tool_calls' && message.tool_calls) {
+          // Push assistant's message with tool_calls before adding tool results
+          messages.push(message);
+          toolCallsObserved = true;
+          await this.handleToolCalls(message.tool_calls, toolExecutor, messages, input);
+          continue;
+        }
+
+        if (choice.finish_reason === 'stop') {
+          const files = await this.collectFiles(toolExecutor.getTouchedPaths());
+          trace?.generation?.({
+            name: 'implementer.result',
+            model: this.deps.model,
+            input: input.plan,
+            output: { files, summary: message.content }
+          });
+          return { ok: true, files, summary: message.content };
+        }
+
+        if (message.content) {
+          messages.push({ role: 'assistant', content: message.content });
+        }
+      } catch (err) {
+        // Catch all errors in this iteration (OpenAI API errors, tool execution errors, etc)
+        const e = err as Error;
+        this.deps.logger.warn({ iteration: i, err: e.message }, 'iteration failed; attempting partial handoff');
         await this.ensureScaffold(input);
         const listed = await this.deps.vfs.listFiles('code/').catch(() => [] as VfsFileEntry[]);
         const files = listed.map((e) => e.path).sort();
@@ -104,34 +139,6 @@ export class ImplementerAgent {
           artifact_prefix: `${input.execId}/code`
         });
         return { ok: true, files, summary: 'partial' };
-      }
-      const choice = response.choices[0];
-      const message = choice?.message;
-      if (!choice || !message) {
-        throw new Error('Implementer received empty response from OpenAI');
-      }
-
-      if (choice.finish_reason === 'tool_calls' && message.tool_calls) {
-        // Push assistant's message with tool_calls before adding tool results
-        messages.push(message);
-        toolCallsObserved = true;
-        await this.handleToolCalls(message.tool_calls, toolExecutor, messages, input);
-        continue;
-      }
-
-      if (choice.finish_reason === 'stop') {
-        const files = await this.collectFiles(toolExecutor.getTouchedPaths());
-        trace?.generation?.({
-          name: 'implementer.result',
-          model: this.deps.model,
-          input: input.plan,
-          output: { files, summary: message.content }
-        });
-        return { ok: true, files, summary: message.content };
-      }
-
-      if (message.content) {
-        messages.push({ role: 'assistant', content: message.content });
       }
     }
 

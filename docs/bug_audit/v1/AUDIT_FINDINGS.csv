@@ -1,0 +1,394 @@
+File,Line,Severity,Category,Rule/Issue,MessageOrRisk,CurrentCode,SuggestedFix,EstimatedEffortHrs,Dependencies
+packages/validator/test/integration-validate.spec.ts,26,MINOR,pattern,explicit-any,'any' erodes type safety allowing runtime errors.,"        makeDir: async () => {},
+        write: async (_p: string, _c: any) => {},
+        read: async (p: string) => {",Replace with specific type or generics.,,
+apps/web/app/session/[id]/page.tsx,10,MAJOR,pattern,explicit-any,'any' erodes type safety allowing runtime errors.,"type FileEntry = { path: string; size?: number; content?: string };
+
+type EventMsg = { type: string; data: any };
+
+export default function SessionPage() {",Replace with specific type or generics.,,
+apps/web/app/api/stream/route.ts,48,MAJOR,pattern,explicit-any,'any' erodes type safety allowing runtime errors.,"    const trace = Array.isArray(e2e?.execution_trace) ? e2e.execution_trace : [];
+    const p = trace.map((t: any) => String(t.phase || '')); if (p.length > 0) phases = p;
+  } catch {}",Replace with specific type or generics.,,
+packages/implementer/src/server.ts,34,MINOR,pattern,promise-no-await,Potential unhandled promise; verify awaited or returned.,"      createVfs(execId),
+      Promise.resolve(getLangfuse())
+    ]);",Ensure the promise chain is awaited or handled.,,
+packages/mca/src/server.ts,31,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"// PostgresSaver expects a pg-compatible pool; cast through unknown to satisfy typings without using any
+const checkpointer = new PostgresSaver(pool as unknown as Pool);
+// Verify checkpointer setup (skip in tests to avoid exiting test runner)",Model actual type or refine generics instead of casting.,,
+packages/mca/src/server.ts,38,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (checkpointer as any).setup().catch((err: Error) => {
+      logger.error({ err: err.message }, 'PostgresSaver setup failed');",Model actual type or refine generics instead of casting.,,
+packages/mca/src/server.ts,186,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  try {
+    const opts: Record<string, unknown> = { configurable: { thread_id: execId } } as unknown as Record<string, unknown>;
+    logger.info({ execId, intent }, 'invoking graph');",Model actual type or refine generics instead of casting.,,
+packages/mca/src/server.ts,188,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    logger.info({ execId, intent }, 'invoking graph');
+    await (graph as unknown as { invoke: (st: McaState, o?: Record<string, unknown>) => Promise<unknown> }).invoke({ execId, intent }, opts);
+    logger.info({ execId }, 'graph invoke completed');",Model actual type or refine generics instead of casting.,,
+packages/mca/src/server.ts,253,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  const buf = await streamToBuffer(stream);
+  const parsed = JSON.parse(buf.toString('utf8')) as unknown;
+  return PlanSchema.parse(parsed);",Model actual type or refine generics instead of casting.,,
+packages/mca/src/__tests__/server.test.ts,104,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    ensureBucket: vi.fn().mockResolvedValue(undefined),
+    minio: { getObject, bucketExists: vi.fn().mockResolvedValue(true) } as unknown as MinioModule['minio'],
+    ARTIFACT_BUCKET: 'umca-artifacts'",Model actual type or refine generics instead of casting.,,
+packages/mca/src/__tests__/server.test.ts,119,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).fetch = fetchStub;
+  ({ app } = await import('../server'));",Model actual type or refine generics instead of casting.,,
+packages/mca/src/__tests__/server.test.ts,135,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  upsertExecution.mockReset();
+  upsertExecution.mockResolvedValue(undefined as unknown as void);
+  publish.mockReset();",Model actual type or refine generics instead of casting.,,
+packages/mca/src/__tests__/server.test.ts,137,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  publish.mockReset();
+  publish.mockResolvedValue(undefined as unknown as void);
+  minioGetObject.mockClear();",Model actual type or refine generics instead of casting.,,
+packages/mca/src/__tests__/server.test.ts,139,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  minioGetObject.mockClear();
+  ensureBucket.mockResolvedValue(undefined as unknown as void);
+  bucketExists.mockResolvedValue(true);",Model actual type or refine generics instead of casting.,,
+packages/implementer/src/server.ts,43,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"      const buf = await vfs.readFile(reportPath);
+      const reportJson = JSON.parse(buf.toString('utf8')) as unknown;
+      // Non-invasive: embed under _validator_advisory for the agent prompt construction",Model actual type or refine generics instead of casting.,,
+packages/implementer/src/server.ts,45,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"      // Non-invasive: embed under _validator_advisory for the agent prompt construction
+      advisoryPlan = { ...plan, _validator_advisory: reportJson } as unknown as typeof plan;
+    } catch {}",Model actual type or refine generics instead of casting.,,
+packages/implementer/src/__tests__/publisher.test.ts,13,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    await p.publish({ type: 'edit.complete', path: 'a', tool: 'create', bytes: 3 });
+    const calls = (publish as unknown as ReturnType<typeof vi.fn>).mock.calls;
+    expect(calls.length).toBe(3);",Model actual type or refine generics instead of casting.,,
+packages/shared/src/langfuse.ts,18,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    }
+    return new Langfuse(opts as unknown as ConstructorParameters<typeof Langfuse>[0]);
+  } catch {",Model actual type or refine generics instead of casting.,,
+packages/runner/src/agent.ts,42,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"
+    const vfs = (await createVfs(execId)) as unknown as Vfs;
+    // Collect code files from MinIO (current code/ root)",Model actual type or refine generics instead of casting.,,
+packages/runner/src/agent.ts,57,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
+    const sandbox: SandboxApi = new Sandbox({ apiKey }) as unknown as SandboxApi;
+    try {",Model actual type or refine generics instead of casting.,,
+packages/runner/src/server.ts,18,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  try {
+    const vfs = (await createVfs('healthz', { prefixSuffix: 'runner' })) as unknown as { listFiles: () => Promise<unknown> };
+    await vfs.listFiles();",Model actual type or refine generics instead of casting.,,
+packages/runner/src/compat.ts,32,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (await import(modulePath)) as any;
+}",Model actual type or refine generics instead of casting.,,
+packages/runner/src/__tests__/server.test.ts,15,MINOR,pattern,non-null-assertion,Non-null assertion may throw if value is undefined at runtime.,"  async listFiles(): Promise<vfsMod.VfsFileEntry[]> {
+    return Array.from(this.store.keys()).map((k) => ({ path: k, size: this.store.get(k)!.length, lastModified: new Date() }));
+  }",Add null checks before dereferencing.,,
+packages/runner/src/__tests__/server.test.ts,47,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    vi.spyOn(vfsMod, 'createVfs').mockResolvedValue(
+      new MemVfs() as unknown as Awaited<ReturnType<typeof vfsMod.createVfs>>
+    );",Model actual type or refine generics instead of casting.,,
+packages/planner/src/plan.test.ts,18,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    const bad = { tasks: [], acceptance_criteria: [] };
+    expect(() => PlanSchema.parse(bad as unknown)).toThrow();
+  });",Model actual type or refine generics instead of casting.,,
+packages/planner/src/__tests__/server.test.ts,49,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  ensureBucket.mockReset();
+  ensureBucket.mockResolvedValue(undefined as unknown as void);
+  putObject.mockReset();",Model actual type or refine generics instead of casting.,,
+packages/vfs/src/__tests__/minioVfs.unit.test.ts,22,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    if (!entry) throw Object.assign(new Error('no such key'), { code: 'NoSuchKey' });
+    return { metaData: entry.meta } as unknown as { metaData: Record<string, string> };
+  }",Model actual type or refine generics instead of casting.,,
+packages/vfs/src/__tests__/minioVfs.unit.test.ts,34,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    });
+    return emitter as unknown as ReturnType<Client['listObjectsV2']>;
+  }",Model actual type or refine generics instead of casting.,,
+packages/vfs/src/__tests__/minioVfs.unit.test.ts,44,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    const client = new FakeMinioClient();
+    const vfs = new MinioVfs({ client: client as unknown as Client, bucket: 'b', prefix: 'tests/p1', clock: (() => {
+      const seq = [new Date('2024-01-01T00:00:00Z'), new Date('2024-01-02T00:00:00Z')];",Model actual type or refine generics instead of casting.,,
+packages/vfs/src/__tests__/minioVfs.unit.test.ts,68,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    const client = new FakeMinioClient();
+    const vfs = new MinioVfs({ client: client as unknown as Client, bucket: 'b', prefix: 'tests/p2' });
+    await vfs.writeFile('src/a.ts', 'a');",Model actual type or refine generics instead of casting.,,
+packages/vfs/src/__tests__/minioVfs.unit.test.ts,73,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    expect(files.length).toBe(2);
+    await deletePrefix(client as unknown as Client, 'b', 'tests/p2');
+    files = await vfs.listFiles('src');",Model actual type or refine generics instead of casting.,,
+packages/gateway/src/__tests__/server.test.ts,50,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  vi.stubGlobal('fetch', fetchMock);
+  upsertExecution.mockResolvedValue(undefined as unknown as void);
+  getExecution.mockResolvedValue({ id: 'abc', status: 'planned' } as unknown as Record<string, unknown>);",Model actual type or refine generics instead of casting.,,
+packages/gateway/src/__tests__/server.test.ts,51,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  upsertExecution.mockResolvedValue(undefined as unknown as void);
+  getExecution.mockResolvedValue({ id: 'abc', status: 'planned' } as unknown as Record<string, unknown>);
+  publish.mockResolvedValue(undefined as unknown as void);",Model actual type or refine generics instead of casting.,,
+packages/gateway/src/__tests__/server.test.ts,52,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  getExecution.mockResolvedValue({ id: 'abc', status: 'planned' } as unknown as Record<string, unknown>);
+  publish.mockResolvedValue(undefined as unknown as void);
+  subscribe.mockReset();",Model actual type or refine generics instead of casting.,,
+packages/gateway/src/__tests__/server.test.ts,99,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"
+    const stack = (app as unknown as { _router: { stack: Array<{ route?: { path: string; stack: Array<{ handle: unknown }> } }> } })._router.stack;
+    const layer = stack.find((l) => l.route?.path === '/api/executions/:id/stream');",Model actual type or refine generics instead of casting.,,
+packages/gateway/src/__tests__/server.test.ts,102,MINOR,pattern,non-null-assertion,Non-null assertion may throw if value is undefined at runtime.,"    expect(layer).toBeDefined();
+    const handler = layer!.route!.stack[0].handle as (req: Request, res: Response) => Promise<void>;
+",Add null checks before dereferencing.,,
+packages/gateway/src/__tests__/server.test.ts,117,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"      end: vi.fn()
+    } as unknown as Response;
+",Model actual type or refine generics instead of casting.,,
+packages/validator/src/server.ts,136,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  // Relax types to align with runner usage and avoid SDK constructor typing drift
+  const SandboxCtor = Sandbox as unknown as { new (opts: { apiKey: string }): SandboxApi };
+  const sandbox: SandboxApi = new SandboxCtor({ apiKey });",Model actual type or refine generics instead of casting.,,
+packages/validator/src/server.ts,245,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"        if (parsed.success) report = parsed.data;
+        const respObj = response as unknown as { model?: unknown; usage?: unknown };
+        const modelId = typeof respObj.model === 'string' ? respObj.model : 'openai';",Model actual type or refine generics instead of casting.,,
+packages/validator/src/server.ts,248,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"        trace?.generation?.({ model: String(modelId), input: {}, output: report });
+        const lfMaybe = lf as unknown as { flush?: () => Promise<void> };
+        try { await lfMaybe.flush?.(); } catch {}",Model actual type or refine generics instead of casting.,,
+packages/validator/src/__tests__/server.test.ts,164,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"      close: vi.fn()
+    }) as unknown as ReturnType<typeof mod.startServer>);
+    mod.startServer();",Model actual type or refine generics instead of casting.,,
+packages/validator/test/expanded-coverage.spec.ts,32,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"      process: { start: async () => ({ wait: async () => ({ exitCode: 0, stdout: 'ok', stderr: '' }) }) }
+    } as any;
+    const out = await exec(okSandbox, '/', 'echo', ['ok']);",Model actual type or refine generics instead of casting.,,
+packages/validator/test/expanded-coverage.spec.ts,38,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"      process: { start: async () => ({ wait: async () => ({ exitCode: 1, stdout: 'err', stderr: 'trace' }) }) }
+    } as any;
+    await expect(exec(badSandbox, '/', 'echo', ['bad'])).rejects.toThrow(/command failed/);",Model actual type or refine generics instead of casting.,,
+packages/validator/test/expanded-coverage.spec.ts,52,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"      }
+    } as any;
+    const n = await scanForSecrets(sandbox, '/project/src');",Model actual type or refine generics instead of casting.,,
+packages/validator/test/expanded-coverage.spec.ts,86,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"        })
+      } as any;
+    });",Model actual type or refine generics instead of casting.,,
+packages/validator/test/expanded-coverage.spec.ts,114,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"        }
+      } as any;
+    });",Model actual type or refine generics instead of casting.,,
+packages/validator/test/expanded-coverage.spec.ts,126,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"        }
+      } as any;
+    });",Model actual type or refine generics instead of casting.,,
+packages/validator/test/expanded-coverage.spec.ts,146,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"        })
+      } as any;
+    });",Model actual type or refine generics instead of casting.,,
+packages/validator/test/expanded-coverage.spec.ts,162,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"        }
+      } as any;
+    });",Model actual type or refine generics instead of casting.,,
+packages/validator/test/coverage-parse.spec.ts,5,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  try {
+    const j = JSON.parse(json) as any;
+    return j?.total?.lines?.pct ?? null;",Model actual type or refine generics instead of casting.,,
+packages/validator/test/integration-validate.spec.ts,18,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    VfsFileEntry: class {}
+  } as any;
+});",Model actual type or refine generics instead of casting.,,
+packages/validator/test/integration-validate.spec.ts,41,MINOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    }
+  } as any;
+});",Model actual type or refine generics instead of casting.,,
+apps/web/app/api/session/route.ts,17,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"    const j = await r.json().catch(() => ({}));
+    const id = String((j as any).id || Date.now());
+    return NextResponse.json({ id });",Model actual type or refine generics instead of casting.,,
+apps/web/app/api/stream/route.ts,17,MAJOR,pattern,non-null-assertion,Non-null assertion may throw if value is undefined at runtime.,"        (async () => {
+          const reader = upstream.body!.getReader();
+          for (;;) {",Add null checks before dereferencing.,,
+apps/web/app/api/stream/route.ts,46,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  try {
+    const e2e = JSON.parse(await fs.readFile(e2ePath, 'utf-8')) as any;
+    const trace = Array.isArray(e2e?.execution_trace) ? e2e.execution_trace : [];",Model actual type or refine generics instead of casting.,,
+apps/web/app/api/stream/route.ts,51,MAJOR,pattern,unsafe-cast,Unsafe cast bypasses compiler and may hide runtime type errors.,"  try {
+    const v5 = JSON.parse(await fs.readFile(v5Path, 'utf-8')) as any;
+    if (v5?.e2e?.touched_validator && !phases.includes('validated')) phases.push('validated');",Model actual type or refine generics instead of casting.,,
+packages/implementer/src/agent.ts,108,MAJOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"      }
+      const choice = response.choices[0];
+      const message = choice?.message;",Check array length before indexing or handle undefined.,,
+packages/implementer/src/__tests__/publisher.test.ts,15,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    expect(calls.length).toBe(3);
+    expect(calls[0][0]).toBe('exec-1');
+    expect(calls[0][1]).toBe('tool_call');",Check array length before indexing or handle undefined.,,
+packages/implementer/src/__tests__/publisher.test.ts,16,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    expect(calls[0][0]).toBe('exec-1');
+    expect(calls[0][1]).toBe('tool_call');
+    expect(calls[1][1]).toBe('edit.start');",Check array length before indexing or handle undefined.,,
+packages/implementer/src/__tests__/publisher.test.ts,17,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    expect(calls[0][1]).toBe('tool_call');
+    expect(calls[1][1]).toBe('edit.start');
+    expect(calls[2][1]).toBe('edit.complete');",Check array length before indexing or handle undefined.,,
+packages/implementer/src/__tests__/publisher.test.ts,18,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    expect(calls[1][1]).toBe('edit.start');
+    expect(calls[2][1]).toBe('edit.complete');
+  });",Check array length before indexing or handle undefined.,,
+packages/shared/src/langfuse.ts,18,MAJOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    }
+    return new Langfuse(opts as unknown as ConstructorParameters<typeof Langfuse>[0]);
+  } catch {",Check array length before indexing or handle undefined.,,
+packages/shared/src/db.ts,22,MAJOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"  const { rows } = await pool.query('SELECT * FROM executions WHERE id = $1', [id]);
+  return rows[0] || null;
+}",Check array length before indexing or handle undefined.,,
+packages/shared/src/__tests__/events.test.ts,63,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"
+    const handler = subInstance.on.mock.calls[0][1] as (channel: string, payload: string) => void;
+    handler('exec:abc', JSON.stringify({ event: 'test', data: { foo: 'bar' }, ts: 1 }));",Check array length before indexing or handle undefined.,,
+packages/planner/src/server.ts,76,MAJOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"      });
+      const content = llmResponse.choices[0]?.message?.content || '{}';
+      planObj = JSON.parse(content);",Check array length before indexing or handle undefined.,,
+packages/planner/src/__tests__/server.test.ts,79,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    expect(putObject).toHaveBeenCalledTimes(2);
+    const firstCall = putObject.mock.calls[0];
+    expect(firstCall[0]).toBe('umca-artifacts');",Check array length before indexing or handle undefined.,,
+packages/planner/src/__tests__/server.test.ts,80,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    const firstCall = putObject.mock.calls[0];
+    expect(firstCall[0]).toBe('umca-artifacts');
+    expect(firstCall[1]).toBe('exec-123/plan.json');",Check array length before indexing or handle undefined.,,
+packages/planner/src/__tests__/server.test.ts,81,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    expect(firstCall[0]).toBe('umca-artifacts');
+    expect(firstCall[1]).toBe('exec-123/plan.json');
+    const planPayload = JSON.parse(firstCall[2].toString());",Check array length before indexing or handle undefined.,,
+packages/planner/src/__tests__/server.test.ts,82,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    expect(firstCall[1]).toBe('exec-123/plan.json');
+    const planPayload = JSON.parse(firstCall[2].toString());
+    expect(Array.isArray(planPayload.tasks)).toBe(true);",Check array length before indexing or handle undefined.,,
+packages/vfs/src/__tests__/minioVfs.unit.test.ts,57,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    // Accept optional millisecond segment before trailing Z
+    expect(versions[0].versionPath).toMatch(/versions\/2024-01-01T00-00-00[^/]*\/src\/app\.ts$/);
+    const buf = await vfs.readFile('src/app.ts');",Check array length before indexing or handle undefined.,,
+packages/vfs/src/__tests__/minioVfs.test.ts,144,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    expect(versions.length).toBeGreaterThanOrEqual(1);
+    expect(versions[0].versionPath).toMatch(/versions\/2024-01-01T00-00-00Z\/src\/app\.ts$/);
+    const latest = await vfs.readFile('src/app.ts');",Check array length before indexing or handle undefined.,,
+packages/gateway/src/__tests__/server.test.ts,102,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    expect(layer).toBeDefined();
+    const handler = layer!.route!.stack[0].handle as (req: Request, res: Response) => Promise<void>;
+",Check array length before indexing or handle undefined.,,
+packages/validator/src/server.ts,242,MAJOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"        });
+        const content = response.choices?.[0]?.message?.content || '';
+        const parsed = ValidationReportSchema.safeParse(JSON.parse(content || '{}'));",Check array length before indexing or handle undefined.,,
+packages/validator/src/__tests__/utils.test.ts,31,MINOR,pattern,unsafe-index,Direct index access without guards may crash on empty arrays.,"    expect(issues).toHaveLength(1);
+    expect(issues[0].type).toBe('secrets');
+  });",Check array length before indexing or handle undefined.,,
+packages/implementer/src/__tests__/agent.test.ts,110,MINOR,pattern,console-log,Console logging bypasses structured logger expectations.,"                    name: 'create',
+                    arguments: JSON.stringify({ path: 'src/app.ts', content: 'console.log(""ok"")\n' })
+                  }",Use service logger utilities or remove for tests.,,
+packages/implementer/src/__tests__/agent.test.ts,171,MINOR,pattern,console-log,Console logging bypasses structured logger expectations.,"    const buf = await vfs.readFile('src/app.ts');
+    expect(buf.toString()).toContain('console.log(""ok"")');
+    expect(events.some((e) => e.type === 'tool_call')).toBe(true);",Use service logger utilities or remove for tests.,,
+packages/implementer/src/__tests__/agent.unit.test.ts,54,MINOR,pattern,console-log,Console logging bypasses structured logger expectations.,"              tool_calls: [
+                { id: 'call_1', type: 'function', function: { name: 'create', arguments: JSON.stringify({ path: 'src/app.ts', content: 'console.log(""ok"")\n' }) } }
+              ]",Use service logger utilities or remove for tests.,,
+packages/implementer/src/__tests__/tools.test.ts,42,MINOR,pattern,console-log,Console logging bypasses structured logger expectations.,"  it('create and view a file', async () => {
+    const res = await tool.execute('create', { path: 'src/app.ts', content: 'console.log(""hi"")\n', contentType: 'text/plain' });
+    expect(JSON.parse(res)).toMatchObject({ ok: true, path: 'src/app.ts' });",Use service logger utilities or remove for tests.,,
+packages/vfs/src/__tests__/minioVfs.test.ts,89,MINOR,pattern,console-log,Console logging bypasses structured logger expectations.,"    const vfs = new MinioVfs({ client, bucket, prefix });
+    await vfs.writeFile('src/app.ts', 'console.log(""hello"");', { contentType: 'text/plain' });
+    const buf = await vfs.readFile('src/app.ts');",Use service logger utilities or remove for tests.,,
+packages/vfs/src/__tests__/minioVfs.test.ts,91,MINOR,pattern,console-log,Console logging bypasses structured logger expectations.,"    const buf = await vfs.readFile('src/app.ts');
+    expect(buf.toString()).toContain('console.log(""hello"")');
+  });",Use service logger utilities or remove for tests.,,
+packages/validator/src/server.ts,215,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"    let linesPct: number | null = null;
+    try { const parsed = JSON.parse(String(coverageJson || '{}')); linesPct = parsed.total?.lines?.pct ?? null; } catch {}
+",Log the error with context and either rethrow or handle explicitly.,,
+packages/validator/src/server.ts,249,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"        const lfMaybe = lf as unknown as { flush?: () => Promise<void> };
+        try { await lfMaybe.flush?.(); } catch {}
+      } catch (err) {",Log the error with context and either rethrow or handle explicitly.,,
+packages/validator/src/server.ts,301,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"  } finally {
+    try { await sandbox.close?.(); } catch {}
+  }",Log the error with context and either rethrow or handle explicitly.,,
+packages/validator/src/server.ts,334,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"      }
+    } catch {}
+  }",Log the error with context and either rethrow or handle explicitly.,,
+apps/web/app/api/stream/route.ts,49,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"    const p = trace.map((t: any) => String(t.phase || '')); if (p.length > 0) phases = p;
+  } catch {}
+  try {",Log the error with context and either rethrow or handle explicitly.,,
+apps/web/app/api/stream/route.ts,53,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"    if (v5?.e2e?.touched_validator && !phases.includes('validated')) phases.push('validated');
+  } catch {}
+",Log the error with context and either rethrow or handle explicitly.,,
+apps/web/app/api/artifacts/route.ts,20,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"    }
+  } catch {}
+  return Response.json({ entries });",Log the error with context and either rethrow or handle explicitly.,,
+apps/web/app/api/artifacts/route.ts,37,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"      zip.file(p, buf);
+    } catch {}
+  }",Log the error with context and either rethrow or handle explicitly.,,
+apps/web/app/api/file/route.ts,19,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"      return mod;
+    } catch {}
+  }",Log the error with context and either rethrow or handle explicitly.,,
+packages/planner/src/server.ts,105,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"      });
+      try { await lf?.flush?.(); } catch {}
+    }",Log the error with context and either rethrow or handle explicitly.,,
+apps/web/app/session/[id]/page.tsx,29,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"        if (payload?.status) setPhase(payload.status);
+      } catch {}
+    };",Log the error with context and either rethrow or handle explicitly.,,
+apps/web/app/session/[id]/page.tsx,36,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"        if (payload?.status) setPhase(payload.status);
+      } catch {}
+    };",Log the error with context and either rethrow or handle explicitly.,,
+apps/web/app/session/[id]/page.tsx,39,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"    const handleAgent = (ev: MessageEvent) => {
+      try { setEvents((prev) => [...prev, { type: 'agent', data: JSON.parse(ev.data) }]); } catch {}
+    };",Log the error with context and either rethrow or handle explicitly.,,
+apps/web/app/session/[id]/page.tsx,54,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"        }
+      } catch {}
+    };",Log the error with context and either rethrow or handle explicitly.,,
+packages/runner/src/compat.ts,18,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"    if (fs.existsSync(path.join(cwdCandidate, 'packages', 'shared'))) return cwdCandidate;
+  } catch {}
+  // fallback to path relative to this compiled file location (CommonJS __dirname)",Log the error with context and either rethrow or handle explicitly.,,
+packages/runner/src/compat.ts,38,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"  const candA = path.join(repoRoot, 'packages/shared/dist/packages/shared/src', relBasename);
+  try { return req(candA); } catch {}
+  // Fallback layout B: packages/shared/dist/src/*.js",Log the error with context and either rethrow or handle explicitly.,,
+packages/runner/src/agent.ts,142,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"    } finally {
+      try { await sandbox.close?.(); } catch {}
+    }",Log the error with context and either rethrow or handle explicitly.,,
+packages/shared/src/otel.ts,19,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"  });
+  try { void sdk.start(); } catch {}
+}",Log the error with context and either rethrow or handle explicitly.,,
+packages/shared/src/events.ts,24,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"    if (channel === ch) {
+      try { onMessage(JSON.parse(message) as SSEMessage); } catch {}
+    }",Log the error with context and either rethrow or handle explicitly.,,
+packages/shared/src/env.ts,14,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"  }
+} catch {}
+",Log the error with context and either rethrow or handle explicitly.,,
+packages/shared/src/env.ts,66,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"    logger.info(summary, 'env-loaded');
+  } catch {}
+}",Log the error with context and either rethrow or handle explicitly.,,
+packages/implementer/src/server.ts,46,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"      advisoryPlan = { ...plan, _validator_advisory: reportJson } as unknown as typeof plan;
+    } catch {}
+",Log the error with context and either rethrow or handle explicitly.,,
+packages/implementer/src/server.ts,70,MAJOR,pattern,silent-catch,Empty catch suppresses errors and hides root causes.,"      }
+    } catch {}
+    logger.error({ execId, err: e.message }, 'implementer run failed (no artifacts to hand off)');",Log the error with context and either rethrow or handle explicitly.,,
+tsconfig.base.json,13,CRITICAL,ts,TS2688,TS2688: Cannot find type definition files 'node'/'vitest' because @types packages are missing from node_modules.,"    ""resolveJsonModule"": true,
+    ""types"": [""node"", ""vitest""],
+    ""paths"": {",Install @types/node and @types/vitest in the workspace root and ensure workspace hoisting.,0.5,
+apps/web/app/api/artifacts/route.ts,1,CRITICAL,ts,TS2307,"TS2307/TS2580: Next.js server and Node built-ins (jszip, node:fs/promises, node:path, process) missing because apps/web dependencies not installed.","  const evRoot = process.env.UI_EVIDENCE_DIR || '../../.automation/evidence';
+  for (const p of paths) {
+    try {
+      const full = path.resolve(process.cwd(), evRoot, p);
+      const buf = await fs.readFile(full);","Install app dependencies (next, jszip, @types/node) and ensure workspace links expose Node built-ins.",1.0,
+apps/web/app/api/file/route.ts,1,CRITICAL,ts,TS2307,"TS2307/TS2580: Missing Next.js server, node:fs/promises, node:path, Buffer/process types due to absent @types/node and Next deps.","    }
+
+    const mode = process.env.UI_BACKEND_MODE || 'evidence';
+
+    if (mode === 'live') {","Install next, @types/node, and ensure Node types included in tsconfig.",1.0,
+apps/web/app/api/session/route.ts,1,CRITICAL,ts,TS2307,TS2307/TS2580: next/server and process typings missing because Next.js deps are not installed.,"export const runtime = 'nodejs';
+
+export async function POST(req: NextRequest) {
+  const body = await req.json().catch(() => ({}));
+  const intent = String(body?.intent || '');","Install next and @types/node, and include next-env definitions.",0.75,
+apps/web/app/api/stream/route.ts,1,CRITICAL,ts,TS2307,TS2307/TS2580: Missing next/server and Node stream typings causing inability to compile streaming endpoint.,"
+  if (mode === 'live') {
+    const base = process.env.UI_GATEWAY_BASE || 'http://localhost:3030';
+    const url = `${base}/api/executions/${encodeURIComponent(sessionId)}/stream`;
+    const upstream = await fetch(url, { headers: { Accept: 'text/event-stream' } });","Install next, @types/node, and ensure runtime libs resolved.",1.0,
+apps/web/app/layout.tsx,1,CRITICAL,ts,TS2307,TS2307/TS7026: React not installed so JSX elements resolve to any and layout fails compilation.,"};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang=""en"">",Install react/react-dom + @types/react and configure tsconfig to use the React types.,0.75,
+apps/web/app/page.tsx,1,CRITICAL,ts,TS2307,TS2307/TS7026/TS7006: Missing react/next typings cause JSX intrinsic element errors and implicit any handlers.,"  }
+
+  return (
+    <main className=""space-y-6"">
+      <div className=""card"">",Restore react/next packages and add explicit event types.,1.0,
+apps/web/app/session/[id]/page.tsx,1,CRITICAL,ts,TS2307,TS2307/TS7006/TS7026: Missing react/next/monaco types yield implicit anys across session view.,"  const [files, setFiles] = useState<FileEntry[]>([]);
+  const [active, setActive] = useState<string>('');
+  const [loadingFile, setLoadingFile] = useState<boolean>(false);
+  const logRef = useRef<HTMLDivElement>(null);
+","Install react, next, @monaco-editor/react types and annotate state setters.",1.5,
+apps/web/tailwind.config.ts,1,CRITICAL,ts,TS2307,TS2307: tailwindcss package missing so config import fails.,"import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  content: [",Install tailwindcss in apps/web and ensure workspace symlinks exist.,0.5,
+eslint.config.cjs,1,CRITICAL,lint,config-resolution,ESLint fails: Cannot find module '@typescript-eslint/parser' because devDependencies are not installed.,"const tsParser = require('@typescript-eslint/parser');
+const tsPlugin = require('@typescript-eslint/eslint-plugin');
+
+module.exports = [
+  {",Install @typescript-eslint/parser and eslint dependencies via npm install.,0.5,
+apps/web/app/api/file/route.ts,32,CRITICAL,api,Path traversal risk: untrusted query parameter resolved without ensuring it stays within evidence directory.,Attacker can read arbitrary files accessible to the Next.js process.,"    }
+
+    const mode = process.env.UI_BACKEND_MODE || 'evidence';
+
+    if (mode === 'live') {",Normalize and enforce that resolved path starts with the evidence root; reject traversal attempts.,,
+apps/web/app/api/artifacts/route.ts,32,CRITICAL,api,Zip builder reads arbitrary resolved paths without sandboxing user-provided list.,Client can include ../../ paths to exfiltrate secrets in the zip.,"  const evRoot = process.env.UI_EVIDENCE_DIR || '../../.automation/evidence';
+  for (const p of paths) {
+    try {
+      const full = path.resolve(process.cwd(), evRoot, p);
+      const buf = await fs.readFile(full);",Validate each requested path remains within evidence root before reading.,,
+packages/gateway/src/server.ts,25,MAJOR,pattern,swallowed-error,"Fire-and-forget fetch to MCA drops errors, leaving executions stuck without retry.","
+  // Fire-and-forget call to MCA
+  fetch(process.env.MCA_URL || 'http://localhost:7010/start', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ execId: id, intent })
+  }).catch(() => {});",Await the fetch response or capture failures via logger/retry queue.,,
+tsconfig.base.json,,MAJOR,config,skipLibCheck enabled,"Library type errors are hidden, masking compatibility issues.","    ""strict"": true,
+    ""esModuleInterop"": true,
+    ""skipLibCheck"": true,
+    ""forceConsistentCasingInFileNames"": true,
+    ""outDir"": ""dist"",",Remove skipLibCheck or resolve underlying type conflicts to restore full checking.,,
+npm_ls.txt,,CRITICAL,config,Workspace dependencies not installed,Services cannot build because local workspace packages are missing from node_modules.,"autonomous-platform@ /workspace/autonomous-platform-fresh-start
+├── UNMET DEPENDENCY @autonomous/gateway@file:/workspace/autonomous-platform-fresh-start/packages/gateway
+├── UNMET DEPENDENCY @autonomous/implementer@file:/workspace/autonomous-platform-fresh-start/packages/implementer
+├── UNMET DEPENDENCY @autonomous/mca@file:/workspace/autonomous-platform-fresh-start/packages/mca
+├── UNMET DEPENDENCY @autonomous/planner@file:/workspace/autonomous-platform-fresh-start/packages/planner",Run npm install with workspaces enabled or commit node_modules linking configuration.,,
+apps/web/package.json,,CRITICAL,config,Next.js 14.2.5 vulnerable (GHSA-f82v-jwr5-mffw),Authorization bypass vulnerability in Next.js middleware per npm audit.,"    ""next"": ""14.2.5"",
+    ""react"": ""18.3.1"",
+    ""react-dom"": ""18.3.1"",
+    ""@monaco-editor/react"": ""4.6.0"",
+    ""reactflow"": ""11.10.4"",",Bump next to >=14.2.33 and rerun npm install.,,
+package-lock.json,,CRITICAL,config,libxmljs2 0.35.0 critical type confusion vulnerability (GHSA-78h3-pg4x-j8cv),xml parsing can trigger type confusion leading to arbitrary code execution.,"      ""version"": ""0.35.0"",
+      ""resolved"": ""https://registry.npmjs.org/libxmljs2/-/libxmljs2-0.35.0.tgz"",
+      ""integrity"": ""sha512-SpVopqn4YNydnLjkGfL6yQwzjlipmEnCCsVrD/0hQmdgsQWb5rVmSJxxjQltHIUTto29vgX+PhLjXoc+gMeABQ=="",
+      ""dev"": true,
+      ""hasInstallScript"": true,",Upgrade dependency chain (minio or upstream) to pull patched libxmljs2.,,
