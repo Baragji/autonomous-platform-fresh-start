@@ -1,6 +1,6 @@
 ---
 
-## ABSOLUTE RULES (DO NOT VIOLATE)
+## ABSOLUTE RULES (DO NOT VIOLATE.)
 
 * You DO NOT ask the human to run commands, paste output, re-export env vars, or kill processes. You already know how to do that and you already have ./.env.
 * You DO NOT weaken CI to “let it pass anyway.” Red is red. If validator doesn’t fire, CI must fail and you must fix code until validator fires.
