@@ -1,0 +1,191 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+error TS2688: Cannot find type definition file for 'node'.
+  The file is in the program because:
+    Entry point of type library 'node' specified in compilerOptions
+error TS2688: Cannot find type definition file for 'vitest'.
+  The file is in the program because:
+    Entry point of type library 'vitest' specified in compilerOptions
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+error TS2688: Cannot find type definition file for 'node'.
+  The file is in the program because:
+    Entry point of type library 'node' specified in compilerOptions
+error TS2688: Cannot find type definition file for 'vitest'.
+  The file is in the program because:
+    Entry point of type library 'vitest' specified in compilerOptions
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+error TS2688: Cannot find type definition file for 'node'.
+  The file is in the program because:
+    Entry point of type library 'node' specified in compilerOptions
+error TS2688: Cannot find type definition file for 'vitest'.
+  The file is in the program because:
+    Entry point of type library 'vitest' specified in compilerOptions
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+error TS2688: Cannot find type definition file for 'node'.
+  The file is in the program because:
+    Entry point of type library 'node' specified in compilerOptions
+error TS2688: Cannot find type definition file for 'vitest'.
+  The file is in the program because:
+    Entry point of type library 'vitest' specified in compilerOptions
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+error TS2688: Cannot find type definition file for 'node'.
+  The file is in the program because:
+    Entry point of type library 'node' specified in compilerOptions
+error TS2688: Cannot find type definition file for 'vitest'.
+  The file is in the program because:
+    Entry point of type library 'vitest' specified in compilerOptions
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+error TS2688: Cannot find type definition file for 'node'.
+  The file is in the program because:
+    Entry point of type library 'node' specified in compilerOptions
+error TS2688: Cannot find type definition file for 'vitest'.
+  The file is in the program because:
+    Entry point of type library 'vitest' specified in compilerOptions
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+error TS2688: Cannot find type definition file for 'node'.
+  The file is in the program because:
+    Entry point of type library 'node' specified in compilerOptions
+error TS2688: Cannot find type definition file for 'vitest'.
+  The file is in the program because:
+    Entry point of type library 'vitest' specified in compilerOptions
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+error TS2688: Cannot find type definition file for 'node'.
+  The file is in the program because:
+    Entry point of type library 'node' specified in compilerOptions
+error TS2688: Cannot find type definition file for 'vitest'.
+  The file is in the program because:
+    Entry point of type library 'vitest' specified in compilerOptions
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+app/api/artifacts/route.ts(1,29): error TS2307: Cannot find module 'next/server' or its corresponding type declarations.
+app/api/artifacts/route.ts(2,19): error TS2307: Cannot find module 'jszip' or its corresponding type declarations.
+app/api/artifacts/route.ts(8,18): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/artifacts/route.ts(9,27): error TS2307: Cannot find module 'node:fs/promises' or its corresponding type declarations.
+app/api/artifacts/route.ts(10,29): error TS2307: Cannot find module 'node:path' or its corresponding type declarations.
+app/api/artifacts/route.ts(11,28): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/artifacts/route.ts(29,27): error TS2307: Cannot find module 'node:fs/promises' or its corresponding type declarations.
+app/api/artifacts/route.ts(30,29): error TS2307: Cannot find module 'node:path' or its corresponding type declarations.
+app/api/artifacts/route.ts(31,18): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/artifacts/route.ts(34,33): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/file/route.ts(1,29): error TS2307: Cannot find module 'next/server' or its corresponding type declarations.
+app/api/file/route.ts(6,27): error TS2307: Cannot find module 'node:fs/promises' or its corresponding type declarations.
+app/api/file/route.ts(7,29): error TS2307: Cannot find module 'node:path' or its corresponding type declarations.
+app/api/file/route.ts(10,18): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/file/route.ts(11,18): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/file/route.ts(17,19): error TS2580: Cannot find name 'require'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/file/route.ts(17,143): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/file/route.ts(33,18): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/file/route.ts(42,27): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/file/route.ts(48,29): error TS2307: Cannot find module 'node:fs/promises' or its corresponding type declarations.
+app/api/file/route.ts(49,31): error TS2307: Cannot find module 'node:path' or its corresponding type declarations.
+app/api/file/route.ts(50,20): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/file/route.ts(51,31): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/file/route.ts(53,25): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/session/route.ts(1,43): error TS2307: Cannot find module 'next/server' or its corresponding type declarations.
+app/api/session/route.ts(9,16): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/session/route.ts(11,18): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/stream/route.ts(1,29): error TS2307: Cannot find module 'next/server' or its corresponding type declarations.
+app/api/stream/route.ts(8,16): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/stream/route.ts(11,18): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/stream/route.ts(37,18): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/stream/route.ts(39,27): error TS2307: Cannot find module 'node:fs/promises' or its corresponding type declarations.
+app/api/stream/route.ts(40,29): error TS2307: Cannot find module 'node:path' or its corresponding type declarations.
+app/api/stream/route.ts(41,31): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/api/stream/route.ts(42,32): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+app/layout.tsx(2,32): error TS2307: Cannot find module 'react' or its corresponding type declarations.
+app/layout.tsx(11,5): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(12,7): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(13,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(14,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(15,13): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(15,85): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(16,13): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(16,85): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(17,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(19,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(20,7): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/layout.tsx(21,5): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(2,27): error TS2307: Cannot find module 'next/navigation' or its corresponding type declarations.
+app/page.tsx(3,26): error TS2307: Cannot find module 'react' or its corresponding type declarations.
+app/page.tsx(10,30): error TS2503: Cannot find namespace 'React'.
+app/page.tsx(24,5): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(25,7): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(26,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(26,49): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(27,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(28,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(29,13): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(29,116): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/page.tsx(30,13): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(30,160): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(31,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(32,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(32,134): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(33,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(34,7): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/page.tsx(35,5): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(2,54): error TS2307: Cannot find module 'react' or its corresponding type declarations.
+app/session/[id]/page.tsx(3,21): error TS2307: Cannot find module 'next/dynamic' or its corresponding type declarations.
+app/session/[id]/page.tsx(4,27): error TS2307: Cannot find module 'next/navigation' or its corresponding type declarations.
+app/session/[id]/page.tsx(6,37): error TS2307: Cannot find module '@monaco-editor/react' or its corresponding type declarations.
+app/session/[id]/page.tsx(27,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+app/session/[id]/page.tsx(34,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+app/session/[id]/page.tsx(39,24): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+app/session/[id]/page.tsx(44,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+app/session/[id]/page.tsx(46,21): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+app/session/[id]/page.tsx(47,43): error TS7006: Parameter 'f' implicitly has an 'any' type.
+app/session/[id]/page.tsx(57,18): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+app/session/[id]/page.tsx(80,51): error TS7006: Parameter 'f' implicitly has an 'any' type.
+app/session/[id]/page.tsx(91,21): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+app/session/[id]/page.tsx(91,40): error TS7006: Parameter 'f' implicitly has an 'any' type.
+app/session/[id]/page.tsx(104,5): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(105,7): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(106,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(107,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(107,48): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(108,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(109,13): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(111,17): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(112,19): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(114,17): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(116,13): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(117,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(118,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(119,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(120,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(120,45): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(121,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(122,36): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(122,77): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(123,25): error TS7006: Parameter 'f' implicitly has an 'any' type.
+app/session/[id]/page.tsx(124,15): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(125,17): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(125,154): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(126,17): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(126,74): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(127,15): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(129,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(130,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(131,7): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(132,7): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(133,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(134,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(134,76): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(135,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(136,13): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(138,17): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(138,111): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(141,13): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(142,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(143,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(144,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(145,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(145,44): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(146,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(147,26): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/session/[id]/page.tsx(147,29): error TS7006: Parameter 'i' implicitly has an 'any' type.
+app/session/[id]/page.tsx(148,15): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(148,113): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(150,11): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(151,9): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(152,7): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+app/session/[id]/page.tsx(153,5): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+tailwind.config.ts(1,29): error TS2307: Cannot find module 'tailwindcss' or its corresponding type declarations.

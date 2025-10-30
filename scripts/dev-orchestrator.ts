@@ -150,6 +150,7 @@ async function captureUiEvidence() {
   }
   // Try Playwright (optional) for screenshot
   try {
+    // @ts-expect-error optional dependency: playwright may not be installed in all environments
     const { chromium } = await import('playwright');
     const browser = await chromium.launch();
     const page = await browser.newPage();

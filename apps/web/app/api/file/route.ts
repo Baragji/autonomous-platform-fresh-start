@@ -21,6 +21,12 @@ async function loadSharedVfs() {
   throw new Error('shared dist not found; build shared first');
 }
 
+// Ensure a resolved path stays within a root directory
+function isInside(root: string, target: string, pathMod: typeof import('node:path')): boolean {
+  const rel = pathMod.relative(root, target);
+  return !!rel && !rel.startsWith('..') && !pathMod.isAbsolute(rel);
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -44,11 +50,23 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Evidence mode: read directly under evidence dir for simple preview
+    // Evidence mode: read directly under evidence dir but enforce containment
     const fs = await import('node:fs/promises');
     const path = await import('node:path');
     const evRoot = process.env.UI_EVIDENCE_DIR || '../../.automation/evidence';
-    const full = path.resolve(process.cwd(), evRoot, filePath);
+    const root = path.resolve(process.cwd(), evRoot);
+
+    // Basic traversal rejection on user input
+    const normalized = path.posix.normalize(filePath.replaceAll('\\', '/'));
+    if (normalized.includes('..')) {
+      return Response.json({ error: 'invalid path' }, { status: 400 });
+    }
+
+    const full = path.resolve(root, normalized);
+    if (!isInside(root, full, path)) {
+      return Response.json({ error: 'path outside allowed directory' }, { status: 400 });
+    }
+
     const buf = await fs.readFile(full);
     return new Response(Buffer.from(buf).toString('utf8'), {
       headers: { 'Content-Type': 'text/plain; charset=utf-8' }
