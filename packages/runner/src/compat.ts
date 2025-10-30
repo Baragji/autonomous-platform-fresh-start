@@ -54,6 +54,15 @@ export async function publish(execId: string, event: string, data: unknown) {
   return (m as { publish: (id: string, ev: string, d: unknown) => Promise<void> }).publish(execId, event, data);
 }
 
+export async function publishWithTrace(execId: string, event: string, data: unknown) {
+  if (IS_TEST) {
+    const m = await loadSrc<typeof import('@autonomous/shared/src/events')>('@autonomous/shared/src/events');
+    return m.publishWithTrace(execId, event, data);
+  }
+  const m = await importShared('events.js');
+  return (m as { publishWithTrace: (id: string, ev: string, d: unknown) => Promise<void> }).publishWithTrace(execId, event, data);
+}
+
 export async function createLogger(service: string) {
   if (IS_TEST) {
     return { info: () => {}, error: () => {} } as { info: Function; error: Function };

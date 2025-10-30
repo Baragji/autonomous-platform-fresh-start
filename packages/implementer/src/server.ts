@@ -1,7 +1,7 @@
 import express, { type Request, type Response } from 'express';
 import OpenAI from 'openai';
 import { z } from 'zod';
-import { createLogger } from '@autonomous/shared/src/logger';
+import { createLogger, createHttpLogger } from '@autonomous/shared/src/logger';
 import { env } from '@autonomous/shared/src/env';
 import { createVfs } from '@autonomous/shared/src/vfs';
 import { PlanSchema } from '@autonomous/shared/src/plan';
@@ -10,18 +10,19 @@ import { getLangfuse } from '@autonomous/shared/src/langfuse';
 import { RedisEventPublisher } from './publisher';
 import { ImplementerAgent } from './agent';
 import { registerShutdown } from '@autonomous/shared/src/shutdown';
+import { redisPub, redisSub } from '@autonomous/shared/src/events';
 
 startOtel('implementer');
 
 export const app = express();
+const logger = createLogger('implementer');
+app.use(createHttpLogger(logger));
 app.use(express.json({ limit: '2mb' }));
 
 const RequestSchema = z.object({
   execId: z.string().min(1),
   plan: PlanSchema
 });
-
-const logger = createLogger('implementer');
 
 app.post('/implement', async (req: Request, res: Response) => {
   const parseResult = RequestSchema.safeParse(req.body);
@@ -103,5 +104,5 @@ app.get('/healthz', async (_req, res) => {
 const port = Number(process.env.IMPLEMENTER_PORT || 7030);
 if (process.env.NODE_ENV !== 'test') {
   const server = app.listen(port, () => logger.info({ port }, 'implementer listening'));
-  registerShutdown({ server, logger });
+  registerShutdown({ server, redisClients: [redisPub, redisSub], logger });
 }

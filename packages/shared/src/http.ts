@@ -1,4 +1,5 @@
 import { createLogger } from './logger';
+import { context, propagation } from '@opentelemetry/api';
 
 export type FetchRetryOptions = {
   timeoutMs?: number; // timeout per attempt
@@ -37,6 +38,15 @@ function anySignal(signals: (AbortSignal | undefined)[]): AbortSignal | undefine
     s.addEventListener('abort', () => controller.abort(), { once: true });
   }
   return controller.signal;
+}
+
+// Inject W3C Trace Context headers into a RequestInit
+export function withTraceHeaders(init: RequestInit = {}): RequestInit {
+  const carrier: Record<string, string> = {};
+  propagation.inject(context.active(), carrier);
+  const headers = new Headers(init.headers as HeadersInit | undefined);
+  for (const [k, v] of Object.entries(carrier)) headers.set(k, v);
+  return { ...init, headers };
 }
 
 type AbortSignalWithTimeout = typeof AbortSignal & { timeout: (ms: number) => AbortSignal };

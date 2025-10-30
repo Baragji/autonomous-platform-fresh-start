@@ -3,7 +3,7 @@ import { z } from 'zod';
 import OpenAI from 'openai';
 import crypto from 'crypto';
 import { startOtel } from '@autonomous/shared/src/otel';
-import { createLogger } from '@autonomous/shared/src/logger';
+import { createLogger, createHttpLogger } from '@autonomous/shared/src/logger';
 import { getLangfuse } from '@autonomous/shared/src/langfuse';
 import { publish } from '@autonomous/shared/src/events';
 import { createVfs, type Vfs, type VfsFileEntry } from '@autonomous/shared/src/vfs';
@@ -11,8 +11,9 @@ import { registerShutdown } from '@autonomous/shared/src/shutdown';
 
 startOtel('validator');
 export const app = express();
-app.use(express.json({ limit: '2mb' }));
 const logger = createLogger('validator');
+app.use(createHttpLogger(logger));
+app.use(express.json({ limit: '2mb' }));
 
 const ValidateRequestSchema = z.object({
   execId: z.string().min(1)
@@ -133,9 +134,9 @@ app.post('/validate', async (req: Request, res: Response) => {
   }
 
   const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
-  // Bypass constructor type mismatch by deferring type checking to runtime and casting to SandboxApi
-  const SandboxCtor: new (...args: unknown[]) => unknown = Sandbox as unknown as new (...args: unknown[]) => unknown;
-  const sandbox: SandboxApi = new SandboxCtor({ apiKey }) as unknown as SandboxApi;
+  // Create sandbox with node:lts template (has Node.js/npm pre-installed)
+  // Template is positional first parameter: create(template, opts)
+  const sandbox: SandboxApi = (await (Sandbox as any).create('node:lts', { apiKey })) as unknown as SandboxApi;
 
   const prefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/,'');
   const threshold = Number(process.env.VALIDATOR_COVERAGE_THRESHOLD_GLOBAL || 80);

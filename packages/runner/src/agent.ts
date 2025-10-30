@@ -1,5 +1,5 @@
 type MinimalLogger = { info: Function; error: Function };
-import { publish, createVfs } from './compat';
+import { publish, publishWithTrace, createVfs } from './compat';
 import type { Vfs, VfsFileEntry } from '@autonomous/shared/src/vfs';
 import { z } from 'zod';
 
@@ -56,9 +56,10 @@ export class RunnerAgent {
       return { ok: false, error: 'E2B_API_KEY is not configured' };
     }
   const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
-  // Create real E2B sandbox using the API key
+  // Create real E2B sandbox using node:lts template with API key
   // The SDK handles full RPC communication for filesystem and command execution
-  const sandboxObj = await (Sandbox as any).create({ apiKey });
+  // CRITICAL: Template is positional first parameter, not in options object
+  const sandboxObj = await (Sandbox as any).create('node:lts', { apiKey });
   const sandbox: SandboxApi = sandboxObj as unknown as SandboxApi;
 
   // Log sandbox metadata for observability
@@ -77,7 +78,7 @@ export class RunnerAgent {
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const metaAny: any = sandboxObj;
-          await publish(execId, 'artifact', { type: 'sandbox_meta', meta: { envdVersion: metaAny.envdVersion, hasEnvdApi: Boolean(metaAny.envdApi), sandboxId: metaAny.sandboxId } });
+          await publishWithTrace(execId, 'artifact', { type: 'sandbox_meta', meta: { envdVersion: metaAny.envdVersion, hasEnvdApi: Boolean(metaAny.envdApi), sandboxId: metaAny.sandboxId } });
         } catch (pubErr) {
           this.logger.error({ err: (pubErr as Error).message }, 'failed to publish sandbox metadata');
         }

@@ -6,12 +6,13 @@ import { ensureBucket, minio, ARTIFACT_BUCKET } from '@autonomous/shared/src/min
 import { startOtel } from '@autonomous/shared/src/otel';
 import { getLangfuse } from '@autonomous/shared/src/langfuse';
 import { registerShutdown } from '@autonomous/shared/src/shutdown';
-import { createLogger } from '@autonomous/shared/src/logger';
+import { createLogger, createHttpLogger } from '@autonomous/shared/src/logger';
 
 startOtel('planner');
 export const app = express();
-app.use(express.json());
 const logger = createLogger('planner');
+app.use(createHttpLogger(logger));
+app.use(express.json());
 
 import { PlanSchema } from './plan';
 import fs from 'fs';
@@ -160,5 +161,8 @@ if (process.env.NODE_ENV !== 'test') {
     logger.info({ port }, 'planner listening');
   });
 
-  registerShutdown({ server, logger });
+  registerShutdown({
+    server,
+    logger
+  });
 }

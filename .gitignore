@@ -60,6 +60,10 @@ checkpoints.db
 # But keep .automation/README.md
 !.automation/README.md
 
+# Turborepo cache (local only)
+.turbo/
+**/.turbo/
+
 # Temporary
 tmp/
 temp/

@@ -1,6 +1,6 @@
 import { Redis } from 'ioredis';
 import { env } from './env';
-import { createLogger } from './logger';
+import { createLogger, getActiveTraceIds } from './logger';
 
 const log = createLogger('shared:events');
 
@@ -9,6 +9,8 @@ let currentBackoffMs = 1000; // starts at 1s, grows with retry strategy
 let lastErrorLogAt = 0;
 
 const redisOptions = {
+  // Avoid connecting before we attach error listeners; commands (publish/subscribe) will trigger connect
+  lazyConnect: true,
   // Exponential backoff with cap at 30s; cache delay for logging window
   retryStrategy(times: number) {
     const delay = Math.min(1000 * 2 ** times, 30000);
@@ -31,13 +33,17 @@ function attachErrorLogging(name: 'pub' | 'sub', client: Redis) {
     const now = Date.now();
     if (now - lastErrorLogAt >= currentBackoffMs) {
       lastErrorLogAt = now;
-      log.error({ err, client: name, backoffMs: currentBackoffMs }, 'Redis client error');
+      log.error({ err, client: name, backoffMs: currentBackoffMs, ...getActiveTraceIds() }, 'Redis client error');
     }
   });
 }
 
 attachErrorLogging('pub', redisPub);
 attachErrorLogging('sub', redisSub);
+
+// Proactively connect after listeners are attached to avoid unhandled errors
+void redisPub.connect().catch(() => {});
+void redisSub.connect().catch(() => {});
 
 export function execChannel(execId: string) {
   return `exec:${execId}`;
@@ -50,9 +56,16 @@ export async function publish(execId: string, event: string, data: unknown) {
   try {
     await redisPub.publish(execChannel(execId), payload);
   } catch (err) {
-    log.warn({ err, execId, event }, 'Failed to publish SSE message');
+    log.warn({ err, execId, event, ...getActiveTraceIds() }, 'Failed to publish SSE message');
     throw err; // do not silently swallow publish errors
   }
+}
+
+// Publish with trace enrichment so UI can link to traces
+export async function publishWithTrace(execId: string, event: string, data: unknown) {
+  const { trace_id } = getActiveTraceIds();
+  const enriched = { ...(data as Record<string, unknown>), trace_id } as unknown;
+  return publish(execId, event, enriched);
 }
 
 export async function subscribe(

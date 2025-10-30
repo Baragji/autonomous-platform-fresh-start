@@ -4,7 +4,7 @@ import path from 'path';
 import { upsertExecution } from '@autonomous/shared/src/db';
 import { publish, redisPub, redisSub } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
-import { createLogger } from '@autonomous/shared/src/logger';
+import { createLogger, createHttpLogger } from '@autonomous/shared/src/logger';
 import { env } from '@autonomous/shared/src/env';
 import { PlanSchema, type Plan } from '@autonomous/shared/src/plan';
 import { minio, ARTIFACT_BUCKET, ensureBucket } from '@autonomous/shared/src/minioClient';
@@ -15,8 +15,9 @@ import { registerShutdown } from '@autonomous/shared/src/shutdown';
 
 startOtel('mca');
 export const app = express();
-app.use(express.json());
 const logger = createLogger('mca');
+app.use(createHttpLogger(logger));
+app.use(express.json());
 
 type McaState = {
   execId: string;
@@ -55,11 +56,11 @@ async function supervisor(state: McaState): Promise<McaState> {
 async function plannerNode(state: McaState): Promise<McaState> {
   const plannerUrl = process.env.PLANNER_URL || 'http://localhost:7020/plan';
   await publish(state.execId, 'agent', { agent: 'planner', status: 'working' });
-  const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
-  const r = await fetchWithTimeout(plannerUrl, {
+  const { fetchWithTimeout, withTraceHeaders } = await import('@autonomous/shared/src/http');
+  const r = await fetchWithTimeout(plannerUrl, withTraceHeaders({
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ execId: state.execId, intent: state.intent })
-  }, { timeoutMs: 5000, retries: 2 });
+  }), { timeoutMs: 5000, retries: 2 });
   const j = (await r.json()) as { object?: string; error?: string };
   if (!r.ok) throw new Error(j.error || 'planner failed');
   if (!j.object) throw new Error('planner did not return plan object');
@@ -76,12 +77,12 @@ async function implementerNode(state: McaState): Promise<McaState> {
   await publish(state.execId, 'agent', { agent: 'implementer', status: 'working' });
   await upsertExecution(state.execId, 'implementing', state.intent, 'implementer');
   await publish(state.execId, 'status', { status: 'implementing' });
-  const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
-  const response = await fetchWithTimeout(implementerUrl, {
+  const { fetchWithTimeout, withTraceHeaders } = await import('@autonomous/shared/src/http');
+  const response = await fetchWithTimeout(implementerUrl, withTraceHeaders({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ execId: state.execId, plan: state.plan })
-  }, { timeoutMs: 5000, retries: 2 });
+  }), { timeoutMs: 5000, retries: 2 });
   const payload = (await response.json()) as { ok?: boolean; files?: string[]; error?: string };
   if (!response.ok || payload.ok !== true) {
     throw new Error(payload.error || 'implementer failed');
@@ -97,11 +98,11 @@ async function runnerNode(state: McaState): Promise<McaState> {
   await publish(state.execId, 'agent', { agent: 'runner', status: 'working' });
   let payload: { ok?: boolean; junitObject?: string; coverageObject?: string; error?: string } = {};
   try {
-    const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
-    const response = await fetchWithTimeout(runnerUrl, {
+    const { fetchWithTimeout, withTraceHeaders } = await import('@autonomous/shared/src/http');
+    const response = await fetchWithTimeout(runnerUrl, withTraceHeaders({
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ execId: state.execId })
-    }, { timeoutMs: 5000, retries: 2 });
+    }), { timeoutMs: 5000, retries: 2 });
     payload = (await response.json()) as { ok?: boolean; junitObject?: string; coverageObject?: string; error?: string };
     if (!response.ok || payload.ok !== true) {
       // Warn and proceed to validator; do not hard-abort here
@@ -120,11 +121,11 @@ async function runnerNode(state: McaState): Promise<McaState> {
 async function validatorNode(state: McaState): Promise<McaState> {
   const validatorUrl = process.env.VALIDATOR_URL || 'http://localhost:7050/validate';
   await publish(state.execId, 'agent', { agent: 'validator', status: 'working' });
-  const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
-  const response = await fetchWithTimeout(validatorUrl, {
+  const { fetchWithTimeout, withTraceHeaders } = await import('@autonomous/shared/src/http');
+  const response = await fetchWithTimeout(validatorUrl, withTraceHeaders({
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ execId: state.execId })
-  }, { timeoutMs: 5000, retries: 2 });
+  }), { timeoutMs: 5000, retries: 2 });
   const payload = (await response.json()) as { ok?: boolean; verdict?: 'PASS'|'FAIL'; report?: string; junitObject?: string; coverageObject?: string; error?: string };
   if (!response.ok || payload.ok !== true || !payload.verdict) {
     throw new Error(payload.error || 'validator failed');

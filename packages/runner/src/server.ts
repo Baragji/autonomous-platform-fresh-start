@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { startOtel, createLogger, createVfs } from './compat';
 import { RunnerAgent, RunRequestSchema } from './agent';
 import { registerShutdown } from '@autonomous/shared/src/shutdown';
+import { createHttpLogger } from '@autonomous/shared/src/logger';
 
 function logStartupError(message: string, e: unknown) {
   const errMsg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
@@ -26,6 +27,8 @@ let logger: { info: (...args: unknown[]) => unknown; error: (...args: unknown[])
 })();
 
 export const app = express();
+// Use a wrapper so the middleware uses the latest logger reference when requests arrive
+app.use((req, res, next) => createHttpLogger(logger as any)(req, res, next));
 app.use(express.json({ limit: '2mb' }));
 
 app.get('/healthz', async (_req, res) => {

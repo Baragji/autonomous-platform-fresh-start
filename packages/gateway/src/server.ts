@@ -3,13 +3,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { pool, upsertExecution, getExecution } from '@autonomous/shared/src/db';
 import { publish, subscribe, redisPub, redisSub } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
-import { createLogger } from '@autonomous/shared/src/logger';
+import { createLogger, createHttpLogger } from '@autonomous/shared/src/logger';
 import { registerShutdown } from '@autonomous/shared/src/shutdown';
 
 startOtel('gateway');
 export const app = express();
-app.use(express.json());
 const logger = createLogger('gateway');
+app.use(createHttpLogger(logger));
+app.use(express.json());
 
 app.post('/api/executions', async (req: Request, res: Response) => {
   const intent = String(req.body?.intent || '').trim();
@@ -21,10 +22,16 @@ app.post('/api/executions', async (req: Request, res: Response) => {
     .json({ id, status: 'accepted', location: `/api/executions/${id}`, stream: `/api/executions/${id}/stream` });
 
   // Fire-and-forget call to MCA with timeout + retries to avoid hanging
-  const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
-  fetchWithTimeout(process.env.MCA_URL || 'http://localhost:7010/start', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ execId: id, intent })
-  }, { timeoutMs: 5000, retries: 2 }).catch((err: unknown) => {
+  const { fetchWithTimeout, withTraceHeaders } = await import('@autonomous/shared/src/http');
+  fetchWithTimeout(
+    process.env.MCA_URL || 'http://localhost:7010/start',
+    withTraceHeaders({
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ execId: id, intent })
+    }),
+    { timeoutMs: 5000, retries: 2 }
+  ).catch((err: unknown) => {
     logger.warn({ err: (err as Error).message }, 'failed to notify MCA start');
   });
   await publish(id, 'status', { status: 'accepted' });
