@@ -121,9 +121,9 @@ describe('validator server', () => {
   });
 
   it('validates execution and attaches artifact checksums', async () => {
-    const writes: Array<{ path: string; options?: TestVfsWriteOptions }> = [];
-    writeFileMock.mockImplementation(async (path, _content, options) => {
-      writes.push({ path, options });
+    const writes: Array<{ path: string; options?: TestVfsWriteOptions; content: Buffer | string }> = [];
+    writeFileMock.mockImplementation(async (path, content, options) => {
+      writes.push({ path, content, options });
     });
     const codeFiles = [
       { path: 'code/src/app.ts', size: 10, lastModified: new Date() }
@@ -142,6 +142,10 @@ describe('validator server', () => {
     expect(res.status).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(res.body.verdict).toBe('PASS');
+    expect(res.body.contract).toMatchObject({
+      coverage: { linesPct: 95, threshold: 80 },
+      requiredChanges: []
+    });
     expect(publishMock).toHaveBeenCalled();
     expect(sandboxCtorMock).toHaveBeenCalledWith({ apiKey: 'test-key' });
 
@@ -152,6 +156,14 @@ describe('validator server', () => {
     expect(junitWrite?.options?.sha256).toMatch(/^[a-f0-9]{64}$/);
     expect(coverageWrite?.options?.sha256).toMatch(/^[a-f0-9]{64}$/);
     expect(reportWrite?.options?.sha256).toMatch(/^[a-f0-9]{64}$/);
+
+    const reportData = JSON.parse(Buffer.from(reportWrite?.content ?? '{}').toString('utf8')) as Record<string, unknown>;
+    expect(reportData).toMatchObject({
+      remediation: expect.objectContaining({
+        coverage: { linesPct: 95, threshold: 80 },
+        requiredChanges: []
+      })
+    });
   });
 
   it('starts server when invoked explicitly', async () => {
@@ -177,6 +189,8 @@ describe('validator server', () => {
     expect(res.status).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(res.body.verdict).toBe('FAIL');
+    expect(Array.isArray(res.body.contract?.requiredChanges)).toBe(true);
+    expect(res.body.contract.requiredChanges.length).toBeGreaterThan(0);
   });
 
   it('invokes llm judge when validation fails', async () => {
@@ -220,6 +234,9 @@ describe('validator server', () => {
     expect(res.status).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(res.body.verdict).toBe('FAIL');
+    expect(res.body.contract).toMatchObject({
+      coverage: { threshold: 90 }
+    });
     expect(openAiCtorMock).toHaveBeenCalledWith({ apiKey: 'test-openai' });
     expect(openAiCreateMock).toHaveBeenCalled();
     expect(traceMock).toHaveBeenCalled();

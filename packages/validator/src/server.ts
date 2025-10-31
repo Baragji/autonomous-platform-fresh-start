@@ -8,6 +8,7 @@ import { getLangfuse } from '@autonomous/shared/src/langfuse';
 import { publish } from '@autonomous/shared/src/events';
 import { createVfs, type Vfs, type VfsFileEntry } from '@autonomous/shared/src/vfs';
 import { registerShutdown } from '@autonomous/shared/src/shutdown';
+import { ValidatorRemediationContractSchema, type ValidatorRemediationContract } from '@autonomous/shared/src/validatorContract';
 
 startOtel('validator');
 export const app = express();
@@ -52,7 +53,18 @@ const ValidationReportSchema = z.object({
   })).optional(),
   coverage: z.object({ lines: z.number().nullable().optional() }).optional(),
   testsPassed: z.boolean().optional(),
-  secretsFound: z.number().optional()
+  secretsFound: z.number().optional(),
+  failingTests: z.array(z.object({
+    file: z.string(),
+    test: z.string(),
+    message: z.string().optional()
+  })).optional(),
+  requiredChanges: z.array(z.object({
+    summary: z.string(),
+    details: z.string().optional(),
+    blockers: z.array(z.string()).optional()
+  })).optional(),
+  remediation: ValidatorRemediationContractSchema.optional()
 });
 
 app.get('/healthz', async (_req, res) => {
@@ -91,6 +103,7 @@ app.post('/validate', async (req: Request, res: Response) => {
   const vfs: Vfs = await createVfs(execId);
   const files = await vfs.listFiles();
   const codeFiles = files.filter((f: VfsFileEntry) => f.path.startsWith('code/'));
+  const coverageThreshold = Number(process.env.VALIDATOR_COVERAGE_THRESHOLD_GLOBAL || 80);
   // If no code files, still emit a structured FAIL report so validator is "touched"
   if (codeFiles.length === 0) {
     const prefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/,'');
@@ -100,7 +113,25 @@ app.post('/validate', async (req: Request, res: Response) => {
       issues: buildIssues(0),
       coverage: { lines: null },
       testsPassed: false,
-      secretsFound: 0
+      secretsFound: 0,
+      failingTests: [],
+      requiredChanges: [
+        {
+          summary: 'Provide generated code artifacts for validation',
+          details: 'Runner did not upload files under code/. Ensure implementer outputs code and runner persists it.'
+        }
+      ],
+      remediation: ValidatorRemediationContractSchema.parse({
+        failingTests: [],
+        coverage: { linesPct: null, threshold: coverageThreshold },
+        requiredChanges: [
+          {
+            summary: 'Provide generated code artifacts for validation',
+            details: 'Runner did not upload files under code/. Ensure implementer outputs code and runner persists it.'
+          }
+        ],
+        generatedAt: new Date().toISOString()
+      })
     } as z.infer<typeof ValidationReportSchema>;
     const buf = Buffer.from(JSON.stringify(report, null, 2));
     const reportSha = sha256(buf);
@@ -108,7 +139,7 @@ app.post('/validate', async (req: Request, res: Response) => {
     await vfs.writeFile(validationReportObject, buf, { contentType: 'application/json', sha256: reportSha });
     await publish(execId, 'artifact', { type: 'validation', report: validationReportObject });
     await publish(execId, 'status', { status: 'needs_remediation' });
-    return res.json({ ok: true, verdict: 'FAIL', report: validationReportObject });
+    return res.json({ ok: true, verdict: 'FAIL', report: validationReportObject, contract: report.remediation });
   }
 
   // Prepare sandbox (same model as Runner)
@@ -117,20 +148,34 @@ app.post('/validate', async (req: Request, res: Response) => {
     logger.error('E2B_API_KEY is not set');
     // Fallback: structured FAIL without sandbox
     const prefixNoKey = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/, '');
+    const fallbackContract = ValidatorRemediationContractSchema.parse({
+      failingTests: [],
+      coverage: { linesPct: null, threshold: coverageThreshold },
+      requiredChanges: [
+        {
+          summary: 'Configure validator sandbox access',
+          details: 'Set E2B_API_KEY so validator can execute generated tests.'
+        }
+      ],
+      generatedAt: new Date().toISOString()
+    });
     const fallback = {
       verdict: 'FAIL',
       reasons: ['Sandbox unavailable (E2B_API_KEY missing)'],
       issues: buildIssues(0),
       coverage: { lines: null },
       testsPassed: false,
-      secretsFound: 0
+      secretsFound: 0,
+      failingTests: [],
+      requiredChanges: fallbackContract.requiredChanges,
+      remediation: fallbackContract
     };
     const buf = Buffer.from(JSON.stringify(fallback, null, 2));
     const validationReportObjectNoKey = `${prefixNoKey}/validation-report.json`;
     await vfs.writeFile(validationReportObjectNoKey, buf, { contentType: 'application/json', sha256: sha256(buf) });
     await publish(execId, 'artifact', { type: 'validation', report: validationReportObjectNoKey });
     await publish(execId, 'status', { status: 'needs_remediation' });
-    return res.json({ ok: true, verdict: 'FAIL', report: validationReportObjectNoKey });
+    return res.json({ ok: true, verdict: 'FAIL', report: validationReportObjectNoKey, contract: fallbackContract });
   }
 
   const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
@@ -139,7 +184,7 @@ app.post('/validate', async (req: Request, res: Response) => {
   const sandbox: SandboxApi = (await (Sandbox as any).create('node:lts', { apiKey })) as unknown as SandboxApi;
 
   const prefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/,'');
-  const threshold = Number(process.env.VALIDATOR_COVERAGE_THRESHOLD_GLOBAL || 80);
+  const threshold = coverageThreshold;
   const judgeEnabled = ['1','true','yes'].includes(String(process.env.VALIDATOR_LLM_JUDGE || '0').toLowerCase());
 
   let junitObject: string | undefined;
@@ -216,17 +261,22 @@ app.post('/validate', async (req: Request, res: Response) => {
     let linesPct: number | null = null;
     try { const parsed = JSON.parse(String(coverageJson || '{}')); linesPct = parsed.total?.lines?.pct ?? null; } catch {}
 
+    const vitestParsed = parseVitestJson(vitestJson);
+    const failingTests = extractVitestFailures(vitestParsed);
     const testsPassed = parseVitestPassed(vitestJson);
     const coveragePassed = linesPct == null ? false : linesPct >= threshold;
 
-    let report = {
+    let report: z.infer<typeof ValidationReportSchema> = {
       verdict: testsPassed && coveragePassed && secretsCount === 0 ? 'PASS' : 'FAIL',
       reasons: buildReasons(testsPassed, coveragePassed, secretsCount),
       issues: buildIssues(secretsCount),
       coverage: { lines: linesPct ?? null },
       testsPassed,
-      secretsFound: secretsCount
-    } as z.infer<typeof ValidationReportSchema>;
+      secretsFound: secretsCount,
+      failingTests,
+      requiredChanges: [],
+      remediation: undefined
+    };
 
     // LLM judge only if FAIL
     if (report.verdict === 'FAIL' && judgeEnabled) {
@@ -254,6 +304,18 @@ app.post('/validate', async (req: Request, res: Response) => {
       }
     }
 
+    const remediationContract = buildRemediationContract({
+      failingTests,
+      coveragePct: linesPct,
+      threshold,
+      testsPassed,
+      coveragePassed,
+      secretsFound: secretsCount
+    });
+
+    report.remediation = remediationContract;
+    report.requiredChanges = remediationContract.requiredChanges;
+
     // Store validation report
     validationReportObject = `${prefix}/validation-report.json`;
 
@@ -274,27 +336,41 @@ app.post('/validate', async (req: Request, res: Response) => {
     await publish(execId, 'artifact', { type: 'validation', report: validationReportObject, junit: junitObject, coverage: coverageObject });
     await publish(execId, 'status', { status: report.verdict === 'PASS' ? 'validated' : 'needs_remediation' });
 
-    return res.json({ ok: true, verdict: report.verdict, report: validationReportObject, junitObject, coverageObject });
+    return res.json({ ok: true, verdict: report.verdict, report: validationReportObject, junitObject, coverageObject, contract: remediationContract });
   } catch (err) {
     const e = err as Error;
     logger.error({ err: e.message }, 'validator failed');
     // Always emit a structured FAIL report rather than HTTP 500 to ensure validator is touched
     try {
       const fallbackPrefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/, '');
+      const remediation = ValidatorRemediationContractSchema.parse({
+        failingTests: [],
+        coverage: { linesPct: null, threshold: coverageThreshold },
+        requiredChanges: [
+          {
+            summary: 'Inspect validator failure logs',
+            details: `Validator error: ${String(e.message)}`
+          }
+        ],
+        generatedAt: new Date().toISOString()
+      });
       const fallback = {
         verdict: 'FAIL',
         reasons: ['Validator error', String(e.message)],
         issues: buildIssues(0),
         coverage: { lines: null },
         testsPassed: false,
-        secretsFound: 0
+        secretsFound: 0,
+        failingTests: [],
+        requiredChanges: remediation.requiredChanges,
+        remediation
       } as Record<string, unknown>;
       const buf = Buffer.from(JSON.stringify(fallback, null, 2));
       const object = `${fallbackPrefix}/validation-report.json`;
       await vfs.writeFile(object, buf, { contentType: 'application/json', sha256: sha256(buf) });
       await publish(execId, 'artifact', { type: 'validation', report: object });
       await publish(execId, 'status', { status: 'needs_remediation' });
-      return res.json({ ok: true, verdict: 'FAIL', report: object });
+      return res.json({ ok: true, verdict: 'FAIL', report: object, contract: remediation });
     } catch (nested) {
       await publish(execId, 'agent', { agent: 'validator', status: 'failed', error: e.message }).catch(() => {});
       return res.status(500).json({ error: e.message });
@@ -319,6 +395,78 @@ export function buildIssues(secretsCount: number) {
     issues.push({ type: 'secrets', severity: 'high', description: 'Hardcoded secrets detected', remediation: 'Remove secrets from source; use environment variables and secret manager.' });
   }
   return issues;
+}
+
+export type VitestJsonSummary = {
+  numTotalTests?: number;
+  numPassedTests?: number;
+  testResults?: Array<{
+    name?: string;
+    testFilePath?: string;
+    status?: string;
+    duration?: number;
+    error?: { message?: string };
+  }>;
+};
+
+export function parseVitestJson(stdout: string): VitestJsonSummary {
+  try { return JSON.parse(stdout) as VitestJsonSummary; } catch { return {}; }
+}
+
+export function extractVitestFailures(report: VitestJsonSummary): Array<{ file: string; test: string; message?: string }> {
+  const cases = Array.isArray(report.testResults) ? report.testResults : [];
+  return cases
+    .filter((c) => (c.status || '').toLowerCase() !== 'pass')
+    .map((c) => ({
+      file: c.testFilePath ?? c.name ?? 'unknown',
+      test: c.name ?? c.testFilePath ?? 'unknown',
+      message: c.error?.message
+    }));
+}
+
+type RemediationInput = {
+  failingTests: Array<{ file: string; test: string; message?: string }>;
+  coveragePct: number | null;
+  threshold: number;
+  testsPassed: boolean;
+  coveragePassed: boolean;
+  secretsFound: number;
+};
+
+export function buildRemediationContract(input: RemediationInput): ValidatorRemediationContract {
+  const requiredChanges: ValidatorRemediationContract['requiredChanges'] = [];
+
+  if (!input.testsPassed) {
+    const summary = 'Resolve failing automated tests';
+    const failingDetails = input.failingTests.length > 0
+      ? input.failingTests.map((t) => `${t.test} (${t.file})${t.message ? `: ${t.message}` : ''}`).join('; ')
+      : 'Review runner artifacts for failure details.';
+    requiredChanges.push({ summary, details: failingDetails });
+  }
+
+  if (!input.coveragePassed) {
+    const current = input.coveragePct == null ? 'Coverage unavailable' : `Current coverage ${input.coveragePct}%`;
+    requiredChanges.push({
+      summary: `Increase line coverage to ≥ ${input.threshold}%`,
+      details: `${current}. Add or extend tests covering critical paths before re-running validation.`
+    });
+  }
+
+  if (input.secretsFound > 0) {
+    requiredChanges.push({
+      summary: 'Remove detected secrets from source control',
+      details: `Validator detected ${input.secretsFound} potential secret(s). Rotate credentials and use the secrets manager.`
+    });
+  }
+
+  const contract = {
+    failingTests: input.failingTests,
+    coverage: { linesPct: input.coveragePct, threshold: input.threshold },
+    requiredChanges,
+    generatedAt: new Date().toISOString()
+  };
+
+  return ValidatorRemediationContractSchema.parse(contract);
 }
 
 export async function scanForSecrets(sandbox: SandboxApi, root: string): Promise<number> {

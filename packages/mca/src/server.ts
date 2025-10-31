@@ -10,12 +10,22 @@ import { StateGraph, START, END } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { Pool } from 'pg';
 import { registerShutdown } from '@autonomous/shared/src/shutdown';
+import { ValidatorRemediationContractSchema, type ValidatorRemediationContract } from '@autonomous/shared/src/validatorContract';
 
 startOtel('mca');
 export const app = express();
 const logger = createLogger('mca');
 app.use(createHttpLogger(logger));
 app.use(express.json());
+
+type ValidatorFeedback = {
+  verdict: 'PASS' | 'FAIL';
+  report?: string;
+  junitObject?: string;
+  coverageObject?: string;
+  contract?: ValidatorRemediationContract;
+  receivedAt: string;
+};
 
 type McaState = {
   execId: string;
@@ -24,6 +34,7 @@ type McaState = {
   current_agent?: string;
   plan?: Plan;
   failure_count?: number;
+  last_validator_feedback?: ValidatorFeedback;
 };
 
 const pool = new Pool({ connectionString: env.DATABASE_URL });
@@ -119,20 +130,51 @@ async function validatorNode(state: McaState): Promise<McaState> {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ execId: state.execId })
   }), { timeoutMs: 5000, retries: 2 });
-  const payload = (await response.json()) as { ok?: boolean; verdict?: 'PASS'|'FAIL'; report?: string; junitObject?: string; coverageObject?: string; error?: string };
+  const payload = (await response.json()) as {
+    ok?: boolean;
+    verdict?: 'PASS' | 'FAIL';
+    report?: string;
+    junitObject?: string;
+    coverageObject?: string;
+    contract?: unknown;
+    error?: string;
+  };
   if (!response.ok || payload.ok !== true || !payload.verdict) {
     throw new Error(payload.error || 'validator failed');
   }
   const verdict = payload.verdict;
-  await publish(state.execId, 'artifact', { type: 'validation', report: payload.report, junit: payload.junitObject, coverage: payload.coverageObject });
+  const contract = payload.contract ? ValidatorRemediationContractSchema.parse(payload.contract) : undefined;
+  await publish(state.execId, 'artifact', {
+    type: 'validation',
+    report: payload.report,
+    junit: payload.junitObject,
+    coverage: payload.coverageObject,
+    contract
+  });
   await upsertExecution(state.execId, verdict === 'PASS' ? 'validated' : 'needs_remediation', state.intent, 'validator');
-  await publish(state.execId, 'status', { status: verdict === 'PASS' ? 'validated' : 'needs_remediation' });
-  const failure_count = verdict === 'FAIL' ? (state.failure_count ?? 0) + 1 : (state.failure_count ?? 0);
+  const failure_count = verdict === 'FAIL' ? (state.failure_count ?? 0) + 1 : 0;
+  await publish(state.execId, 'status', { status: verdict === 'PASS' ? 'validated' : 'needs_remediation', failure_count });
+  const feedback: ValidatorFeedback = {
+    verdict,
+    report: payload.report,
+    junitObject: payload.junitObject,
+    coverageObject: payload.coverageObject,
+    contract,
+    receivedAt: new Date().toISOString()
+  };
   if (failure_count >= 3 && verdict === 'FAIL') {
     await publish(state.execId, 'escalated', { failure_count });
   }
-  return { ...state, current_agent: 'validator', status: verdict === 'PASS' ? 'validated' : 'needs_remediation', failure_count };
+  return {
+    ...state,
+    current_agent: 'validator',
+    status: verdict === 'PASS' ? 'validated' : 'needs_remediation',
+    failure_count,
+    last_validator_feedback: feedback
+  };
 }
+
+export const __testing = { validatorNode };
 
 const graphBuilder = new StateGraph<McaState>({
   // Keep channels mapping for forward compatibility, but run planner as first node
@@ -143,7 +185,9 @@ const graphBuilder = new StateGraph<McaState>({
     current_agent: { value: (_prev: string | undefined, curr: string | undefined) => curr as string },
     // Persist the validated plan between nodes so implementer can consume it
     // Preserve previous plan if current node doesn't explicitly set it
-    plan: { value: (prev: Plan | undefined, curr: Plan | undefined) => curr ?? prev }
+    plan: { value: (prev: Plan | undefined, curr: Plan | undefined) => curr ?? prev },
+    failure_count: { value: (prev: number | undefined, curr: number | undefined) => curr ?? prev ?? 0 },
+    last_validator_feedback: { value: (prev: ValidatorFeedback | undefined, curr: ValidatorFeedback | undefined) => curr ?? prev }
   }
 })
   .addNode('planner', plannerNode)

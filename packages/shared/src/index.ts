@@ -8,3 +8,4 @@ export * from './otel';
 export * from './plan';
 export * from './vfs';
 export * from './http';
+export * from './validatorContract';
