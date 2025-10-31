@@ -80,3 +80,25 @@ export async function startOtel(service: string) {
     return;
   }
 }
+
+export async function createHttpLogger(logger: { info?: Function; error?: Function }) {
+  if (IS_TEST) {
+    return (_req: unknown, _res: unknown, next: Function) => next();
+  }
+  const m = await importShared('logger.js');
+  return (m as { createHttpLogger: (l: { info?: Function; error?: Function }) => unknown }).createHttpLogger(logger);
+}
+
+export async function registerShutdownCompat(opts: {
+  server: import('http').Server;
+  redisClients?: Array<{ quit: () => Promise<unknown> | unknown }>;
+  db?: { end: () => Promise<unknown> | unknown } | Array<{ end: () => Promise<unknown> | unknown }>;
+  extra?: Array<() => Promise<void> | void>;
+  logger?: { info?: Function; error?: Function };
+  exit?: boolean;
+  timeoutMs?: number;
+}) {
+  if (IS_TEST) return { shutdown: async () => {} } as const;
+  const m = await importShared('shutdown.js');
+  return (m as { registerShutdown: (o: typeof opts) => { shutdown: () => Promise<void> } }).registerShutdown(opts);
+}

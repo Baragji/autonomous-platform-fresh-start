@@ -33,7 +33,7 @@ Runner (E2B Sandbox)
     → Returns: JUnit XML + coverage.json
     ↓
 MCA routes to Validator
-Validator (pytest + LLM judge with structured outputs)
+Validator (Node/Vitest + LLM judge with structured outputs)
     → Independently runs tests
     → Verifies coverage ≥ 80%
     → Checks for hardcoded secrets
@@ -525,7 +525,7 @@ export async function validatorAgent(taskId: string, implementerReport: any) {
   // 2. Read implementer's report (don't trust it)
   const implClaims = implementerReport;
   
-  // 3. Independently run tests (ground truth)
+  // 3. Independently run tests (ground truth) using Vitest JSON reporter
   let testResult;
   try {
     execSync("npm test -- --reporter=json --coverage", { timeout: 60_000 });
@@ -591,10 +591,10 @@ export async function validatorAgent(taskId: string, implementerReport: any) {
 ```
 
 **Production Notes:**
-- Always run ground truth tools first (tests, coverage, linters)
+- Always run ground truth tools first (tests, coverage, linters) with Vitest JSON + coverage
 - Use LLM judge ONLY for tie-breaks or ambiguous failures
 - Cap LLM analysis cost (<$0.05 per validation)
-- Store all validation artifacts in MinIO
+- Store all validation artifacts in MinIO (JUnit XML, coverage.json, validation-report.json)
 - Include RFC 9457 Problem Details in FAIL responses
 
 ---

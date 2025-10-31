@@ -179,9 +179,17 @@ app.post('/validate', async (req: Request, res: Response) => {
   }
 
   const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
-  // Create sandbox with node:lts template (has Node.js/npm pre-installed)
-  // Template is positional first parameter: create(template, opts)
-  const sandbox: SandboxApi = (await (Sandbox as any).create('node:lts', { apiKey })) as unknown as SandboxApi;
+  // Support both factory style (Sandbox.create) and constructor style (new Sandbox())
+  let sandbox: SandboxApi;
+  const maybeCreate = (Sandbox as unknown as { create?: (template: string, opts: { apiKey: string }) => Promise<SandboxApi> }).create;
+  if (typeof maybeCreate === 'function') {
+    // Prefer factory with template (node:lts)
+    sandbox = await maybeCreate('node:lts', { apiKey });
+  } else {
+    // Fallback: constructor shape
+    const Ctor = Sandbox as unknown as new (opts: { apiKey: string }) => SandboxApi;
+    sandbox = new Ctor({ apiKey });
+  }
 
   const prefix = String(process.env.VALIDATOR_ARTIFACT_PREFIX || 'validator').replace(/\/+$/,'');
   const threshold = coverageThreshold;

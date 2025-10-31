@@ -22,3 +22,27 @@ description = "Ignore local root .env for filesystem scans"
 paths = [
   '''(^|/)\.env$'''
 ]
+
+[[allowlists]]
+description = "Ignore CI workflow placeholders"
+paths = [
+  '''(^|/)\.github/workflows/ci\.yml$'''
+]
+
+[[allowlists]]
+description = "Ignore Next.js build artifacts"
+paths = [
+  '''(^|/)apps/web/\.next/'''
+]
+
+[[allowlists]]
+description = "Allow test fixtures that intentionally include fake keys"
+paths = [
+  '''(^|/)packages/validator/src/__tests__/'''
+]
+
+[[allowlists]]
+description = "Allow env guard script with synthetic sample keys"
+paths = [
+  '''(^|/)scripts/collect-env-guard\.ts$'''
+]

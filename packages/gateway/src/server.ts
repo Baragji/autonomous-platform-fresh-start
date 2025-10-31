@@ -22,14 +22,14 @@ app.post('/api/executions', async (req: Request, res: Response) => {
     .json({ id, status: 'accepted', location: `/api/executions/${id}`, stream: `/api/executions/${id}/stream` });
 
   // Fire-and-forget call to MCA with timeout + retries to avoid hanging
-  const { fetchWithTimeout, withTraceHeaders } = await import('@autonomous/shared/src/http');
+  const { fetchWithTimeout } = await import('@autonomous/shared/src/http');
   fetchWithTimeout(
     process.env.MCA_URL || 'http://localhost:7010/start',
-    withTraceHeaders({
+    {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ execId: id, intent })
-    }),
+    },
     { timeoutMs: 5000, retries: 2 }
   ).catch((err: unknown) => {
     logger.warn({ err: (err as Error).message }, 'failed to notify MCA start');

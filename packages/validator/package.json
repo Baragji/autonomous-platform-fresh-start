@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "ts-node-dev": "^2.0.0",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "@vitest/coverage-istanbul": "^2.1.4"
   }
 }

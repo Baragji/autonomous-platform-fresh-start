@@ -58,8 +58,10 @@ const baseFetchImplementation = async (url: string, init?: Record<string, unknow
       ok: true,
       json: async () => ({
         ok: true,
-        junitObject: `${body.execId}/runner/junit.xml`,
-        coverageObject: `${body.execId}/runner/coverage.json`
+        junitObject: 'runner/junit.xml',
+        coverageObject: 'runner/coverage.json',
+        junitObjectAbsolute: `${body.execId}/runner/junit.xml`,
+        coverageObjectAbsolute: `${body.execId}/runner/coverage.json`
       })
     };
   }
@@ -205,7 +207,8 @@ beforeEach(() => {
   fetchStub.mockImplementation(baseFetchImplementation);
   // also clear the typed mock reference for expectations
   fetchWithTimeoutMock.mockClear();
-  fetchWithTimeoutMock.mockImplementation(baseFetchImplementation);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fetchWithTimeoutMock.mockImplementation(baseFetchImplementation as any);
   upsertExecution.mockReset();
   upsertExecution.mockResolvedValue(undefined as unknown as void);
   publish.mockReset();
@@ -296,6 +299,28 @@ describe('mca server', () => {
       })
     });
     expect(publish).toHaveBeenCalledWith('exec-fail', 'status', expect.objectContaining({ status: 'needs_remediation', failure_count: 1 }));
+  });
+
+  it('escalates after three consecutive FAIL verdicts', async () => {
+    const failContract = {
+      failingTests: [],
+      coverage: { linesPct: 0, threshold: 80 },
+      requiredChanges: [{ summary: 'Add tests' }],
+      generatedAt: new Date().toISOString()
+    };
+    validatorPayload = { ok: true, verdict: 'FAIL', report: 'validator/r.json', junitObject: 'x.xml', coverageObject: 'y.json', contract: failContract };
+
+    let state = { execId: 'exec-escalate', intent: 'Build', failure_count: 0 } as unknown as Parameters<typeof testing.validatorNode>[0];
+    state = await testing.validatorNode(state);
+    expect(state.failure_count).toBe(1);
+    state = await testing.validatorNode(state);
+    expect(state.failure_count).toBe(2);
+    state = await testing.validatorNode(state);
+    expect(state.failure_count).toBe(3);
+    // publish should have been called with 'escalated'
+    const pubCalls = (publish as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+    const escalated = pubCalls.find((args) => args[1] === 'escalated' && args[0] === 'exec-escalate');
+    expect(escalated).toBeTruthy();
   });
 
   it('reports healthy when dependencies respond', async () => {

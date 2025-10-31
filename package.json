@@ -17,8 +17,8 @@
     "lint": "eslint \"packages/*/src/**/*.ts\"",
     "typecheck": "tsc -p tsconfig.base.json --noEmit && npm --prefix packages/gateway run typecheck && npm --prefix packages/mca run typecheck && npm --prefix packages/planner run typecheck && npm --prefix packages/runner run typecheck && npm --prefix packages/validator run typecheck",
     "test": "vitest run",
-    "test:validator": "npm --prefix packages/validator run test",
-    "compliance:validator-coverage": "node -e \"const fs=require('fs');const p='packages/validator/coverage/coverage-summary.json';if(!fs.existsSync(p)){console.error('validator coverage summary not found');process.exit(1);}const j=JSON.parse(fs.readFileSync(p,'utf-8'));const pct=j.total&&j.total.lines&&j.total.lines.pct||0;const pass=pct>=90;console.log('Validator coverage',pct,'%');if(!pass){console.error('Validator coverage below 90%');process.exit(1);}\"",
+    "test:validator": "vitest run --root packages/validator --coverage",
+    "compliance:validator-coverage": "tsx scripts/check-validator-coverage.ts",
     "ci:no-skips": "tsx scripts/check-no-skips.ts",
     "ci:validate-openai": "tsx scripts/validate-openai.ts",
     "compliance:coverage": "tsx scripts/check-coverage.ts",
@@ -27,11 +27,12 @@
     "compliance:opa": "sh -c 'if command -v conftest >/dev/null 2>&1; then conftest test -n repo .automation/evidence/compliance/facts.json -p policy; elif command -v docker >/dev/null 2>&1; then docker run --rm -v \"$(pwd)\":/project -w /project openpolicyagent/conftest test -n repo .automation/evidence/compliance/facts.json -p policy; else echo \"Conftest not found. Install conftest or Docker.\" && exit 1; fi'",
     "compliance:patterns": "(command -v semgrep >/dev/null 2>&1 && semgrep --config .semgrep --error --sarif --output .automation/evidence/compliance/semgrep.sarif) || (command -v docker >/dev/null 2>&1 && docker run --rm -v \"$(pwd)\":/src -w /src semgrep/semgrep:latest semgrep --config .semgrep --error --sarif --output .automation/evidence/compliance/semgrep.sarif) || (echo 'Semgrep not found. Install semgrep or Docker.' && exit 1)",
     "compliance:contracts": "npx @stoplight/spectral-cli lint \"**/*.openapi.@(yaml|yml|json)\" -r spectral.yaml -o .automation/evidence/compliance/spectral.sarif -f sarif || true",
-    "compliance:sbom": "npx @cyclonedx/cyclonedx-npm --output-file .automation/evidence/compliance/sbom.json --mc-type application",
+    "compliance:sbom": "npx @cyclonedx/cyclonedx-npm --output-file .automation/evidence/compliance/sbom.json --mc-type application --ignore-npm-errors",
     "compliance:vuln": "(command -v trivy >/dev/null 2>&1 && trivy fs --format sarif --output .automation/evidence/compliance/trivy.sarif --severity HIGH,CRITICAL --exit-code 1 .) || (command -v docker >/dev/null 2>&1 && docker run --rm -v \"$(pwd)\":/project -w /project aquasec/trivy:latest fs --format sarif --output .automation/evidence/compliance/trivy.sarif --severity HIGH,CRITICAL --exit-code 1 .) || (echo 'Trivy not found. Install trivy or Docker.' && exit 1)",
     "compliance:secrets": "(command -v gitleaks >/dev/null 2>&1 && gitleaks detect --no-git --source . --report-format sarif --report-path .automation/evidence/compliance/gitleaks.sarif --config gitleaks.toml) || (command -v docker >/dev/null 2>&1 && docker run --rm -v \"$(pwd)\":/path zricethezav/gitleaks:latest detect --no-git --source /path --report-format sarif --report-path /path/.automation/evidence/compliance/gitleaks.sarif --config /path/gitleaks.toml) || (echo 'Gitleaks not found. Install gitleaks or Docker.' && exit 1)",
     "compliance:aggregate": "tsx scripts/aggregate-sarif.ts",
     "compliance": "npm run lint && npm run typecheck && npm test && npm run test:validator && npm run compliance:coverage && npm run compliance:validator-coverage && npm run compliance:patterns && npm run compliance:sbom && npm run compliance:facts && npm run compliance:meta && npm run compliance:opa && npm run compliance:contracts && npm run compliance:vuln && npm run compliance:secrets && npm run compliance:aggregate",
+    "telemetry:smoke": "tsx scripts/telemetry-smoke.ts",
     "dev:up": "tsx scripts/dev-orchestrator.ts up",
     "dev:down": "tsx scripts/dev-orchestrator.ts down",
     "dev:health": "tsx scripts/dev-orchestrator.ts status",
@@ -62,5 +63,8 @@
     "typescript": "^5.6.3",
     "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^2.1.4"
+  },
+  "overrides": {
+    "libxmljs2": "0.37.0"
   }
 }

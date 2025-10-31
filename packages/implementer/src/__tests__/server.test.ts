@@ -1,8 +1,16 @@
 import request from 'supertest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let runMock: any;
+
 vi.mock('../agent', () => {
-  class MockAgent { async run() { return { ok: true, files: ['src/app.ts'] }; } }
+  runMock = vi.fn(async () => ({ ok: true, files: ['src/app.ts'] }));
+  class MockAgent {
+    async run(input: unknown) {
+      return runMock(input);
+    }
+  }
   return { ImplementerAgent: MockAgent };
 });
 
@@ -27,6 +35,7 @@ describe('implementer server', () => {
     const mod = await import('../server');
     app = mod.app;
     listFilesMock.mockClear();
+    runMock.mockClear();
   });
 
   it('returns 200 for valid request', async () => {
@@ -35,6 +44,30 @@ describe('implementer server', () => {
     expect(res.status).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(res.body.files).toContain('src/app.ts');
+    expect(runMock).toHaveBeenCalledWith(expect.objectContaining({ execId: 'e1', plan }));
+  });
+
+  it('forwards validator feedback to the agent', async () => {
+    const plan = {
+      tasks: [
+        { id: '1', title: 'a', description: 'a' },
+        { id: '2', title: 'b', description: 'b', dependsOn: ['1'] }
+      ],
+      acceptance_criteria: ['x']
+    };
+    const feedback = {
+      verdict: 'FAIL' as const,
+      report: 'validator/report.json',
+      contract: {
+        failingTests: [],
+        coverage: { linesPct: 40, threshold: 80 },
+        requiredChanges: [{ summary: 'Fix tests' }],
+        generatedAt: new Date().toISOString()
+      }
+    };
+    const res = await request(app).post('/implement').send({ execId: 'exec-feedback', plan, validatorFeedback: feedback });
+    expect(res.status).toBe(200);
+    expect(runMock).toHaveBeenCalledWith(expect.objectContaining({ feedback }));
   });
 
   it('400 on invalid body', async () => {

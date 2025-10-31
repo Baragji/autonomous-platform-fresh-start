@@ -12,8 +12,10 @@ export type RunRequest = z.infer<typeof RunRequestSchema>;
 
 export type RunResult = {
   ok: boolean;
-  junitObject?: string; // path in MinIO
-  coverageObject?: string; // path in MinIO
+  junitObject?: string; // path in MinIO relative to execution prefix
+  coverageObject?: string; // path in MinIO relative to execution prefix
+  junitObjectAbsolute?: string; // fully qualified object key for external consumers
+  coverageObjectAbsolute?: string; // fully qualified object key for external consumers
   error?: string;
 };
 
@@ -55,33 +57,42 @@ export class RunnerAgent {
       this.logger.error('E2B_API_KEY is not set');
       return { ok: false, error: 'E2B_API_KEY is not configured' };
     }
-  const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
-  // Create real E2B sandbox using node:lts template with API key
-  // The SDK handles full RPC communication for filesystem and command execution
-  // CRITICAL: Template is positional first parameter, not in options object
-  const sandboxObj = await (Sandbox as any).create('node:lts', { apiKey });
-  const sandbox: SandboxApi = sandboxObj as unknown as SandboxApi;
+    const { Sandbox }: typeof import('@e2b/sdk') = await import('@e2b/sdk');
+    // Create real E2B sandbox using node:lts template with API key
+    // The SDK handles full RPC communication for filesystem and command execution
+    // CRITICAL: Template is positional first parameter, not in options object
+    const sandboxObj = await (Sandbox as unknown as { create: (template: string, opts: { apiKey: string }) => Promise<SandboxApi> }).create('node:lts', { apiKey });
+    const sandbox: SandboxApi = sandboxObj as unknown as SandboxApi;
 
-  // Log sandbox metadata for observability
-  try {
-    const meta: any = sandboxObj;
-    this.logger.info({
-      sandboxId: meta.sandboxId,
-      envdVersion: meta.envdVersion,
-      hasEnvdApi: Boolean(meta.envdApi)
-    }, 'E2B sandbox created successfully');
-  } catch (e) {
-    this.logger.error({ err: (e as Error).message }, 'failed to read sandbox metadata');
-  }
+    // Log sandbox metadata for observability
     try {
-        // Publish sandbox metadata as an artifact so it's visible in the execution SSE
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const metaAny: any = sandboxObj;
-          await publishWithTrace(execId, 'artifact', { type: 'sandbox_meta', meta: { envdVersion: metaAny.envdVersion, hasEnvdApi: Boolean(metaAny.envdApi), sandboxId: metaAny.sandboxId } });
-        } catch (pubErr) {
-          this.logger.error({ err: (pubErr as Error).message }, 'failed to publish sandbox metadata');
-        }
+      const meta = sandboxObj as Record<string, unknown>;
+      this.logger.info({
+        sandboxId: meta.sandboxId,
+        envdVersion: meta.envdVersion,
+        hasEnvdApi: Boolean(meta.envdApi)
+      }, 'E2B sandbox created successfully');
+    } catch (e) {
+      this.logger.error({ err: (e as Error).message }, 'failed to read sandbox metadata');
+    }
+
+    try {
+      // Publish sandbox metadata as an artifact so it's visible in the execution SSE
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const metaAny: any = sandboxObj;
+        await publishWithTrace(execId, 'artifact', {
+          type: 'sandbox_meta',
+          meta: {
+            envdVersion: metaAny.envdVersion,
+            hasEnvdApi: Boolean(metaAny.envdApi),
+            sandboxId: metaAny.sandboxId
+          }
+        });
+      } catch (pubErr) {
+        this.logger.error({ err: (pubErr as Error).message }, 'failed to publish sandbox metadata');
+      }
+
       // Prepare a project directory
       const projectRoot = '/project';
       await sandbox.files.makeDir(projectRoot);
@@ -144,8 +155,8 @@ export class RunnerAgent {
 
       // Convert to JUnit XML (simple adapter: one testsuite)
       const junitXml = this.vitestJsonToJUnit(testResult.stdout);
-      const junitObject = `runner/junit.xml`;
-      await vfs.writeFile(junitObject, junitXml, { contentType: 'application/xml' });
+      const junitRelative = `runner/junit.xml`;
+      await vfs.writeFile(junitRelative, junitXml, { contentType: 'application/xml' });
 
       // Read coverage summary from sandbox
       const coverageSummaryPath = `${projectRoot}/coverage/coverage-summary.json`;
@@ -155,12 +166,28 @@ export class RunnerAgent {
       } catch (e) {
         return { ok: false, error: 'coverage summary not found' };
       }
-      const coverageObject = `runner/coverage-summary.json`;
-      await vfs.writeFile(coverageObject, coverageJson);
+      const coverageRelative = `runner/coverage.json`;
+      await vfs.writeFile(coverageRelative, coverageJson, { contentType: 'application/json' });
 
-      await publish(execId, 'artifact', { type: 'runner_results', junit: junitObject, coverage: coverageObject });
+      const junitObject = `${execId}/${junitRelative}`;
+      const coverageObject = `${execId}/${coverageRelative}`;
+
+      await publish(execId, 'artifact', {
+        type: 'runner_results',
+        junit: junitRelative,
+        coverage: coverageRelative,
+        artifact_prefix: `${execId}/runner`,
+        junit_object: junitObject,
+        coverage_object: coverageObject
+      });
       await publish(execId, 'agent', { agent: 'runner', status: 'completed' });
-      return { ok: true, junitObject, coverageObject };
+      return {
+        ok: true,
+        junitObject: junitRelative,
+        coverageObject: coverageRelative,
+        junitObjectAbsolute: junitObject,
+        coverageObjectAbsolute: coverageObject
+      };
     } catch (err) {
       const e = err as Error;
       // Include stack and structured context to make root-cause diagnosis easier
@@ -198,14 +225,15 @@ export class RunnerAgent {
         return result;
       } catch (innerErr) {
         // The SDK may throw CommandExitError or similar
-        const ie = innerErr as any;
-        // Try to extract output from the error object
-        const errorMsg = ie.message || String(ie);
-        const stdout = ie.stdout || '';
-        const stderr = ie.stderr || '';
+        const isError = innerErr instanceof Error;
+        const ie = innerErr as { message?: string; stdout?: string; stderr?: string; stack?: string };
+        const errorMsg = ie?.message || String(innerErr);
+        const stdout = ie?.stdout || '';
+        const stderr = ie?.stderr || '';
+        const stack = isError ? (innerErr as Error).stack : ie?.stack;
         this.logger.error({
           err: errorMsg,
-          stack: ie.stack,
+          stack,
           command,
           args,
           cwd,

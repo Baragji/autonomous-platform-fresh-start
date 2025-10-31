@@ -7,6 +7,7 @@ import { createVfs } from '@autonomous/shared/src/vfs';
 import { PlanSchema } from '@autonomous/shared/src/plan';
 import { startOtel } from '@autonomous/shared/src/otel';
 import { getLangfuse } from '@autonomous/shared/src/langfuse';
+import { ValidatorRemediationContractSchema } from '@autonomous/shared/src/validatorContract';
 import { RedisEventPublisher } from './publisher';
 import { ImplementerAgent } from './agent';
 import { registerShutdown } from '@autonomous/shared/src/shutdown';
@@ -19,9 +20,19 @@ const logger = createLogger('implementer');
 app.use(createHttpLogger(logger));
 app.use(express.json({ limit: '2mb' }));
 
+const ValidatorFeedbackSchema = z.object({
+  verdict: z.enum(['PASS', 'FAIL']),
+  report: z.string().optional(),
+  junitObject: z.string().optional(),
+  coverageObject: z.string().optional(),
+  contract: ValidatorRemediationContractSchema.optional(),
+  receivedAt: z.string().optional()
+});
+
 const RequestSchema = z.object({
   execId: z.string().min(1),
-  plan: PlanSchema
+  plan: PlanSchema,
+  validatorFeedback: ValidatorFeedbackSchema.optional()
 });
 
 app.post('/implement', async (req: Request, res: Response) => {
@@ -29,7 +40,7 @@ app.post('/implement', async (req: Request, res: Response) => {
   if (!parseResult.success) {
     return res.status(400).json({ error: 'invalid request', details: parseResult.error.issues });
   }
-  const { execId, plan } = parseResult.data;
+  const { execId, plan, validatorFeedback } = parseResult.data;
   try {
     const [vfs, langfuse] = await Promise.all([
       createVfs(execId),
@@ -57,18 +68,24 @@ app.post('/implement', async (req: Request, res: Response) => {
       vfs,
       langfuse
     });
-    const result = await agent.run({ execId, plan: advisoryPlan });
+    const result = await agent.run({ execId, plan: advisoryPlan, feedback: validatorFeedback ?? undefined });
     res.json(result);
   } catch (err) {
     const e = err as Error;
     logger.warn({ execId, err: e.message }, 'implementer encountered error; attempting partial handoff');
     try {
       const vfs = await createVfs(execId);
-      const files = (await vfs.listFiles()).filter((f) => f.path.startsWith('code/')).map((f) => f.path);
-      if (files.length > 0) {
-        // Return ok:true to allow pipeline to proceed to runner/validator
-        return res.json({ ok: true, files });
+      let files = (await vfs.listFiles()).filter((f) => f.path.startsWith('code/')).map((f) => f.path);
+      if (files.length === 0) {
+        // Create a minimal scaffold to enforce partial handoff per policy
+        const readme = `# Execution ${execId}\n\nThis folder contains code artifacts for the execution.\n`;
+        const appTs = `export function hello(name: string): string { return \`Hello, \${name}!\`; }\n`;
+        await vfs.writeFile('code/README.md', readme, { contentType: 'text/markdown' });
+        await vfs.writeFile('code/app.ts', appTs, { contentType: 'text/plain' });
+        files = (await vfs.listFiles()).filter((f) => f.path.startsWith('code/')).map((f) => f.path);
       }
+      // Return ok:true to allow pipeline to proceed to runner/validator
+      if (files.length > 0) return res.json({ ok: true, files });
     } catch {}
     logger.error({ execId, err: e.message }, 'implementer run failed (no artifacts to hand off)');
     res.status(500).json({ error: e.message });

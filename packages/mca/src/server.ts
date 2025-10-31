@@ -85,7 +85,11 @@ async function implementerNode(state: McaState): Promise<McaState> {
   const response = await fetchWithTimeout(implementerUrl, withTraceHeaders({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ execId: state.execId, plan: state.plan })
+    body: JSON.stringify({
+      execId: state.execId,
+      plan: state.plan,
+      validatorFeedback: state.last_validator_feedback
+    })
   }), { timeoutMs: 5000, retries: 2 });
   const payload = (await response.json()) as { ok?: boolean; files?: string[]; error?: string };
   if (!response.ok || payload.ok !== true) {

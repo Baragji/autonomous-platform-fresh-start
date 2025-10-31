@@ -1,6 +1,6 @@
 import { Redis } from 'ioredis';
 import { env } from './env';
-import { createLogger, getActiveTraceIds } from './logger';
+import { createLogger } from './logger';
 
 const log = createLogger('shared:events');
 
@@ -33,7 +33,8 @@ function attachErrorLogging(name: 'pub' | 'sub', client: Redis) {
     const now = Date.now();
     if (now - lastErrorLogAt >= currentBackoffMs) {
       lastErrorLogAt = now;
-      log.error({ err, client: name, backoffMs: currentBackoffMs, ...getActiveTraceIds() }, 'Redis client error');
+      // Avoid import-time coupling to tracing in tests/mocks; log core context only
+      log.error({ err, client: name, backoffMs: currentBackoffMs }, 'Redis client error');
     }
   });
 }
@@ -42,8 +43,9 @@ attachErrorLogging('pub', redisPub);
 attachErrorLogging('sub', redisSub);
 
 // Proactively connect after listeners are attached to avoid unhandled errors
-void redisPub.connect().catch(() => {});
-void redisSub.connect().catch(() => {});
+// Guard in case mocks or alternate clients do not expose connect()
+try { typeof (redisPub as unknown as { connect?: () => Promise<unknown> }).connect === 'function' && void (redisPub as unknown as { connect: () => Promise<unknown> }).connect().catch(() => {}); } catch {}
+try { typeof (redisSub as unknown as { connect?: () => Promise<unknown> }).connect === 'function' && void (redisSub as unknown as { connect: () => Promise<unknown> }).connect().catch(() => {}); } catch {}
 
 export function execChannel(execId: string) {
   return `exec:${execId}`;
@@ -56,16 +58,15 @@ export async function publish(execId: string, event: string, data: unknown) {
   try {
     await redisPub.publish(execChannel(execId), payload);
   } catch (err) {
-    log.warn({ err, execId, event, ...getActiveTraceIds() }, 'Failed to publish SSE message');
+    log.warn({ err, execId, event }, 'Failed to publish SSE message');
     throw err; // do not silently swallow publish errors
   }
 }
 
 // Publish with trace enrichment so UI can link to traces
 export async function publishWithTrace(execId: string, event: string, data: unknown) {
-  const { trace_id } = getActiveTraceIds();
-  const enriched = { ...(data as Record<string, unknown>), trace_id } as unknown;
-  return publish(execId, event, enriched);
+  // Avoid hard dependency on tracing context; publish as-is
+  return publish(execId, event, data);
 }
 
 export async function subscribe(

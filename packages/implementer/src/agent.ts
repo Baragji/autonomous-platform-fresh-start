@@ -1,6 +1,7 @@
 import type { Logger } from '@autonomous/shared/src/logger';
 import type { Plan } from '@autonomous/shared/src/plan';
 import type { Vfs, VfsFileEntry } from '@autonomous/shared/src/vfs';
+import type { ValidatorRemediationContract } from '@autonomous/shared/src/validatorContract';
 import type { Langfuse } from 'langfuse';
 import { ToolExecutor } from './tools';
 import type { EventPublisher } from './publisher';
@@ -14,6 +15,7 @@ import type {
 export type ImplementerInput = {
   execId: string;
   plan: Plan;
+  feedback?: ValidatorFeedback;
 };
 
 export type ImplementerResult = {
@@ -50,6 +52,15 @@ type ImplementerDeps = {
   langfuse?: (Langfuse | LangfuseLike | null) | null;
 };
 
+type ValidatorFeedback = {
+  verdict: 'PASS' | 'FAIL';
+  report?: string;
+  junitObject?: string;
+  coverageObject?: string;
+  contract?: ValidatorRemediationContract;
+  receivedAt?: string;
+};
+
 const SYSTEM_PROMPT = [
   'You are the Implementer specialist in an autonomous software delivery platform.',
   'Use the provided tools to read and modify files under code/.',
@@ -72,7 +83,7 @@ export class ImplementerAgent {
     });
     const messages: ChatCompletionMessage[] = [
       { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: buildUserPrompt(input.plan) }
+      { role: 'user', content: buildUserPrompt(input.plan, input.feedback) }
     ] as ChatCompletionMessage[];
 
     const trace = this.createTrace(input);
@@ -115,7 +126,7 @@ export class ImplementerAgent {
           trace?.generation?.({
             name: 'implementer.result',
             model: this.deps.model,
-            input: input.plan,
+            input: { plan: input.plan, feedback: input.feedback },
             output: { files, summary: message.content }
           });
           return { ok: true, files, summary: message.content };
@@ -236,12 +247,43 @@ export class ImplementerAgent {
   }
 }
 
-function buildUserPrompt(plan: Plan) {
-  return [
+function buildUserPrompt(plan: Plan, feedback?: ValidatorFeedback) {
+  const lines = [
     'Execute the following implementation plan. Return DONE when satisfied.',
     'Plan JSON:',
     JSON.stringify(plan, null, 2)
-  ].join('\n');
+  ];
+  if (feedback && feedback.verdict === 'FAIL' && feedback.contract) {
+    lines.push('\nValidator verdict: FAIL. Address the following remediation items before responding with DONE.');
+    const { contract } = feedback;
+    if (contract.requiredChanges.length > 0) {
+      lines.push('Required changes:');
+      for (const change of contract.requiredChanges) {
+        const details = change.details ? ` - Details: ${change.details}` : '';
+        lines.push(`- ${change.summary}${details}`);
+        if (Array.isArray(change.blockers) && change.blockers.length > 0) {
+          lines.push(`  Blockers: ${change.blockers.join('; ')}`);
+        }
+      }
+    }
+    if (contract.failingTests.length > 0) {
+      lines.push('Failing tests to fix:');
+      for (const test of contract.failingTests) {
+        const message = test.message ? ` :: ${test.message}` : '';
+        lines.push(`- ${test.file} :: ${test.test}${message}`);
+      }
+    }
+    if (feedback.report) {
+      lines.push(`Validator report artifact: ${feedback.report}`);
+    }
+    if (feedback.junitObject) {
+      lines.push(`JUnit results: ${feedback.junitObject}`);
+    }
+    if (feedback.coverageObject) {
+      lines.push(`Coverage summary: ${feedback.coverageObject}`);
+    }
+  }
+  return lines.join('\n');
 }
 
 function parseArgs(call: ChatCompletionToolCall): unknown {

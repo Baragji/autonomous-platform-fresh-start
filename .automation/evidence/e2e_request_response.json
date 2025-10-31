@@ -15,7 +15,7 @@
       "stream": "/api/executions/SANITIZED/stream"
     }
   },
-  "execId": "SANITIZED",
+  "execId": "03c99c96-ab63-4cbc-8f79-040feb2ea9a3",
   "execution_trace": [
     {
       "ts": "STATIC",
@@ -27,7 +27,227 @@
     },
     {
       "ts": "STATIC",
-      "phase": "needs_remediation"
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "tested"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "tested"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "tested"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "tested"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implemented"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "implementing"
+    },
+    {
+      "ts": "STATIC",
+      "phase": "failed"
     }
   ]
 }

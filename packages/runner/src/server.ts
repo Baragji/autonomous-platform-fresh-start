@@ -1,9 +1,8 @@
 import express, { type Request, type Response } from 'express';
 import { z } from 'zod';
-import { startOtel, createLogger, createVfs } from './compat';
+import { startOtel, createLogger, createVfs, createHttpLogger, registerShutdownCompat } from './compat';
 import { RunnerAgent, RunRequestSchema } from './agent';
-import { registerShutdown } from '@autonomous/shared/src/shutdown';
-import { createHttpLogger } from '@autonomous/shared/src/logger';
+// registerShutdown loaded via compat
 
 function logStartupError(message: string, e: unknown) {
   const errMsg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
@@ -28,7 +27,12 @@ let logger: { info: (...args: unknown[]) => unknown; error: (...args: unknown[])
 
 export const app = express();
 // Use a wrapper so the middleware uses the latest logger reference when requests arrive
-app.use((req, res, next) => createHttpLogger(logger as any)(req, res, next));
+app.use((req, res, next) => {
+  // Lazy-load via compat to avoid ESM/CJS resolution issues
+  void createHttpLogger(logger as unknown as { info?: Function; error?: Function })
+    .then((httpLogger: unknown) => (httpLogger as (a: unknown, b: unknown, c: unknown) => unknown)(req, res, next))
+    .catch(() => next());
+});
 app.use(express.json({ limit: '2mb' }));
 
 app.get('/healthz', async (_req, res) => {
@@ -70,5 +74,5 @@ const port = Number(process.env.RUNNER_PORT || 7040);
 if (process.env.NODE_ENV !== 'test') {
   const server = app.listen(port, () => logger.info({ port }, 'runner listening'));
 
-  registerShutdown({ server, logger });
+  void registerShutdownCompat({ server, logger });
 }

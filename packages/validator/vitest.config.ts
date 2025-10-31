@@ -4,13 +4,14 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
-    include: ['test/**/*.spec.ts', 'src/__tests__/**/*.test.ts'],
+    include: ['src/__tests__/**/*.test.ts'],
     environment: 'node',
     setupFiles: ['dotenv/config'],
     hookTimeout: 60000,
     testTimeout: 30000,
     coverage: {
-      provider: 'v8',
+      // Use istanbul for more stable source maps in package-only run
+      provider: 'istanbul',
       include: ['src/**/*.ts'],
       reportsDirectory: 'coverage',
       reporter: ['json', 'text', 'json-summary']

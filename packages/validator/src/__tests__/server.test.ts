@@ -120,6 +120,17 @@ describe('validator server', () => {
     expect(listFilesMock).toHaveBeenCalled();
   });
 
+  it('healthz returns 503 when vfs fails and E2B key missing', async () => {
+    process.env.E2B_API_KEY = '';
+    listFilesMock.mockRejectedValueOnce(new Error('boom')); // vfs error path
+    const mod = await import('../server');
+    const res = await request(mod.app).get('/healthz');
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ ok: false, checks: { vfs: false, e2bKey: false } });
+    // restore key for later tests
+    process.env.E2B_API_KEY = 'test-key';
+  });
+
   it('validates execution and attaches artifact checksums', async () => {
     const writes: Array<{ path: string; options?: TestVfsWriteOptions; content: Buffer | string }> = [];
     writeFileMock.mockImplementation(async (path, content, options) => {
@@ -243,5 +254,114 @@ describe('validator server', () => {
     expect(traceGeneration).toHaveBeenCalled();
     expect(flushMock).toHaveBeenCalled();
     expect(publishMock).toHaveBeenCalledWith('exec-fail', 'status', { status: 'needs_remediation' });
+  });
+
+  it('gracefully handles LLM judge failure and keeps automated report', async () => {
+    // Force automated report (coverage below threshold), and make LLM throw
+    coveragePct = 70;
+    process.env.VALIDATOR_LLM_JUDGE = '1';
+    openAiCreateMock.mockRejectedValueOnce(new Error('llm down'));
+    const codeFiles = [ { path: 'code/src/app.ts', size: 1, lastModified: new Date() } ];
+    listFilesMock.mockResolvedValue(codeFiles);
+    readFileMock.mockImplementation(async (p: string) => p === 'code/src/app.ts' ? Buffer.from('export const x=1;') : Buffer.from(''));
+    const mod = await import('../server');
+    const res = await request(mod.app).post('/validate').send({ execId: 'exec-judgefail' });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.verdict).toBe('FAIL'); // stays automated FAIL
+  });
+
+  it('detects secrets and includes issues in report', async () => {
+    const codeFiles = [ { path: 'code/src/app.ts', size: 1, lastModified: new Date() } ];
+    listFilesMock.mockResolvedValue(codeFiles);
+    readFileMock.mockImplementation(async (p: string) => {
+      if (p === 'code/src/app.ts') return Buffer.from('export const ok=true;');
+      return Buffer.from('');
+    });
+    sandboxCtorMock.mockImplementationOnce(() => {
+      const s = new MockSandbox();
+      // Inject a fake secret in one of the scanned files
+      s.files.read = vi.fn(async (path: string) => {
+        if (path.endsWith('/index.ts')) return 'const a="AKIAABCDEFGHIJKLMNOP"';
+        return '';
+      });
+      // Normal passing tests
+      s.commands.run = vi.fn(async () => ({ exitCode: 0, stdout: JSON.stringify({ numTotalTests: 1, numPassedTests: 1, duration: 1, testResults: [{ name: 'ok', status: 'pass' }] }), stderr: '' }));
+      return s;
+    });
+    const mod = await import('../server');
+    const res = await request(mod.app).post('/validate').send({ execId: 'exec-secrets' });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.verdict).toBe('FAIL'); // secrets found -> FAIL
+    // Contract should recommend removing secrets
+    const hasSecretsReq = Array.isArray(res.body.contract?.requiredChanges) && (res.body.contract.requiredChanges as Array<{ summary?: string; details?: string }>).some((c) => /secrets/i.test(String(c.summary)) || /secrets/i.test(String(c.details)));
+    expect(hasSecretsReq).toBe(true);
+  });
+
+  it('returns structured FAIL when no code files are present', async () => {
+    // No code files in VFS triggers early structured FAIL path
+    listFilesMock.mockResolvedValueOnce([]);
+    const mod = await import('../server');
+    const res = await request(mod.app).post('/validate').send({ execId: 'exec-nocode' });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.verdict).toBe('FAIL');
+    // Should have written a validation report under validator/ prefix
+    expect(writeFileMock).toHaveBeenCalledWith(
+      expect.stringMatching(/validator\/validation-report\.json$/),
+      expect.any(Buffer),
+      expect.objectContaining({ sha256: expect.stringMatching(/^[a-f0-9]{64}$/) })
+    );
+    // Contract should include coverage threshold default (80) when unset
+    expect(res.body.contract).toMatchObject({ coverage: { threshold: 80 } });
+  });
+
+  it('returns structured FAIL when E2B_API_KEY is missing', async () => {
+    process.env.E2B_API_KEY = '';
+    listFilesMock.mockResolvedValueOnce([{ path: 'code/src/app.ts', size: 1, lastModified: new Date() }]);
+    readFileMock.mockResolvedValueOnce(Buffer.from('export const ok = true;'));
+    const mod = await import('../server');
+    const res = await request(mod.app).post('/validate').send({ execId: 'exec-noe2b' });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.verdict).toBe('FAIL');
+    expect(writeFileMock).toHaveBeenCalledWith(
+      expect.stringMatching(/validator\/validation-report\.json$/),
+      expect.any(Buffer),
+      expect.objectContaining({ sha256: expect.stringMatching(/^[a-f0-9]{64}$/) })
+    );
+    expect(publishMock).toHaveBeenCalledWith('exec-noe2b', 'status', { status: 'needs_remediation' });
+    // Reset E2B key for subsequent tests
+    process.env.E2B_API_KEY = 'test-key';
+  });
+
+  it('fails when coverage summary is missing but still writes JUnit only', async () => {
+    // Provide code so sandbox path is taken
+    listFilesMock.mockResolvedValueOnce([{ path: 'code/src/app.ts', size: 1, lastModified: new Date() }]);
+    readFileMock.mockResolvedValueOnce(Buffer.from('export const ok = true;'));
+    // Override sandbox factory for this test to simulate missing coverage file
+    sandboxCtorMock.mockImplementationOnce(() => {
+      const s = new MockSandbox();
+      s.files.read = vi.fn(async (p: string) => {
+        if (String(p).endsWith('coverage/coverage-summary.json')) throw new Error('missing');
+        return '';
+      });
+      s.commands.run = vi.fn(async (cmd: string) => {
+        if (cmd === 'npm') {
+          return { exitCode: 0, stdout: JSON.stringify({ numTotalTests: 1, numPassedTests: 1, duration: 1, testResults: [{ name: 'ok', status: 'pass', duration: 1 }] }), stderr: '' };
+        }
+        return { exitCode: 0, stdout: '', stderr: '' };
+      });
+      return s;
+    });
+    const mod = await import('../server');
+    const res = await request(mod.app).post('/validate').send({ execId: 'exec-nocov' });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.verdict).toBe('FAIL'); // coverage missing so cannot pass
+    // Should have written a JUnit object but not coverage object
+    const junitCall = writeFileMock.mock.calls.find(([p]) => String(p).endsWith('validator-junit.xml'));
+    expect(junitCall).toBeTruthy();
   });
 });
