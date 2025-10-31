@@ -172,9 +172,10 @@ if (plannerOnly) {
     .addConditionalEdges('validator', (state: McaState) => {
       if (state.status === 'validated') return END;
       if ((state.failure_count ?? 0) >= 3) {
-        // escalate and still go to implementer for another attempt if policy allows
+        // escalate - exit the loop after 3 failures
         state.status = 'escalated';
         publish(state.execId, 'status', { status: 'escalated' }).catch(() => {});
+        return END;  // ✓ Exit the loop instead of looping forever!
       }
       return 'implementer';
     });
@@ -192,7 +193,7 @@ app.post('/start', async (req: Request, res: Response) => {
   try {
     const opts: Record<string, unknown> = {
       configurable: { thread_id: execId },
-      recursionLimit: 100  // Allow up to 100 iterations before hitting limit (was 25)
+      recursionLimit: 500  // Allow up to 500 iterations before hitting limit
     } as unknown as Record<string, unknown>;
     logger.info({ execId, intent, recursionLimit: 100 }, 'invoking graph');
     await (graph as unknown as { invoke: (st: McaState, o?: Record<string, unknown>) => Promise<unknown> }).invoke({ execId, intent }, opts);
