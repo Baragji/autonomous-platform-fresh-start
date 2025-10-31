@@ -1,6 +1,4 @@
 import express, { type Request, type Response } from 'express';
-import fs from 'fs';
-import path from 'path';
 import { upsertExecution } from '@autonomous/shared/src/db';
 import { publish, redisPub, redisSub } from '@autonomous/shared/src/events';
 import { startOtel } from '@autonomous/shared/src/otel';
@@ -46,11 +44,6 @@ if (process.env.NODE_ENV !== 'test') {
     logger.error({ err: e.message }, 'PostgresSaver setup threw');
     // proceed; graph.invoke will likely surface a clearer error
   }
-}
-
-async function supervisor(state: McaState): Promise<McaState> {
-  // Deterministic routing to planner for Week 2 scope (LLM supervisor can be enabled later)
-  return { ...state, current_agent: 'planner' };
 }
 
 async function plannerNode(state: McaState): Promise<McaState> {
@@ -175,6 +168,8 @@ if (plannerOnly) {
         // escalate - exit the loop after 3 failures
         state.status = 'escalated';
         publish(state.execId, 'status', { status: 'escalated' }).catch(() => {});
+        // persist escalation for traceability
+        upsertExecution(state.execId, 'escalated', state.intent, 'validator').catch(() => {});
         return END;  // ✓ Exit the loop instead of looping forever!
       }
       return 'implementer';
@@ -195,7 +190,7 @@ app.post('/start', async (req: Request, res: Response) => {
       configurable: { thread_id: execId },
       recursionLimit: 500  // Allow up to 500 iterations before hitting limit
     } as unknown as Record<string, unknown>;
-    logger.info({ execId, intent, recursionLimit: 100 }, 'invoking graph');
+    logger.info({ execId, intent, recursionLimit: 500 }, 'invoking graph');
     await (graph as unknown as { invoke: (st: McaState, o?: Record<string, unknown>) => Promise<unknown> }).invoke({ execId, intent }, opts);
     logger.info({ execId }, 'graph invoke completed');
   } catch (e) {
